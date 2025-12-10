@@ -1,6 +1,7 @@
 # tutorstartup
 
-Production-grade tutor marketplace (Upwork-like) with Next.js web app and NestJS API in a Turborepo monorepo. Uses pnpm workspaces and AWS-first infrastructure.
+tutor marketplace with Next.js web app and NestJS API in a Turborepo monorepo. 
+Uses pnpm workspaces and AWS-first infrastructure.
 
 ## Structure
 - `apps/web` – Next.js App Router frontend (React, Tailwind).
