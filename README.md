@@ -6,7 +6,7 @@ Uses pnpm workspaces and AWS-first infrastructure.
 ## Structure
 - `apps/web` – Next.js App Router frontend (React, Tailwind).
 - `apps/api` – NestJS backend.
-- `packages/*` – Shared packages (to be added).
+- `packages/*` – Shared packages.
 
 ## Getting started
 1) Install pnpm: `npm install -g pnpm`
