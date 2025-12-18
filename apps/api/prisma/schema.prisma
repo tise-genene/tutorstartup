@@ -1,0 +1,45 @@
+// Prisma schema for tutorstartup API
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  STUDENT
+  TUTOR
+  AGENCY
+  ADMIN
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  name         String
+  role         UserRole      @default(STUDENT)
+  phone        String?       @db.VarChar(50)
+  isVerified   Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  tutorProfile TutorProfile?
+}
+
+model TutorProfile {
+  id         String    @id @default(uuid())
+  userId     String    @unique
+  bio        String?
+  subjects   String[]  @default([])
+  hourlyRate Int?
+  languages  String[]  @default([])
+  location   String?
+  rating     Float?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
