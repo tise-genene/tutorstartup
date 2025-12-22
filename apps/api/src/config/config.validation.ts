@@ -1,0 +1,52 @@
+import * as Joi from 'joi';
+
+const isTestEnv = process.env.NODE_ENV === 'test';
+const defaultCacheDriver = isTestEnv ? 'memory' : 'redis';
+const defaultQueueDriver = isTestEnv ? 'memory' : 'redis';
+const defaultSearchDriver = isTestEnv ? 'memory' : 'meilisearch';
+const defaultSearchSyncEnabled = !isTestEnv;
+const defaultRedisUrl = isTestEnv ? '' : 'redis://localhost:6379';
+const defaultMeilisearchHost = isTestEnv ? '' : 'http://localhost:7700';
+
+export const configValidationSchema = Joi.object({
+  NODE_ENV: Joi.string()
+    .valid('development', 'test', 'production')
+    .default('development'),
+  PORT: Joi.number().default(3000),
+  API_PREFIX: Joi.string().default('api'),
+  API_VERSION: Joi.string().default('1'),
+  DATABASE_URL: Joi.string().uri().required(),
+  JWT_SECRET: Joi.string().min(32).required(),
+  JWT_EXPIRES_IN: Joi.string().default('15m'),
+  JWT_REFRESH_SECRET: Joi.string().min(32).required(),
+  JWT_REFRESH_EXPIRES_IN: Joi.string().default('30d'),
+  RATE_LIMIT_TTL: Joi.number().default(60),
+  RATE_LIMIT_MAX: Joi.number().default(100),
+  FRONTEND_URL: Joi.string().default('http://localhost:3000'),
+  CACHE_DRIVER: Joi.string()
+    .valid('redis', 'memory')
+    .default(defaultCacheDriver),
+  CACHE_DEFAULT_TTL: Joi.number().default(30),
+  QUEUE_DRIVER: Joi.string()
+    .valid('redis', 'memory')
+    .default(defaultQueueDriver),
+  QUEUE_PREFIX: Joi.string().default('tutorstartup'),
+  SEARCH_DRIVER: Joi.string()
+    .valid('meilisearch', 'memory')
+    .default(defaultSearchDriver),
+  SEARCH_SYNC_ENABLED: Joi.boolean()
+    .truthy('true', '1', 'yes', 'y', 'on')
+    .falsy('false', '0', 'no', 'n', 'off')
+    .default(defaultSearchSyncEnabled),
+  REDIS_HOST: Joi.string().default('localhost'),
+  REDIS_PORT: Joi.number().port().default(6379),
+  REDIS_PASSWORD: Joi.string().allow('', null).default(''),
+  REDIS_DB: Joi.number().min(0).default(0),
+  REDIS_URL: Joi.string().uri().allow('', null).default(defaultRedisUrl),
+  MEILISEARCH_HOST: Joi.string()
+    .uri()
+    .allow('', null)
+    .default(defaultMeilisearchHost),
+  MEILISEARCH_MASTER_KEY: Joi.string().allow('', null),
+  MEILISEARCH_INDEX_PREFIX: Joi.string().default('tutorstartup'),
+});
