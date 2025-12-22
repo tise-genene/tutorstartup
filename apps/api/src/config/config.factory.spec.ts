@@ -1,7 +1,12 @@
-import { cacheConfig } from './cache.config';
-import { queueConfig } from './queue.config';
-import { redisConfig } from './redis.config';
-import { searchConfig } from './search.config';
+import { cacheConfig, type CacheConfig } from './cache.config.js';
+import { queueConfig, type QueueConfig } from './queue.config.js';
+import { redisConfig, type RedisConfig } from './redis.config.js';
+import { searchConfig, type SearchConfig } from './search.config.js';
+
+const resolveCacheConfig = (): CacheConfig => cacheConfig() as CacheConfig;
+const resolveQueueConfig = (): QueueConfig => queueConfig() as QueueConfig;
+const resolveRedisConfig = (): RedisConfig => redisConfig() as RedisConfig;
+const resolveSearchConfig = (): SearchConfig => searchConfig() as SearchConfig;
 
 describe('Config factories', () => {
   const originalEnv = process.env;
@@ -20,7 +25,7 @@ describe('Config factories', () => {
       delete process.env.CACHE_DRIVER;
       delete process.env.CACHE_DEFAULT_TTL;
 
-      const value = cacheConfig();
+      const value = resolveCacheConfig();
       expect(value).toEqual({ driver: 'redis', defaultTtl: 30 });
     });
 
@@ -28,14 +33,14 @@ describe('Config factories', () => {
       process.env.NODE_ENV = 'test';
       delete process.env.CACHE_DRIVER;
 
-      const value = cacheConfig();
+      const value = resolveCacheConfig();
       expect(value.driver).toBe('memory');
     });
 
     it('parses user provided TTL', () => {
       process.env.CACHE_DEFAULT_TTL = '120';
 
-      const value = cacheConfig();
+      const value = resolveCacheConfig();
       expect(value.defaultTtl).toBe(120);
     });
   });
@@ -45,7 +50,7 @@ describe('Config factories', () => {
       process.env.NODE_ENV = 'test';
       delete process.env.QUEUE_DRIVER;
 
-      const value = queueConfig();
+      const value = resolveQueueConfig();
       expect(value.driver).toBe('memory');
     });
 
@@ -53,7 +58,7 @@ describe('Config factories', () => {
       process.env.NODE_ENV = 'development';
       process.env.QUEUE_PREFIX = 'custom-prefix';
 
-      const value = queueConfig();
+      const value = resolveQueueConfig();
       expect(value.prefix).toBe('custom-prefix');
     });
   });
@@ -67,7 +72,7 @@ describe('Config factories', () => {
       delete process.env.REDIS_DB;
       delete process.env.REDIS_URL;
 
-      const value = redisConfig();
+      const value = resolveRedisConfig();
       expect(value).toEqual({
         host: 'localhost',
         port: 6379,
@@ -81,7 +86,7 @@ describe('Config factories', () => {
       process.env.NODE_ENV = 'test';
       delete process.env.REDIS_URL;
 
-      const value = redisConfig();
+      const value = resolveRedisConfig();
       expect(value.url).toBe('');
     });
 
@@ -89,7 +94,7 @@ describe('Config factories', () => {
       process.env.REDIS_PORT = '6380';
       process.env.REDIS_DB = '1';
 
-      const value = redisConfig();
+      const value = resolveRedisConfig();
       expect(value.port).toBe(6380);
       expect(value.db).toBe(1);
     });
@@ -100,7 +105,7 @@ describe('Config factories', () => {
       process.env.NODE_ENV = 'development';
       delete process.env.SEARCH_SYNC_ENABLED;
 
-      const value = searchConfig();
+      const value = resolveSearchConfig();
       expect(value.syncEnabled).toBe(true);
       expect(value.meilisearch.host).toBe('http://localhost:7700');
     });
@@ -110,7 +115,7 @@ describe('Config factories', () => {
       delete process.env.SEARCH_SYNC_ENABLED;
       delete process.env.MEILISEARCH_HOST;
 
-      const value = searchConfig();
+      const value = resolveSearchConfig();
       expect(value.syncEnabled).toBe(false);
       expect(value.meilisearch.host).toBe('');
     });
@@ -118,7 +123,7 @@ describe('Config factories', () => {
     it('parses boolean string overrides', () => {
       process.env.SEARCH_SYNC_ENABLED = 'false';
 
-      const value = searchConfig();
+      const value = resolveSearchConfig();
       expect(value.syncEnabled).toBe(false);
     });
   });
