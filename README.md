@@ -1,20 +1,54 @@
 # tutorstartup
 
-tutor marketplace with Next.js web app and NestJS API in a Turborepo monorepo. 
-Uses pnpm workspaces and AWS-first infrastructure.
+Modern tutor marketplace playground powered by a NestJS API (`apps/api`) and a Next.js App Router web client (`apps/web`). The monorepo is managed with Turborepo + pnpm and leans on Redis, BullMQ, and Meilisearch to prove out production-ready workflows.
 
-## Structure
-- `apps/web` – Next.js App Router frontend (React, Tailwind).
-- `apps/api` – NestJS backend.
-- `packages/*` – Shared packages.
+## Highlights
+
+- **Auth & notifications** – Sign-up/login endpoints with JWTs plus a welcome-email BullMQ queue (notifications execute inline when the queue driver is disabled).
+- **Tutor module** – Tutors can upsert profiles (bio, subjects, rate, etc.) that automatically enqueue Meilisearch sync jobs.
+- **Search pipeline** – Redis-backed cache in front of Meilisearch (`/v1/tutors/search`) including health hooks and queue coverage tests.
+- **Frontend wiring** – The landing page in `apps/web` now talks directly to the API for auth, tutor CRUD, and search so the entire slice can be demoed without Postman.
+
+## Repo layout
+
+| Path       | Purpose                                                         |
+| ---------- | --------------------------------------------------------------- |
+| `apps/api` | NestJS modular monolith (Prisma, Redis, BullMQ, Meilisearch).   |
+| `apps/web` | Next.js App Router client with Tailwind + custom design tokens. |
+| `docs/`    | Architecture notes, roadmap, ADRs.                              |
+
+## Prerequisites
+
+- Node 20+
+- pnpm `npm install -g pnpm`
+- Local Postgres + Redis + Meilisearch (see `.env.example` for defaults).
 
 ## Getting started
-1) Install pnpm: `npm install -g pnpm`
-2) Install deps: `pnpm install`
-3) Dev servers:
-   - Web: `pnpm --filter web dev`
-   - API: `pnpm --filter api start:dev`
+
+```bash
+pnpm install
+
+# API (http://localhost:4000)
+pnpm --filter api start:dev
+
+# Web (http://localhost:3000)
+pnpm --filter web dev
+```
+
+Environment variables live in `.env.example` and `apps/api/.env.example`. The web client reads `NEXT_PUBLIC_API_URL` (defaults to `http://localhost:4000/api`).
+
+## Testing & quality gates
+
+```bash
+# API unit + integration tests (includes search cache/queue coverage)
+pnpm --filter api test
+
+# Type-check + build API bundle
+pnpm --filter api build
+```
+
+Front-end wiring relies on live API responses, so the recommended way to verify UX changes is to run both dev servers.
 
 ## License
-MIT
 
+MIT
