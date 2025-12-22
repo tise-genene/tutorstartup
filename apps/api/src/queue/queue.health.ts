@@ -1,6 +1,6 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Queue } from 'bullmq';
-import { QueueFactoryService } from './queue.factory';
+import { QueueFactoryService } from './queue.factory.js';
 
 @Injectable()
 export class QueueHealthService implements OnModuleDestroy {
