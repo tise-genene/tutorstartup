@@ -4,11 +4,11 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { UpsertTutorProfileDto } from './dto/upsert-tutor-profile.dto';
-import { TutorProfileDto } from './dto/tutor-profile.dto';
+import { PrismaService } from '../prisma/prisma.service.js';
+import { UpsertTutorProfileDto } from './dto/upsert-tutor-profile.dto.js';
+import { TutorProfileDto } from './dto/tutor-profile.dto.js';
 import { UserRole } from '@prisma/client';
-import { SearchIndexQueueService } from '../search/search-queue.service';
+import { SearchIndexQueueService } from '../search/search-queue.service.js';
 
 @Injectable()
 export class TutorsService {
