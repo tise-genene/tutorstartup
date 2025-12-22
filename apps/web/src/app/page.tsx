@@ -11,8 +11,10 @@ import {
 } from "../lib/api";
 import type {
   AuthResponse,
+  RegisterPayload,
   TutorProfile,
   TutorSearchResult,
+  UserRole,
 } from "../lib/types";
 
 const subjectLibrary = [
@@ -45,7 +47,11 @@ const panelTitleStyles = "text-lg font-semibold tracking-tight";
 export default function Home() {
   const [auth, setAuth] = useState<AuthResponse | null>(null);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
-  const [registerForm, setRegisterForm] = useState({
+  const [registerForm, setRegisterForm] = useState<
+    RegisterPayload & {
+      role: UserRole;
+    }
+  >({
     name: "",
     email: "",
     password: "",
@@ -271,7 +277,7 @@ export default function Home() {
                   onChange={(event) =>
                     setRegisterForm({
                       ...registerForm,
-                      role: event.target.value,
+                      role: event.target.value as UserRole,
                     })
                   }
                 >
