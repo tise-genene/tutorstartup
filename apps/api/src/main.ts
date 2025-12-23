@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 
@@ -24,6 +25,36 @@ async function bootstrap() {
       { path: 'health/ready', method: RequestMethod.GET },
     ],
   });
+
+  const swaggerEnabled =
+    config.get<string>('SWAGGER_ENABLED', 'true').toLowerCase() !== 'false';
+
+  if (swaggerEnabled) {
+    const swaggerPath = config.get<string>('SWAGGER_PATH', 'docs');
+
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('TutorStartup API')
+      .setDescription('API documentation for TutorStartup')
+      .setVersion(String(defaultVersion))
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          name: 'Authorization',
+          in: 'header',
+        },
+        'access-token',
+      )
+      .build();
+
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+
+    SwaggerModule.setup(swaggerPath, app, document, {
+      useGlobalPrefix: true,
+      jsonDocumentUrl: `${swaggerPath}-json`,
+    });
+  }
 
   app.useGlobalPipes(
     new ValidationPipe({
