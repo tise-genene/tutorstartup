@@ -39,6 +39,17 @@ export class SearchService {
     return this.enabled && Boolean(this.client);
   }
 
+  async checkHealth(): Promise<void> {
+    if (!this.isEnabled()) {
+      return;
+    }
+
+    const response = await this.client!.health();
+    if (response.status !== 'available') {
+      throw new Error(`Meilisearch unhealthy: ${response.status}`);
+    }
+  }
+
   async upsertTutor(document: SearchTutorDocument): Promise<void> {
     if (!this.isEnabled()) {
       return;
