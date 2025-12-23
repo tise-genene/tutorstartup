@@ -1,7 +1,7 @@
-import { cacheConfig, type CacheConfig } from './cache.config.js';
-import { queueConfig, type QueueConfig } from './queue.config.js';
-import { redisConfig, type RedisConfig } from './redis.config.js';
-import { searchConfig, type SearchConfig } from './search.config.js';
+import { cacheConfig, type CacheConfig } from './cache.config';
+import { queueConfig, type QueueConfig } from './queue.config';
+import { redisConfig, type RedisConfig } from './redis.config';
+import { searchConfig, type SearchConfig } from './search.config';
 
 const resolveCacheConfig = (): CacheConfig => cacheConfig() as CacheConfig;
 const resolveQueueConfig = (): QueueConfig => queueConfig() as QueueConfig;

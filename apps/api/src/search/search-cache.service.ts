@@ -17,9 +17,14 @@ export class SearchCacheService {
   }
 
   buildKey(params: TutorSearchParams): string {
+    const normalizedSubjects = (params.subjects ?? [])
+      .map((subject) => subject.trim())
+      .filter(Boolean)
+      .map((subject) => subject.toLowerCase());
+
     const normalized: TutorSearchParams = {
       ...params,
-      subjects: Array.from(new Set([...(params.subjects ?? [])].sort())),
+      subjects: Array.from(new Set(normalizedSubjects)).sort(),
       query: params.query?.trim() ?? '',
       location: params.location?.trim() || undefined,
     };

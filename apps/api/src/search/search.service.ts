@@ -13,6 +13,7 @@ export class SearchService {
   private readonly indexName: string;
   private client?: MeiliSearch;
   private indexPromise?: Promise<Index<SearchTutorDocument>>;
+  private settingsPromise?: Promise<void>;
 
   constructor(private readonly configService: ConfigService) {
     const searchConfig = this.configService.get<SearchConfig>('search');
@@ -174,6 +175,30 @@ export class SearchService {
         });
     }
 
-    return this.indexPromise;
+    const index = await this.indexPromise;
+    await this.ensureIndexSettings(index);
+    return index;
+  }
+
+  private async ensureIndexSettings(
+    index: Index<SearchTutorDocument>,
+  ): Promise<void> {
+    if (!this.client) {
+      return;
+    }
+
+    if (!this.settingsPromise) {
+      this.settingsPromise = (async () => {
+        await index.updateFilterableAttributes(['subjects', 'location']);
+      })().catch((error) => {
+        const err = error as Error;
+        this.logger.error(
+          'Failed to initialize search index settings',
+          err.stack,
+        );
+      });
+    }
+
+    await this.settingsPromise;
   }
 }
