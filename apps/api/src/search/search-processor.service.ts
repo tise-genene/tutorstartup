@@ -19,6 +19,7 @@ export class SearchProcessorService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(SearchProcessorService.name);
   private readonly queueEnabled: boolean;
   private readonly syncEnabled: boolean;
+  private readonly consumersEnabled: boolean;
   private worker?: Worker<SearchIndexJob>;
 
   constructor(
@@ -30,10 +31,14 @@ export class SearchProcessorService implements OnModuleInit, OnModuleDestroy {
     const searchConfig = this.configService.get<SearchConfig>('search');
     this.queueEnabled = (queueConfig?.driver ?? 'redis') !== 'memory';
     this.syncEnabled = searchConfig?.syncEnabled ?? true;
+
+    const processRole = (process.env.PROCESS_ROLE ?? 'api').toLowerCase();
+    this.consumersEnabled = processRole === 'worker' || processRole === 'all';
   }
 
   async onModuleInit(): Promise<void> {
     if (
+      !this.consumersEnabled ||
       !this.queueEnabled ||
       !this.syncEnabled ||
       !this.searchService.isEnabled()

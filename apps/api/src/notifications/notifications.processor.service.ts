@@ -18,6 +18,7 @@ export class NotificationsProcessorService
 {
   private readonly logger = new Logger(NotificationsProcessorService.name);
   private readonly queueEnabled: boolean;
+  private readonly consumersEnabled: boolean;
   private worker?: Worker<NotificationJob>;
 
   constructor(
@@ -26,10 +27,13 @@ export class NotificationsProcessorService
   ) {
     const queueConfig = this.configService.get<QueueConfig>('queue');
     this.queueEnabled = (queueConfig?.driver ?? 'redis') !== 'memory';
+
+    const processRole = (process.env.PROCESS_ROLE ?? 'api').toLowerCase();
+    this.consumersEnabled = processRole === 'worker' || processRole === 'all';
   }
 
   async onModuleInit(): Promise<void> {
-    if (!this.queueEnabled) {
+    if (!this.consumersEnabled || !this.queueEnabled) {
       return;
     }
 
