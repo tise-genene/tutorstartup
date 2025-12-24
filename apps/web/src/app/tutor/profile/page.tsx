@@ -197,7 +197,7 @@ export default function TutorProfilePage() {
         )}
 
         {profile && (
-          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm">
+          <div className="mt-6 surface-card surface-card--quiet p-4 text-sm">
             <p className="ui-muted">
               {t("profile.lastUpdated")}:{" "}
               {new Date(profile.updatedAt).toLocaleString()}

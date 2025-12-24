@@ -75,18 +75,36 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-50 px-4 pt-4 md:px-8">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-6 focus:top-6 focus:z-[60] focus:rounded-xl focus:border focus:bg-[var(--card)] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold"
+        style={{ borderColor: "var(--divider)", color: "var(--foreground)" }}
+      >
+        Skip to content
+      </a>
       <div className="mx-auto max-w-6xl">
         <div
-          className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/40 px-4 py-3 backdrop-blur-xl md:px-6"
-          style={{ boxShadow: "0 20px 45px rgba(2, 6, 23, 0.45)" }}
+          className="relative overflow-hidden rounded-2xl border px-4 py-3 backdrop-blur-xl md:px-6"
+          style={{
+            borderColor: "var(--divider)",
+            background:
+              "color-mix(in srgb, var(--background) 75%, transparent)",
+            boxShadow: "var(--section-shadow)",
+          }}
         >
-          <span className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+          <span
+            className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"
+            style={{ opacity: theme === "light" ? 0.18 : 0.35 }}
+          />
           <div className="relative flex flex-wrap items-center justify-between gap-3">
             <Link href="/" className="flex items-center gap-3">
               <span className="pill bg-white/5 ui-muted">Tutorstartup</span>
             </Link>
 
-            <nav className="flex flex-wrap items-center gap-2">
+            <nav
+              className="flex flex-wrap items-center gap-2"
+              aria-label="Primary"
+            >
               <Link href="/tutors/search" className="ui-btn">
                 {t("nav.search")}
               </Link>

@@ -154,7 +154,7 @@ export default function TutorSearchPage() {
               {result.data.map((hit) => (
                 <div
                   key={hit.id}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-4"
+                  className="surface-card surface-card--quiet p-4"
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
                     <p className="text-base font-semibold">{hit.name}</p>
@@ -181,7 +181,7 @@ export default function TutorSearchPage() {
                     {hit.subjects.map((subject) => (
                       <span
                         key={`${hit.id}-${subject}`}
-                        className="rounded-full border border-white/10 px-2 py-0.5 text-xs"
+                        className="hero-chip text-xs"
                       >
                         {subject}
                       </span>
