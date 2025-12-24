@@ -14,13 +14,16 @@ describe('SearchIndexQueueService', () => {
     close: queueClose,
   } as unknown as Queue<SearchIndexJob>;
 
+  const createQueueMock = jest.fn().mockReturnValue(queueMock);
   const queueFactory = {
-    createQueue: jest.fn().mockReturnValue(queueMock),
+    createQueue: createQueueMock,
   } as unknown as QueueFactoryService;
 
+  const syncTutorProfileMock = jest.fn().mockResolvedValue(undefined);
+  const removeTutorProfileMock = jest.fn().mockResolvedValue(undefined);
   const searchIndexer = {
-    syncTutorProfile: jest.fn().mockResolvedValue(undefined),
-    removeTutorProfile: jest.fn().mockResolvedValue(undefined),
+    syncTutorProfile: syncTutorProfileMock,
+    removeTutorProfile: removeTutorProfileMock,
   } as unknown as SearchIndexerService;
 
   const makeConfigService = (queueDriver: string, syncEnabled: boolean) =>
@@ -56,7 +59,7 @@ describe('SearchIndexQueueService', () => {
     await service.enqueueUpsert('user-1');
     await service.enqueueDelete('user-2');
 
-    expect(queueFactory.createQueue).toHaveBeenCalled();
+    expect(createQueueMock).toHaveBeenCalled();
     expect(queueAdd).toHaveBeenCalledWith('sync-tutor', {
       action: 'UPSERT',
       userId: 'user-1',
@@ -79,8 +82,8 @@ describe('SearchIndexQueueService', () => {
 
     await service.enqueueUpsert('inline-user');
 
-    expect(queueFactory.createQueue).not.toHaveBeenCalled();
-    expect(searchIndexer.syncTutorProfile).toHaveBeenCalledWith('inline-user');
+    expect(createQueueMock).not.toHaveBeenCalled();
+    expect(syncTutorProfileMock).toHaveBeenCalledWith('inline-user');
   });
 
   it('skips work when search is disabled', async () => {
@@ -95,8 +98,8 @@ describe('SearchIndexQueueService', () => {
     await service.enqueueDelete('skipped-user');
 
     expect(queueAdd).not.toHaveBeenCalled();
-    expect(searchIndexer.syncTutorProfile).not.toHaveBeenCalled();
-    expect(searchIndexer.removeTutorProfile).not.toHaveBeenCalled();
+    expect(syncTutorProfileMock).not.toHaveBeenCalled();
+    expect(removeTutorProfileMock).not.toHaveBeenCalled();
   });
 
   it('skips work when search driver is disabled at runtime', async () => {
@@ -111,6 +114,6 @@ describe('SearchIndexQueueService', () => {
     await service.enqueueUpsert('disabled-runtime');
 
     expect(queueAdd).not.toHaveBeenCalled();
-    expect(searchIndexer.syncTutorProfile).not.toHaveBeenCalled();
+    expect(syncTutorProfileMock).not.toHaveBeenCalled();
   });
 });

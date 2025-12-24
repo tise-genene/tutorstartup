@@ -5,25 +5,32 @@ import { TutorSearchResult } from './search.types';
 
 describe('SearchController', () => {
   const buildController = () => {
+    const buildKeyMock = jest.fn().mockReturnValue('cache-key');
+    const cacheGetMock = jest.fn().mockResolvedValue(null);
+    const cacheSetMock = jest.fn().mockResolvedValue(undefined);
     const cache = {
-      buildKey: jest.fn().mockReturnValue('cache-key'),
-      get: jest.fn().mockResolvedValue(null),
-      set: jest.fn().mockResolvedValue(undefined),
+      buildKey: buildKeyMock,
+      get: cacheGetMock,
+      set: cacheSetMock,
     } as unknown as SearchCacheService;
 
+    const searchTutorsMock = jest.fn();
     const searchService = {
-      searchTutors: jest.fn(),
+      searchTutors: searchTutorsMock,
     } as unknown as SearchService;
 
     return {
       cache,
       searchService,
       controller: new SearchController(cache, searchService),
+      cacheSetMock,
+      cacheGetMock,
+      searchTutorsMock,
     };
   };
 
   it('returns cached responses with a cache-hit flag', async () => {
-    const { cache, controller, searchService } = buildController();
+    const { cache, controller, searchTutorsMock } = buildController();
     const cached: TutorSearchResult = {
       data: [],
       meta: {
@@ -45,11 +52,11 @@ describe('SearchController', () => {
     } as never);
 
     expect(response.meta.cacheHit).toBe(true);
-    expect(searchService.searchTutors).not.toHaveBeenCalled();
+    expect(searchTutorsMock).not.toHaveBeenCalled();
   });
 
   it('delegates to SearchService and stores results when cache misses', async () => {
-    const { cache, controller, searchService } = buildController();
+    const { cacheSetMock, controller, searchTutorsMock } = buildController();
     const liveResult: TutorSearchResult = {
       data: [],
       meta: {
@@ -62,7 +69,7 @@ describe('SearchController', () => {
         searchEnabled: true,
       },
     };
-    (searchService.searchTutors as jest.Mock).mockResolvedValueOnce(liveResult);
+    searchTutorsMock.mockResolvedValueOnce(liveResult);
 
     const response = await controller.searchTutors({
       q: '',
@@ -71,8 +78,8 @@ describe('SearchController', () => {
       page: 1,
     } as never);
 
-    expect(searchService.searchTutors).toHaveBeenCalled();
-    expect(cache.set).toHaveBeenCalledWith('cache-key', liveResult);
+    expect(searchTutorsMock).toHaveBeenCalled();
+    expect(cacheSetMock).toHaveBeenCalledWith('cache-key', liveResult);
     expect(response.data).toEqual(liveResult.data);
   });
 });

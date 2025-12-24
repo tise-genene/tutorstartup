@@ -36,7 +36,7 @@ export class SearchProcessorService implements OnModuleInit, OnModuleDestroy {
     this.consumersEnabled = processRole === 'worker' || processRole === 'all';
   }
 
-  async onModuleInit(): Promise<void> {
+  onModuleInit(): void {
     if (
       !this.consumersEnabled ||
       !this.queueEnabled ||
@@ -67,12 +67,12 @@ export class SearchProcessorService implements OnModuleInit, OnModuleDestroy {
 
     this.worker.on('failed', (job, error) => {
       const jobId = job?.id ?? 'unknown';
-      const err = error as Error;
+      const err = error instanceof Error ? error : new Error(String(error));
       this.logger.error(`Search job ${jobId} failed`, err.stack);
     });
 
     this.worker.on('error', (error) => {
-      const err = error as Error;
+      const err = error instanceof Error ? error : new Error(String(error));
       this.logger.error('Search queue worker encountered an error', err.stack);
     });
   }

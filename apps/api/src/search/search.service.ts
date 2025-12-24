@@ -46,7 +46,11 @@ export class SearchService {
 
     const response = await this.client!.health();
     if (response.status !== 'available') {
-      throw new Error(`Meilisearch unhealthy: ${response.status}`);
+      const status =
+        typeof response.status === 'string'
+          ? response.status
+          : String(response.status);
+      throw new Error(`Meilisearch unhealthy: ${status}`);
     }
   }
 
@@ -129,7 +133,17 @@ export class SearchService {
 
   private buildFilters(params: TutorSearchParams): string[] {
     const filters: string[] = [];
-    const subjectFilters = params.subjects?.filter(Boolean) ?? [];
+    const subjectFilters: string[] = [];
+    const rawSubjects = params.subjects ?? [];
+    for (const subject of rawSubjects) {
+      if (typeof subject !== 'string') {
+        continue;
+      }
+      const trimmed = subject.trim();
+      if (trimmed.length > 0) {
+        subjectFilters.push(trimmed);
+      }
+    }
     if (subjectFilters.length > 0) {
       const serializedSubjects = subjectFilters
         .map((subject) => `"${this.escapeFilterValue(subject)}"`)
