@@ -1,4 +1,6 @@
-export type UserRole = "STUDENT" | "TUTOR" | "AGENCY" | "ADMIN";
+export type UserRole = "STUDENT" | "PARENT" | "TUTOR" | "AGENCY" | "ADMIN";
+
+export type LessonRequestStatus = "PENDING" | "ACCEPTED" | "DECLINED";
 
 export interface AuthenticatedUser {
   id: string;
@@ -17,6 +19,7 @@ export interface AuthResponse {
 export interface TutorProfile {
   id: string;
   userId: string;
+  name?: string | null;
   bio?: string | null;
   subjects: string[];
   hourlyRate?: number | null;
@@ -25,6 +28,31 @@ export interface TutorProfile {
   rating?: number | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface LessonRequestUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+}
+
+export interface LessonRequest {
+  id: string;
+  tutorId: string;
+  requesterId: string;
+  subject: string;
+  message: string;
+  status: LessonRequestStatus;
+  createdAt: string;
+  updatedAt: string;
+  requester: LessonRequestUser;
+}
+
+export interface CreateLessonRequestPayload {
+  tutorUserId: string;
+  subject: string;
+  message: string;
 }
 
 export interface TutorProfileInput {

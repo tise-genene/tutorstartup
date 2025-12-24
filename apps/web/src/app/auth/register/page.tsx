@@ -101,6 +101,7 @@ export default function RegisterPage() {
               }
             >
               <option value="STUDENT">{t("auth.role.student")}</option>
+              <option value="PARENT">{t("auth.role.parent")}</option>
               <option value="TUTOR">{t("auth.role.tutor")}</option>
             </select>
           </label>

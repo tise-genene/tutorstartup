@@ -20,6 +20,7 @@ import { NotificationsQueueService } from '../notifications/notifications.queue.
 export class AuthService {
   private readonly allowedSelfAssignableRoles = new Set<UserRole>([
     UserRole.STUDENT,
+    UserRole.PARENT,
     UserRole.TUTOR,
   ]);
 

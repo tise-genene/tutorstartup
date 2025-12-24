@@ -11,9 +11,16 @@ datasource db {
 
 enum UserRole {
   STUDENT
+  PARENT
   TUTOR
   AGENCY
   ADMIN
+}
+
+enum LessonRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
 }
 
 model User {
@@ -28,6 +35,9 @@ model User {
   updatedAt    DateTime      @updatedAt
 
   tutorProfile TutorProfile?
+
+  lessonRequestsSent     LessonRequest[] @relation("LessonRequestsFromRequester")
+  lessonRequestsReceived LessonRequest[] @relation("LessonRequestsToTutor")
 }
 
 model TutorProfile {
@@ -43,4 +53,21 @@ model TutorProfile {
   updatedAt  DateTime  @updatedAt
 
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LessonRequest {
+  id          String              @id @default(uuid())
+  tutorId     String
+  requesterId String
+  subject     String
+  message     String
+  status      LessonRequestStatus @default(PENDING)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  tutor       User @relation("LessonRequestsToTutor", fields: [tutorId], references: [id], onDelete: Cascade)
+  requester   User @relation("LessonRequestsFromRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+
+  @@index([tutorId, createdAt])
+  @@index([requesterId, createdAt])
 }

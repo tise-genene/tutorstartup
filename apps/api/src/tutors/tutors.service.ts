@@ -64,12 +64,20 @@ export class TutorsService {
   }
 
   async getByUserId(userId: string): Promise<TutorProfileDto> {
-    const profile = await this.prisma.tutorProfile.findUnique({
-      where: { userId },
+    const tutor = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        tutorProfile: true,
+      },
     });
-    if (!profile) {
+
+    if (!tutor || tutor.role !== UserRole.TUTOR || !tutor.tutorProfile) {
       throw new NotFoundException('Tutor profile not found');
     }
-    return TutorProfileDto.fromEntity(profile)!;
+
+    return TutorProfileDto.fromEntity(tutor.tutorProfile, tutor.name)!;
   }
 }

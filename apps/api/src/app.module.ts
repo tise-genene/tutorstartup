@@ -20,6 +20,7 @@ import { RedisModule } from './redis/redis.module';
 import { QueueModule } from './queue/queue.module';
 import { SearchModule } from './search/search.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { LessonRequestsModule } from './lesson-requests/lesson-requests.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -71,6 +72,7 @@ import { AppService } from './app.service';
     QueueModule,
     SearchModule,
     NotificationsModule,
+    LessonRequestsModule,
     AuthModule,
     UsersModule,
     TutorsModule,

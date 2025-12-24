@@ -3,6 +3,7 @@ import { TutorProfile } from '@prisma/client';
 export class TutorProfileDto {
   id!: string;
   userId!: string;
+  name?: string;
   bio?: string | null;
   subjects!: string[];
   hourlyRate?: number | null;
@@ -12,7 +13,10 @@ export class TutorProfileDto {
   createdAt!: Date;
   updatedAt!: Date;
 
-  static fromEntity(profile: TutorProfile | null): TutorProfileDto | null {
+  static fromEntity(
+    profile: TutorProfile | null,
+    name?: string,
+  ): TutorProfileDto | null {
     if (!profile) {
       return null;
     }
@@ -20,6 +24,7 @@ export class TutorProfileDto {
     return {
       id: profile.id,
       userId: profile.userId,
+      name,
       bio: profile.bio,
       subjects: profile.subjects ?? [],
       hourlyRate: profile.hourlyRate,

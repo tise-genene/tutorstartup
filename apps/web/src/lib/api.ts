@@ -1,5 +1,8 @@
 import type {
   AuthResponse,
+  CreateLessonRequestPayload,
+  LessonRequest,
+  LessonRequestStatus,
   LoginPayload,
   RegisterPayload,
   TutorProfile,
@@ -88,6 +91,14 @@ export async function upsertTutorProfile(
   });
 }
 
+export async function fetchTutorByUserId(
+  userId: string
+): Promise<TutorProfile> {
+  return request<TutorProfile>(`/v1/tutors/${userId}`, {
+    method: "GET",
+  });
+}
+
 export async function searchTutors(
   params: TutorSearchParams
 ): Promise<TutorSearchResult> {
@@ -111,4 +122,36 @@ export async function searchTutors(
   });
 
   return request<TutorSearchResult>(`/v1/tutors/search?${query.toString()}`);
+}
+
+export async function createLessonRequest(
+  token: string,
+  payload: CreateLessonRequestPayload
+): Promise<LessonRequest> {
+  return request<LessonRequest>("/v1/lesson-requests", {
+    method: "POST",
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function fetchLessonRequestInbox(
+  token: string
+): Promise<LessonRequest[]> {
+  return request<LessonRequest[]>("/v1/lesson-requests/inbox", {
+    method: "GET",
+    token,
+  });
+}
+
+export async function updateLessonRequestStatus(
+  token: string,
+  id: string,
+  status: LessonRequestStatus
+): Promise<LessonRequest> {
+  return request<LessonRequest>(`/v1/lesson-requests/${id}`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify({ status }),
+  });
 }

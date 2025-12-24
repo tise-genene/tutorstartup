@@ -98,7 +98,9 @@ export function AppHeader() {
           />
           <div className="relative flex flex-wrap items-center justify-between gap-3">
             <Link href="/" className="flex items-center gap-3">
-              <span className="pill bg-white/5 ui-muted">Tutorstartup</span>
+              <span className="pill bg-white/5 ui-muted font-extrabold">
+                Tutorstartup
+              </span>
             </Link>
 
             <nav
@@ -111,6 +113,11 @@ export function AppHeader() {
               <Link href="/tutor/profile" className="ui-btn">
                 {t("nav.profile")}
               </Link>
+              {auth?.user.role === "TUTOR" && (
+                <Link href="/tutor/requests" className="ui-btn">
+                  {t("nav.requests")}
+                </Link>
+              )}
 
               {!auth ? (
                 <>

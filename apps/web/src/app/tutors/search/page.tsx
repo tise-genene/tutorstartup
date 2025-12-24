@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { PageShell } from "../../_components/PageShell";
 import { searchTutors } from "../../../lib/api";
 import type { TutorSearchResult } from "../../../lib/types";
@@ -157,7 +158,12 @@ export default function TutorSearchPage() {
                   className="surface-card surface-card--quiet p-4"
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
-                    <p className="text-base font-semibold">{hit.name}</p>
+                    <Link
+                      href={`/tutors/${hit.id}`}
+                      className="text-base font-semibold underline-offset-4 hover:underline"
+                    >
+                      {hit.name}
+                    </Link>
                     <p className="text-sm ui-muted">
                       {hit.location || t("search.remote")} ·{" "}
                       {hit.hourlyRate
