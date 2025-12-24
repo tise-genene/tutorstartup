@@ -166,7 +166,7 @@ export default function TutorDetailPage({
           {status && <p className="mt-6 text-sm ui-muted">{status}</p>}
         </div>
 
-        <div className="glass-panel p-8 sm:p-10">
+        <div className="glass-panel p-8 sm:p-10 lg:sticky lg:top-28 lg:self-start">
           <h2 className="text-lg font-semibold">{t("lesson.request.title")}</h2>
           <p className="mt-1 text-sm ui-muted">
             {t("lesson.request.subtitle")}

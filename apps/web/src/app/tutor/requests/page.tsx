@@ -92,7 +92,7 @@ export default function TutorRequestsPage() {
           )}
 
           {!loading && isTutor && items.length > 0 && (
-            <div className="mt-6 space-y-3">
+            <div className="mt-6 space-y-4">
               {items.map((item) => (
                 <div
                   key={item.id}

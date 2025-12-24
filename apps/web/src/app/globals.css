@@ -5,7 +5,7 @@
   --dark-foreground: #f8fafc;
   --light-background: #f8fafc;
   --light-foreground: #020617;
-  --accent: #c7ff3d;
+  --accent: #a3e635;
 
   --background: var(--dark-background);
   --foreground: var(--dark-foreground);
@@ -199,6 +199,8 @@ html[lang="am"] body {
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  background: color-mix(in srgb, var(--background) 72%, transparent);
+  color: color-mix(in srgb, var(--foreground) 70%, transparent);
 }
 
 .ui-muted {
@@ -209,10 +211,20 @@ html[lang="am"] body {
   width: 100%;
   border-radius: 0.75rem;
   border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
-  background: color-mix(in srgb, var(--foreground) 4%, transparent);
+  background: var(--panel-surface);
   padding: 0.55rem 0.9rem;
   font-size: 0.875rem;
   color: var(--foreground);
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--background) 55%, transparent);
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.ui-field:hover {
+  border-color: color-mix(in srgb, var(--foreground) 22%, transparent);
 }
 
 .ui-field::placeholder {
@@ -237,6 +249,7 @@ html[lang="am"] body {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--foreground);
+  backdrop-filter: blur(10px);
   transition:
     opacity 120ms ease,
     background 120ms ease,
@@ -264,8 +277,8 @@ html[lang="am"] body {
   background: var(--accent);
   color: var(--background);
   box-shadow:
-    0 0 30px color-mix(in srgb, var(--accent) 60%, transparent),
-    0 15px 30px color-mix(in srgb, var(--accent) 25%, transparent);
+    0 0 18px color-mix(in srgb, var(--accent) 40%, transparent),
+    0 14px 26px color-mix(in srgb, var(--background) 60%, transparent);
   transition:
     opacity 150ms ease,
     transform 150ms ease,
@@ -276,8 +289,8 @@ html[lang="am"] body {
   opacity: 0.96;
   transform: translateY(-1px);
   box-shadow:
-    0 0 38px color-mix(in srgb, var(--accent) 80%, transparent),
-    0 20px 35px color-mix(in srgb, var(--accent) 35%, transparent);
+    0 0 22px color-mix(in srgb, var(--accent) 55%, transparent),
+    0 18px 30px color-mix(in srgb, var(--background) 58%, transparent);
 }
 
 .section-shell {
@@ -311,7 +324,7 @@ html[data-theme="light"] .surface-card:hover {
 }
 
 .surface-card--quiet {
-  background: color-mix(in srgb, var(--background) 92%, transparent);
+  background: var(--panel-surface);
   box-shadow: none;
 }
 
