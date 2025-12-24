@@ -41,7 +41,7 @@ export default function LoginPage() {
 
   return (
     <PageShell>
-      <div className="glass-panel p-8 sm:p-10">
+      <div className="mx-auto max-w-xl glass-panel p-8 sm:p-10">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold">{t("auth.login.title")}</h1>
           <p className="text-sm ui-muted">{t("auth.login.subtitle")}</p>

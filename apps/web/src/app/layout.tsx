@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Chivo_Mono } from "next/font/google";
+import {
+  Space_Grotesk,
+  Chivo_Mono,
+  Noto_Sans_Ethiopic,
+} from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -29,6 +33,11 @@ const mono = Chivo_Mono({
   variable: "--font-mono",
 });
 
+const ethiopic = Noto_Sans_Ethiopic({
+  subsets: ["ethiopic"],
+  variable: "--font-ethiopic",
+});
+
 export const metadata: Metadata = {
   title: "Tutorstartup",
   description: "Tutor marketplace playground",
@@ -44,7 +53,9 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: preHydrationInitScript }} />
       </head>
-      <body className={`${display.variable} ${mono.variable} antialiased`}>
+      <body
+        className={`${display.variable} ${mono.variable} ${ethiopic.variable} antialiased`}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>

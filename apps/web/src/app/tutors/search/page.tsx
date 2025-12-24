@@ -55,7 +55,7 @@ export default function TutorSearchPage() {
 
   return (
     <PageShell>
-      <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
+      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[360px_1fr]">
         <div className="glass-panel p-8">
           <h1 className="text-2xl font-semibold">{t("search.title")}</h1>
           <p className="mt-1 text-sm ui-muted">{t("search.subtitle")}</p>

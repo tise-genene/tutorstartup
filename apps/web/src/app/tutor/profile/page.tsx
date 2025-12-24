@@ -94,7 +94,7 @@ export default function TutorProfilePage() {
 
   return (
     <PageShell>
-      <div className="glass-panel p-8 sm:p-10">
+      <div className="mx-auto max-w-4xl glass-panel p-8 sm:p-10">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold">{t("profile.title")}</h1>

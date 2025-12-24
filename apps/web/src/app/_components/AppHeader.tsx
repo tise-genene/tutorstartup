@@ -74,66 +74,76 @@ export function AppHeader() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="px-4 pt-6 md:px-8">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="pill bg-white/5 ui-muted">Tutorstartup</span>
-        </Link>
+    <header className="sticky top-0 z-50 px-4 pt-4 md:px-8">
+      <div className="mx-auto max-w-6xl">
+        <div
+          className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/40 px-4 py-3 backdrop-blur-xl md:px-6"
+          style={{ boxShadow: "0 20px 45px rgba(2, 6, 23, 0.45)" }}
+        >
+          <span className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+          <div className="relative flex flex-wrap items-center justify-between gap-3">
+            <Link href="/" className="flex items-center gap-3">
+              <span className="pill bg-white/5 ui-muted">Tutorstartup</span>
+            </Link>
 
-        <nav className="flex flex-wrap items-center gap-2">
-          <Link href="/tutors/search" className="ui-btn">
-            {t("nav.search")}
-          </Link>
-          <Link href="/tutor/profile" className="ui-btn">
-            {t("nav.profile")}
-          </Link>
-
-          {!auth ? (
-            <>
-              <Link href="/auth/login" className="ui-btn">
-                {t("nav.login")}
+            <nav className="flex flex-wrap items-center gap-2">
+              <Link href="/tutors/search" className="ui-btn">
+                {t("nav.search")}
               </Link>
-              <Link href="/auth/register" className="ui-btn ui-btn-primary">
-                {t("nav.register")}
+              <Link href="/tutor/profile" className="ui-btn">
+                {t("nav.profile")}
               </Link>
-            </>
-          ) : (
-            <button type="button" onClick={logout} className="ui-btn">
-              {t("nav.logout")}
-            </button>
-          )}
 
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="ui-btn ui-icon-btn"
-            aria-label={
-              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
-            }
-            title={theme === "dark" ? "Light mode" : "Dark mode"}
-          >
-            <span className="block opacity-85 hover:opacity-100">
-              {theme === "dark" ? <MoonIcon /> : <SunIcon />}
-            </span>
-          </button>
+              {!auth ? (
+                <>
+                  <Link href="/auth/login" className="ui-btn">
+                    {t("nav.login")}
+                  </Link>
+                  <Link href="/auth/register" className="ui-btn ui-btn-primary">
+                    {t("nav.register")}
+                  </Link>
+                </>
+              ) : (
+                <button type="button" onClick={logout} className="ui-btn">
+                  {t("nav.logout")}
+                </button>
+              )}
 
-          <button
-            type="button"
-            onClick={() => setLocale(locale === "en" ? "am" : "en")}
-            className="ui-btn"
-            aria-label={
-              locale === "en" ? "Switch to Amharic" : "Switch to English"
-            }
-            title={locale === "en" ? "AMH" : "ENG"}
-          >
-            <span className="opacity-85">
-              <GlobeIcon />
-            </span>
-            <span className="text-xs font-semibold tracking-wide opacity-90">
-              {locale === "en" ? "ENG" : "AMH"}
-            </span>
-          </button>
-        </nav>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="ui-btn ui-icon-btn"
+                aria-label={
+                  theme === "dark"
+                    ? "Switch to light mode"
+                    : "Switch to dark mode"
+                }
+                title={theme === "dark" ? "Light mode" : "Dark mode"}
+              >
+                <span className="block opacity-85 hover:opacity-100">
+                  {theme === "dark" ? <MoonIcon /> : <SunIcon />}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLocale(locale === "en" ? "am" : "en")}
+                className="ui-btn"
+                aria-label={
+                  locale === "en" ? "Switch to Amharic" : "Switch to English"
+                }
+                title={locale === "en" ? "AMH" : "ENG"}
+              >
+                <span className="opacity-85">
+                  <GlobeIcon />
+                </span>
+                <span className="text-xs font-semibold tracking-wide opacity-90">
+                  {locale === "en" ? "ENG" : "AMH"}
+                </span>
+              </button>
+            </nav>
+          </div>
+        </div>
       </div>
     </header>
   );

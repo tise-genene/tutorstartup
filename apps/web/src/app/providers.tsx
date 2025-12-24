@@ -571,6 +571,17 @@ export function Providers({ children }: { children: ReactNode }) {
     localStorage.setItem(LOCALE_KEY, locale);
   }, [locale, hasHydrated]);
 
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    localStorage.setItem(THEME_KEY, theme);
+  }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+    localStorage.setItem(LOCALE_KEY, locale);
+  }, [locale]);
+
   const setTheme = useCallback((next: Theme) => setThemeState(next), []);
   const toggleTheme = useCallback(() => {
     setThemeState((prev) => (prev === "dark" ? "light" : "dark"));
