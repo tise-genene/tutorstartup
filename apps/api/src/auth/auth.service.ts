@@ -26,7 +26,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService<Record<string, string>>,
     private readonly notificationsQueue: NotificationsQueueService,
   ) {}
 
@@ -121,19 +121,28 @@ export class AuthService {
     };
 
     type ExpiresIn = NonNullable<JwtSignOptions['expiresIn']>;
-    const accessTokenTtl = (this.configService.get<string>('JWT_EXPIRES_IN') ??
-      '15m') as ExpiresIn;
-    const refreshTokenTtl = (this.configService.get<string>(
+    const accessTokenEnv = this.configService.get<string>('JWT_EXPIRES_IN');
+    const refreshTokenEnv = this.configService.get<string>(
       'JWT_REFRESH_EXPIRES_IN',
-    ) ?? '30d') as ExpiresIn;
+    );
+    const accessTokenTtl: ExpiresIn =
+      accessTokenEnv && accessTokenEnv.length > 0 ? accessTokenEnv : '15m';
+    const refreshTokenTtl: ExpiresIn =
+      refreshTokenEnv && refreshTokenEnv.length > 0 ? refreshTokenEnv : '30d';
+    const jwtSecret = this.configService.get<string>('JWT_SECRET');
+    const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
+
+    if (!jwtSecret || !refreshSecret) {
+      throw new Error('JWT secrets are not configured');
+    }
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
-        secret: this.configService.getOrThrow<string>('JWT_SECRET'),
+        secret: jwtSecret,
         expiresIn: accessTokenTtl,
       }),
       this.jwtService.signAsync(payload, {
-        secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+        secret: refreshSecret,
         expiresIn: refreshTokenTtl,
       }),
     ]);
