@@ -24,19 +24,21 @@ export class NotificationsHandler {
     }
   }
 
-  private async sendWelcomeEmail(
+  private sendWelcomeEmail(
     payload: NotificationJobPayloadMap['send-welcome-email'],
   ): Promise<void> {
     this.logger.log(
       `Sending welcome email to ${payload.email} for user ${payload.userId}`,
     );
+    return Promise.resolve();
   }
 
-  private async sendTutorProfileReminder(
+  private sendTutorProfileReminder(
     payload: NotificationJobPayloadMap['tutor-profile-reminder'],
   ): Promise<void> {
     this.logger.log(
       `Sending tutor profile reminder to ${payload.email} for user ${payload.userId}`,
     );
+    return Promise.resolve();
   }
 }

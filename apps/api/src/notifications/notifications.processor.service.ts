@@ -32,7 +32,7 @@ export class NotificationsProcessorService
     this.consumersEnabled = processRole === 'worker' || processRole === 'all';
   }
 
-  async onModuleInit(): Promise<void> {
+  onModuleInit(): void {
     if (!this.consumersEnabled || !this.queueEnabled) {
       return;
     }
@@ -54,12 +54,12 @@ export class NotificationsProcessorService
 
     this.worker.on('failed', (job, error) => {
       const jobId = job?.id ?? 'unknown';
-      const err = error as Error;
+      const err = error instanceof Error ? error : new Error(String(error));
       this.logger.error(`Notification job ${jobId} failed`, err.stack);
     });
 
     this.worker.on('error', (error) => {
-      const err = error as Error;
+      const err = error instanceof Error ? error : new Error(String(error));
       this.logger.error('Notifications worker encountered an error', err.stack);
     });
   }
