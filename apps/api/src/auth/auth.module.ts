@@ -14,18 +14,14 @@ import { NotificationsModule } from '../notifications/notifications.module';
     NotificationsModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
-      useFactory: (
-        configService: ConfigService<Record<string, string>>,
-      ): JwtModuleOptions => {
+      useFactory: (configService: ConfigService): JwtModuleOptions => {
         type ExpiresIn = NonNullable<JwtSignOptions['expiresIn']>;
-        const rawExpiresIn = configService.get<string>('JWT_EXPIRES_IN');
+        const rawExpiresIn = String(configService.get('JWT_EXPIRES_IN') ?? '');
         const expiresIn: ExpiresIn =
-          typeof rawExpiresIn === 'string' && rawExpiresIn.length > 0
-            ? rawExpiresIn
-            : '15m';
+          rawExpiresIn.length > 0 ? rawExpiresIn : '15m';
 
-        const jwtSecret = configService.get<string>('JWT_SECRET');
-        if (typeof jwtSecret !== 'string' || jwtSecret.length === 0) {
+        const jwtSecret = String(configService.get('JWT_SECRET') ?? '');
+        if (jwtSecret.length === 0) {
           throw new Error('JWT_SECRET not configured');
         }
         return {

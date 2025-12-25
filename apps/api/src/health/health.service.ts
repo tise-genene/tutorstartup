@@ -38,22 +38,30 @@ export class HealthService {
         error instanceof Error ? `down: ${error.message}` : 'down: unknown';
     }
 
-    try {
-      await this.withTimeout(this.redisService.ping(), timeoutMs);
-      components.redis = 'up';
-    } catch (error) {
-      status = 'error';
-      components.redis =
-        error instanceof Error ? `down: ${error.message}` : 'down: unknown';
+    if (!this.redisService.isEnabled()) {
+      components.redis = 'disabled';
+    } else {
+      try {
+        await this.withTimeout(this.redisService.ping(), timeoutMs);
+        components.redis = 'up';
+      } catch (error) {
+        status = 'error';
+        components.redis =
+          error instanceof Error ? `down: ${error.message}` : 'down: unknown';
+      }
     }
 
-    try {
-      await this.withTimeout(this.queueHealth.check(), timeoutMs);
-      components.queue = 'up';
-    } catch (error) {
-      status = 'error';
-      components.queue =
-        error instanceof Error ? `down: ${error.message}` : 'down: unknown';
+    if (!this.queueHealth.isEnabled()) {
+      components.queue = 'disabled';
+    } else {
+      try {
+        await this.withTimeout(this.queueHealth.check(), timeoutMs);
+        components.queue = 'up';
+      } catch (error) {
+        status = 'error';
+        components.queue =
+          error instanceof Error ? `down: ${error.message}` : 'down: unknown';
+      }
     }
 
     if (!this.searchService.isEnabled()) {

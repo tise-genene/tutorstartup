@@ -8,7 +8,6 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { LessonRequestStatus } from '@prisma/client';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
@@ -41,7 +40,7 @@ export class LessonRequestsController {
       id: user.sub,
       role: user.role,
     });
-    return requests.map(LessonRequestDto.fromEntity);
+    return requests.map((request) => LessonRequestDto.fromEntity(request));
   }
 
   @UseGuards(JwtAuthGuard)
@@ -54,7 +53,7 @@ export class LessonRequestsController {
     const updated = await this.service.updateStatus(
       { id: user.sub, role: user.role },
       id,
-      dto.status as LessonRequestStatus,
+      dto.status,
     );
     return LessonRequestDto.fromEntity(updated);
   }

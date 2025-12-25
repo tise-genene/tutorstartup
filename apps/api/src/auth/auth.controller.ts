@@ -1,34 +1,175 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { AuthResponseDto } from './dto/auth-response.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Post('register')
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  async register(
+    @Req() req: Request,
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    const tokens = await this.authService.register(dto, {
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+    this.setRefreshCookie(res, tokens.refreshToken);
+    return { accessToken: tokens.accessToken, user: tokens.user };
   }
 
   @Post('login')
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(
+    @Req() req: Request,
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    const tokens = await this.authService.login(dto, {
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+    this.setRefreshCookie(res, tokens.refreshToken);
+    return { accessToken: tokens.accessToken, user: tokens.user };
   }
 
   @Post('refresh')
-  refresh(@Body() dto: RefreshTokenDto) {
-    return this.authService.refresh(dto);
+  async refresh(
+    @Req() req: Request,
+    @Body() dto: RefreshTokenDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    const refreshToken =
+      this.readCookie(req, this.getRefreshCookieName()) ?? dto.refreshToken;
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Missing refresh token');
+    }
+
+    const tokens = await this.authService.refresh(refreshToken, {
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+    this.setRefreshCookie(res, tokens.refreshToken);
+    return { accessToken: tokens.accessToken, user: tokens.user };
+  }
+
+  @Post('logout')
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const refreshToken = this.readCookie(req, this.getRefreshCookieName());
+    if (refreshToken) {
+      await this.authService.revokeRefreshToken(refreshToken);
+    }
+    this.clearRefreshCookie(res);
+    return { ok: true };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
   me(@CurrentUser() user: JwtPayload) {
     return this.authService.getProfile(user.sub);
+  }
+
+  private getRefreshCookieName(): string {
+    return (
+      this.configService.get<string>('AUTH_REFRESH_COOKIE_NAME') ??
+      'tutorstartup_refresh'
+    );
+  }
+
+  private getAuthCookiePath(): string {
+    const prefix = this.configService.get<string>('API_PREFIX', 'api');
+    const version = this.configService.get<string>('API_VERSION', '1');
+    return `/${prefix}/v${version}/auth`;
+  }
+
+  private setRefreshCookie(res: Response, token: string): void {
+    const isProduction =
+      (this.configService.get<string>('NODE_ENV') ?? 'development') ===
+      'production';
+
+    const secureRaw = this.configService.get<string>(
+      'AUTH_REFRESH_COOKIE_SECURE',
+    );
+    const secure =
+      secureRaw === undefined
+        ? isProduction
+        : ['true', '1', 'yes', 'y', 'on'].includes(secureRaw.toLowerCase());
+
+    const domain = this.configService.get<string>('AUTH_REFRESH_COOKIE_DOMAIN');
+    const maxAgeDaysRaw = this.configService.get<string>(
+      'AUTH_REFRESH_COOKIE_MAXAGE_DAYS',
+    );
+    const maxAgeDays = maxAgeDaysRaw ? Number(maxAgeDaysRaw) : 30;
+    const maxAgeMs =
+      Number.isFinite(maxAgeDays) && maxAgeDays > 0
+        ? maxAgeDays * 24 * 60 * 60 * 1000
+        : 30 * 24 * 60 * 60 * 1000;
+
+    res.cookie(this.getRefreshCookieName(), token, {
+      httpOnly: true,
+      secure,
+      sameSite: 'lax',
+      path: this.getAuthCookiePath(),
+      maxAge: maxAgeMs,
+      domain: domain && domain.trim().length > 0 ? domain.trim() : undefined,
+    });
+  }
+
+  private clearRefreshCookie(res: Response): void {
+    const domain = this.configService.get<string>('AUTH_REFRESH_COOKIE_DOMAIN');
+    res.clearCookie(this.getRefreshCookieName(), {
+      path: this.getAuthCookiePath(),
+      domain: domain && domain.trim().length > 0 ? domain.trim() : undefined,
+    });
+  }
+
+  private readCookie(req: Request, name: string): string | null {
+    const cookieHeader = req.headers.cookie;
+    if (!cookieHeader) {
+      return null;
+    }
+
+    const pairs = cookieHeader.split(';');
+    for (const pair of pairs) {
+      const index = pair.indexOf('=');
+      if (index === -1) {
+        continue;
+      }
+      const rawKey = pair.slice(0, index).trim();
+      if (rawKey !== name) {
+        continue;
+      }
+
+      const rawValue = pair.slice(index + 1).trim();
+      try {
+        return decodeURIComponent(rawValue);
+      } catch {
+        return rawValue;
+      }
+    }
+
+    return null;
   }
 }

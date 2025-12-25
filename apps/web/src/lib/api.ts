@@ -41,6 +41,7 @@ async function request<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
     headers: mergedHeaders,
+    credentials: "include",
     cache: "no-store",
   });
 
@@ -70,6 +71,20 @@ export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
   return request<AuthResponse>("/v1/auth/login", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+export async function refreshSession(): Promise<AuthResponse> {
+  return request<AuthResponse>("/v1/auth/refresh", {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+export async function logoutSession(): Promise<{ ok: true } | { ok: boolean }> {
+  return request<{ ok: true } | { ok: boolean }>("/v1/auth/logout", {
+    method: "POST",
+    body: JSON.stringify({}),
   });
 }
 

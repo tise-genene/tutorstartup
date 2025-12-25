@@ -8,11 +8,11 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User, UserRole } from '@prisma/client';
 import * as argon2 from 'argon2';
+import { randomUUID, createHash } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { AuthResponseDto, AuthenticatedUserDto } from './dto/auth-response.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { AuthTokensDto, AuthenticatedUserDto } from './dto/auth-response.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { NotificationsQueueService } from '../notifications/notifications.queue.service';
 
@@ -27,11 +27,14 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService<Record<string, string>>,
+    private readonly configService: ConfigService,
     private readonly notificationsQueue: NotificationsQueueService,
   ) {}
 
-  async register(dto: RegisterDto): Promise<AuthResponseDto> {
+  async register(
+    dto: RegisterDto,
+    meta?: { ip?: string | null; userAgent?: string | null },
+  ): Promise<AuthTokensDto> {
     const normalizedEmail = dto.email.toLowerCase().trim();
     const allowedRole = dto.role ?? UserRole.STUDENT;
 
@@ -63,10 +66,13 @@ export class AuthService {
       name: user.name,
     });
 
-    return this.buildAuthResponse(user);
+    return this.issueTokensForUser(user, meta);
   }
 
-  async login(dto: LoginDto): Promise<AuthResponseDto> {
+  async login(
+    dto: LoginDto,
+    meta?: { ip?: string | null; userAgent?: string | null },
+  ): Promise<AuthTokensDto> {
     const normalizedEmail = dto.email.toLowerCase().trim();
     const user = await this.prisma.user.findUnique({
       where: { email: normalizedEmail },
@@ -80,17 +86,56 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.buildAuthResponse(user);
+    return this.issueTokensForUser(user, meta);
   }
 
-  async refresh(dto: RefreshTokenDto): Promise<AuthResponseDto> {
+  async refresh(
+    refreshToken: string,
+    meta?: { ip?: string | null; userAgent?: string | null },
+  ): Promise<AuthTokensDto> {
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(
-        dto.refreshToken,
+        refreshToken,
         {
           secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
         },
       );
+
+      const tokenId = payload.jti;
+      if (!tokenId) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const existingSession = await this.prisma.session.findUnique({
+        where: { tokenId },
+      });
+
+      if (!existingSession || existingSession.userId !== payload.sub) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      if (existingSession.revokedAt) {
+        // Reuse detected: revoke all active sessions for the user.
+        await this.prisma.session.updateMany({
+          where: { userId: existingSession.userId, revokedAt: null },
+          data: { revokedAt: new Date() },
+        });
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      if (existingSession.expiresAt.getTime() <= Date.now()) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const presentedHash = this.hashToken(refreshToken);
+      if (presentedHash !== existingSession.tokenHash) {
+        // Defensive: token mismatch for stored id.
+        await this.prisma.session.updateMany({
+          where: { userId: existingSession.userId, revokedAt: null },
+          data: { revokedAt: new Date() },
+        });
+        throw new UnauthorizedException('Invalid refresh token');
+      }
 
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
@@ -99,9 +144,32 @@ export class AuthService {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      return this.buildAuthResponse(user);
+      return await this.rotateSession(user, existingSession.tokenId, meta);
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+
+  async revokeRefreshToken(refreshToken: string): Promise<void> {
+    try {
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(
+        refreshToken,
+        {
+          secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+        },
+      );
+
+      const tokenId = payload.jti;
+      if (!tokenId) {
+        return;
+      }
+
+      await this.prisma.session.updateMany({
+        where: { tokenId, userId: payload.sub, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+    } catch {
+      // Ignore invalid tokens.
     }
   }
 
@@ -114,7 +182,10 @@ export class AuthService {
     return this.toAuthenticatedUser(user);
   }
 
-  private async buildAuthResponse(user: User): Promise<AuthResponseDto> {
+  private async issueTokensForUser(
+    user: User,
+    meta?: { ip?: string | null; userAgent?: string | null },
+  ): Promise<AuthTokensDto> {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
@@ -122,21 +193,26 @@ export class AuthService {
     };
 
     type ExpiresIn = NonNullable<JwtSignOptions['expiresIn']>;
-    const accessTokenEnv = this.configService.get<string>('JWT_EXPIRES_IN');
-    const refreshTokenEnv = this.configService.get<string>(
-      'JWT_REFRESH_EXPIRES_IN',
+    const accessTokenEnv = String(
+      this.configService.get('JWT_EXPIRES_IN') ?? '',
+    );
+    const refreshTokenEnv = String(
+      this.configService.get('JWT_REFRESH_EXPIRES_IN') ?? '',
     );
     const accessTokenTtl: ExpiresIn =
-      accessTokenEnv && accessTokenEnv.length > 0 ? accessTokenEnv : '15m';
+      accessTokenEnv.length > 0 ? accessTokenEnv : '15m';
     const refreshTokenTtl: ExpiresIn =
-      refreshTokenEnv && refreshTokenEnv.length > 0 ? refreshTokenEnv : '30d';
-    const jwtSecret = this.configService.get<string>('JWT_SECRET');
-    const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
+      refreshTokenEnv.length > 0 ? refreshTokenEnv : '30d';
+    const jwtSecret = String(this.configService.get('JWT_SECRET') ?? '');
+    const refreshSecret = String(
+      this.configService.get('JWT_REFRESH_SECRET') ?? '',
+    );
 
-    if (!jwtSecret || !refreshSecret) {
+    if (jwtSecret.length === 0 || refreshSecret.length === 0) {
       throw new Error('JWT secrets are not configured');
     }
 
+    const tokenId = randomUUID();
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: jwtSecret,
@@ -145,6 +221,92 @@ export class AuthService {
       this.jwtService.signAsync(payload, {
         secret: refreshSecret,
         expiresIn: refreshTokenTtl,
+        jwtid: tokenId,
+      }),
+    ]);
+
+    const refreshExpiresAt = this.computeRefreshExpiry(refreshTokenTtl);
+    await this.prisma.session.create({
+      data: {
+        userId: user.id,
+        tokenId,
+        tokenHash: this.hashToken(refreshToken),
+        expiresAt: refreshExpiresAt,
+        ip: meta?.ip ?? null,
+        userAgent: meta?.userAgent ?? null,
+      },
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      user: this.toAuthenticatedUser(user),
+    };
+  }
+
+  private async rotateSession(
+    user: User,
+    currentTokenId: string,
+    meta?: { ip?: string | null; userAgent?: string | null },
+  ): Promise<AuthTokensDto> {
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    type ExpiresIn = NonNullable<JwtSignOptions['expiresIn']>;
+    const accessTokenEnv = String(
+      this.configService.get('JWT_EXPIRES_IN') ?? '',
+    );
+    const refreshTokenEnv = String(
+      this.configService.get('JWT_REFRESH_EXPIRES_IN') ?? '',
+    );
+    const accessTokenTtl: ExpiresIn =
+      accessTokenEnv.length > 0 ? accessTokenEnv : '15m';
+    const refreshTokenTtl: ExpiresIn =
+      refreshTokenEnv.length > 0 ? refreshTokenEnv : '30d';
+    const jwtSecret = String(this.configService.get('JWT_SECRET') ?? '');
+    const refreshSecret = String(
+      this.configService.get('JWT_REFRESH_SECRET') ?? '',
+    );
+
+    if (jwtSecret.length === 0 || refreshSecret.length === 0) {
+      throw new Error('JWT secrets are not configured');
+    }
+
+    const nextTokenId = randomUUID();
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload, {
+        secret: jwtSecret,
+        expiresIn: accessTokenTtl,
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: refreshSecret,
+        expiresIn: refreshTokenTtl,
+        jwtid: nextTokenId,
+      }),
+    ]);
+
+    const refreshExpiresAt = this.computeRefreshExpiry(refreshTokenTtl);
+
+    await this.prisma.$transaction([
+      this.prisma.session.updateMany({
+        where: { tokenId: currentTokenId, userId: user.id, revokedAt: null },
+        data: {
+          revokedAt: new Date(),
+          replacedByTokenId: nextTokenId,
+        },
+      }),
+      this.prisma.session.create({
+        data: {
+          userId: user.id,
+          tokenId: nextTokenId,
+          tokenHash: this.hashToken(refreshToken),
+          expiresAt: refreshExpiresAt,
+          ip: meta?.ip ?? null,
+          userAgent: meta?.userAgent ?? null,
+        },
       }),
     ]);
 
@@ -153,6 +315,62 @@ export class AuthService {
       refreshToken,
       user: this.toAuthenticatedUser(user),
     };
+  }
+
+  private hashToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
+  }
+
+  private computeRefreshExpiry(
+    expiresIn: NonNullable<JwtSignOptions['expiresIn']>,
+  ): Date {
+    const ms = this.parseDurationToMs(expiresIn);
+    return new Date(Date.now() + ms);
+  }
+
+  private parseDurationToMs(
+    expiresIn: NonNullable<JwtSignOptions['expiresIn']>,
+  ): number {
+    if (typeof expiresIn === 'number') {
+      // jsonwebtoken treats numbers as seconds.
+      return expiresIn * 1000;
+    }
+
+    const raw = String(expiresIn).trim();
+    if (raw.length === 0) {
+      return 30 * 24 * 60 * 60 * 1000;
+    }
+
+    const match = raw.match(/^([0-9]+)\s*(ms|s|m|h|d)$/i);
+    if (!match) {
+      const asNumber = Number(raw);
+      if (Number.isFinite(asNumber)) {
+        return asNumber * 1000;
+      }
+      return 30 * 24 * 60 * 60 * 1000;
+    }
+
+    const value = Number(match[1]);
+    const unit = match[2].toLowerCase();
+
+    if (!Number.isFinite(value) || value <= 0) {
+      return 30 * 24 * 60 * 60 * 1000;
+    }
+
+    switch (unit) {
+      case 'ms':
+        return value;
+      case 's':
+        return value * 1000;
+      case 'm':
+        return value * 60 * 1000;
+      case 'h':
+        return value * 60 * 60 * 1000;
+      case 'd':
+        return value * 24 * 60 * 60 * 1000;
+      default:
+        return 30 * 24 * 60 * 60 * 1000;
+    }
   }
 
   private toAuthenticatedUser(user: User): AuthenticatedUserDto {

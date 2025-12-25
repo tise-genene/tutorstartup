@@ -21,12 +21,21 @@ Modern tutor marketplace playground powered by a NestJS API (`apps/api`) and a N
 
 - Node 20+
 - pnpm `npm install -g pnpm`
-- Local Postgres + Redis + Meilisearch (see `.env.example` for defaults).
+- Local Postgres + Redis + Meilisearch (see `.env.example` for defaults), or run `docker compose up -d`.
 
 ## Getting started
 
 ```bash
 pnpm install
+
+# Start dependencies (Postgres + Redis + Meilisearch)
+docker compose up -d
+
+# Apply DB migrations
+# - Local/dev: creates & applies migrations
+pnpm --filter api exec prisma migrate dev
+# - Staging/prod: applies existing migrations
+# pnpm --filter api exec prisma migrate deploy
 
 # API (http://localhost:4000)
 pnpm --filter api start:dev
@@ -36,6 +45,8 @@ pnpm --filter web dev
 ```
 
 Environment variables live in `.env.example` and `apps/api/.env.example`. The web client reads `NEXT_PUBLIC_API_URL` (defaults to `http://localhost:4000/api`).
+
+See `docs/DEPLOYMENT.md` for a staging/prod runbook.
 
 ## Testing & quality gates
 

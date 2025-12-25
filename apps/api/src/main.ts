@@ -2,7 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import type { NextFunction, Request, Response } from 'express';
 import { Logger } from 'nestjs-pino';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -26,12 +28,42 @@ async function bootstrap() {
     ],
   });
 
+  const nodeEnv = config.get<string>('NODE_ENV', 'development');
+  const swaggerDefault = nodeEnv === 'production' ? 'false' : 'true';
   const swaggerEnabled =
-    config.get<string>('SWAGGER_ENABLED', 'true').toLowerCase() !== 'false';
+    config.get<string>('SWAGGER_ENABLED', swaggerDefault).toLowerCase() !==
+    'false';
+
+  const swaggerPath = config.get<string>('SWAGGER_PATH', 'docs');
+  const swaggerRoutePrefix = `/${apiPrefix}/${swaggerPath}`;
+
+  const helmetWithCsp = helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"],
+        baseUri: ["'none'"],
+        formAction: ["'none'"],
+        frameAncestors: ["'none'"],
+        objectSrc: ["'none'"],
+      },
+    },
+  });
+
+  const helmetWithoutCsp = helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: false,
+  });
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const url = req.originalUrl ?? req.url;
+    if (swaggerEnabled && url.startsWith(swaggerRoutePrefix)) {
+      return helmetWithoutCsp(req, res, next);
+    }
+    return helmetWithCsp(req, res, next);
+  });
 
   if (swaggerEnabled) {
-    const swaggerPath = config.get<string>('SWAGGER_PATH', 'docs');
-
     const swaggerConfig = new DocumentBuilder()
       .setTitle('TutorStartup API')
       .setDescription('API documentation for TutorStartup')

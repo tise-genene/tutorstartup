@@ -10,7 +10,12 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 import type { AuthResponse } from "../lib/types";
-import { loginUser, registerUser } from "../lib/api";
+import {
+  loginUser,
+  logoutSession,
+  refreshSession,
+  registerUser,
+} from "../lib/api";
 import type { LoginPayload, RegisterPayload } from "../lib/types";
 
 type Theme = "dark" | "light";
@@ -18,7 +23,8 @@ type Locale = "en" | "am";
 
 const THEME_KEY = "tutorstartup.theme";
 const LOCALE_KEY = "tutorstartup.locale";
-const AUTH_KEY = "tutorstartup.auth";
+
+// Note: auth tokens are intentionally NOT persisted in localStorage.
 
 type Dictionary = Record<string, string>;
 
@@ -556,62 +562,48 @@ export function useAuth(): AuthContextValue {
 }
 
 export function Providers({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
-  const [locale, setLocaleState] = useState<Locale>("en");
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window === "undefined") {
+      return "dark";
+    }
+    const stored = localStorage.getItem(THEME_KEY);
+    return stored === "light" || stored === "dark" ? stored : "dark";
+  });
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof window === "undefined") {
+      return "en";
+    }
+    const stored = localStorage.getItem(LOCALE_KEY);
+    return stored === "en" || stored === "am" ? stored : "en";
+  });
   const [auth, setAuth] = useState<AuthResponse | null>(null);
-  const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const storedTheme = localStorage.getItem(THEME_KEY) as Theme | null;
-    if (storedTheme) {
-      setThemeState(storedTheme);
-    }
-
-    const storedLocale = localStorage.getItem(LOCALE_KEY) as Locale | null;
-    if (storedLocale) {
-      setLocaleState(storedLocale);
-    }
-
-    const storedAuthRaw = localStorage.getItem(AUTH_KEY);
-    if (storedAuthRaw) {
+    const run = async () => {
       try {
-        setAuth(JSON.parse(storedAuthRaw) as AuthResponse);
+        const refreshed = await refreshSession();
+        setAuth(refreshed);
       } catch {
-        localStorage.removeItem(AUTH_KEY);
+        // No active session yet.
       }
-    }
+    };
 
-    setHasHydrated(true);
+    void run();
   }, []);
 
   useEffect(() => {
-    if (!hasHydrated) {
+    if (typeof document === "undefined") {
       return;
     }
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.style.colorScheme = theme;
-    localStorage.setItem(THEME_KEY, theme);
-  }, [theme, hasHydrated]);
-
-  useEffect(() => {
-    if (!hasHydrated) {
-      return;
-    }
-    document.documentElement.lang = locale;
-    localStorage.setItem(LOCALE_KEY, locale);
-  }, [locale, hasHydrated]);
-
-  useEffect(() => {
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
     localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
   useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
     document.documentElement.lang = locale;
     localStorage.setItem(LOCALE_KEY, locale);
   }, [locale]);
@@ -633,20 +625,18 @@ export function Providers({ children }: { children: ReactNode }) {
   const login = useCallback(async (payload: LoginPayload) => {
     const response = await loginUser(payload);
     setAuth(response);
-    localStorage.setItem(AUTH_KEY, JSON.stringify(response));
     return response;
   }, []);
 
   const register = useCallback(async (payload: RegisterPayload) => {
     const response = await registerUser(payload);
     setAuth(response);
-    localStorage.setItem(AUTH_KEY, JSON.stringify(response));
     return response;
   }, []);
 
   const logout = useCallback(() => {
+    void logoutSession();
     setAuth(null);
-    localStorage.removeItem(AUTH_KEY);
   }, []);
 
   const i18nValue = useMemo<I18nContextValue>(

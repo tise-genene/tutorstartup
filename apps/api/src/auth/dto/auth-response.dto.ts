@@ -8,8 +8,13 @@ export class AuthenticatedUserDto {
   isVerified!: boolean;
 }
 
-export class AuthResponseDto {
+export class AuthTokensDto {
   accessToken!: string;
   refreshToken!: string;
+  user!: AuthenticatedUserDto;
+}
+
+export class AuthResponseDto {
+  accessToken!: string;
   user!: AuthenticatedUserDto;
 }

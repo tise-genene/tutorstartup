@@ -7,6 +7,7 @@ const defaultSearchDriver = isTestEnv ? 'memory' : 'meilisearch';
 const defaultSearchSyncEnabled = !isTestEnv;
 const defaultRedisUrl = isTestEnv ? '' : 'redis://localhost:6379';
 const defaultMeilisearchHost = isTestEnv ? '' : 'http://localhost:7700';
+const defaultRateLimitDriver = isTestEnv ? 'memory' : 'redis';
 
 export const configValidationSchema = Joi.object({
   NODE_ENV: Joi.string()
@@ -20,9 +21,16 @@ export const configValidationSchema = Joi.object({
   JWT_EXPIRES_IN: Joi.string().default('15m'),
   JWT_REFRESH_SECRET: Joi.string().min(32).required(),
   JWT_REFRESH_EXPIRES_IN: Joi.string().default('30d'),
+  RATE_LIMIT_DRIVER: Joi.string()
+    .valid('redis', 'memory')
+    .default(defaultRateLimitDriver),
   RATE_LIMIT_TTL: Joi.number().default(60),
   RATE_LIMIT_MAX: Joi.number().default(100),
   FRONTEND_URL: Joi.string().default('http://localhost:3000'),
+  SWAGGER_ENABLED: Joi.string()
+    .valid('true', 'false', '1', '0', 'yes', 'no', 'y', 'n', 'on', 'off')
+    .default('true'),
+  SWAGGER_PATH: Joi.string().default('docs'),
   CACHE_DRIVER: Joi.string()
     .valid('redis', 'memory')
     .default(defaultCacheDriver),
@@ -49,4 +57,11 @@ export const configValidationSchema = Joi.object({
     .default(defaultMeilisearchHost),
   MEILISEARCH_MASTER_KEY: Joi.string().allow('', null),
   MEILISEARCH_INDEX_PREFIX: Joi.string().default('tutorstartup'),
+
+  AUTH_REFRESH_COOKIE_NAME: Joi.string().default('tutorstartup_refresh'),
+  AUTH_REFRESH_COOKIE_DOMAIN: Joi.string().allow('', null),
+  AUTH_REFRESH_COOKIE_SECURE: Joi.string()
+    .valid('true', 'false', '1', '0', 'yes', 'no', 'y', 'n', 'on', 'off')
+    .allow('', null),
+  AUTH_REFRESH_COOKIE_MAXAGE_DAYS: Joi.number().default(30),
 });

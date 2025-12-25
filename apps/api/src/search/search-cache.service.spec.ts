@@ -10,6 +10,7 @@ describe('SearchCacheService', () => {
   };
   const redisService = {
     getClient: () => redisClient,
+    isEnabled: () => true,
   } as unknown as RedisService;
 
   const configService = {
