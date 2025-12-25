@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useAuth, useI18n, useTheme } from "../providers";
 
@@ -72,6 +73,7 @@ export function AppHeader() {
   const { auth, logout } = useAuth();
   const { locale, setLocale, t } = useI18n();
   const { theme, toggleTheme } = useTheme();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 px-4 pt-4 md:px-8">
@@ -101,8 +103,20 @@ export function AppHeader() {
               <span className="pill font-extrabold">Tutorstartup</span>
             </Link>
 
+            <button
+              type="button"
+              className="ui-btn md:hidden"
+              onClick={() => setMobileOpen((prev) => !prev)}
+              aria-label="Toggle navigation"
+              aria-expanded={mobileOpen}
+            >
+              <span className="text-sm font-semibold">
+                {mobileOpen ? "Close" : "Menu"}
+              </span>
+            </button>
+
             <nav
-              className="flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap md:justify-end"
+              className={`flex min-w-0 flex-col gap-2 overflow-hidden transition-all duration-300 md:flex-row md:flex-nowrap md:items-center md:gap-2 md:overflow-visible md:whitespace-nowrap md:rounded-none md:bg-transparent md:p-0 md:opacity-100 md:shadow-none md:transition-none md:justify-end ${mobileOpen ? "mt-4 max-h-[480px] opacity-100" : "max-h-0 opacity-0 pointer-events-none md:max-h-none md:pointer-events-auto"}`}
               aria-label="Primary"
             >
               <Link href="/tutors/search" className="ui-btn">
