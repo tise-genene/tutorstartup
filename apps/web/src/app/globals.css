@@ -5,7 +5,9 @@
   --dark-foreground: #f8fafc;
   --light-background: #f8fafc;
   --light-foreground: #020617;
-  --accent: #a3e635;
+  --accent: #10b981;
+  --accent-hover: #0ea472;
+  --accent-glow: #65f3c5;
 
   --background: var(--dark-background);
   --foreground: var(--dark-foreground);
@@ -31,7 +33,9 @@
   --light-foreground: #0f172a;
   --background: var(--light-background);
   --foreground: var(--light-foreground);
-  --accent: #f6b756;
+  --accent: #10b981;
+  --accent-hover: #0ea472;
+  --accent-glow: #65f3c5;
   --card: rgba(255, 255, 255, 0.92);
   --panel-surface: rgba(255, 255, 255, 0.88);
   --muted: color-mix(in srgb, var(--foreground) 45%, #ffffff);
@@ -277,8 +281,8 @@ html[lang="am"] body {
   background: var(--accent);
   color: var(--background);
   box-shadow:
-    0 0 18px color-mix(in srgb, var(--accent) 40%, transparent),
-    0 14px 26px color-mix(in srgb, var(--background) 60%, transparent);
+    0 0 20px color-mix(in srgb, var(--accent-glow) 80%, transparent),
+    0 18px 32px color-mix(in srgb, var(--background) 55%, transparent);
   transition:
     opacity 150ms ease,
     transform 150ms ease,
@@ -286,11 +290,12 @@ html[lang="am"] body {
 }
 
 .ui-btn-primary:hover {
-  opacity: 0.96;
+  opacity: 0.98;
   transform: translateY(-1px);
+  background: var(--accent-hover);
   box-shadow:
-    0 0 22px color-mix(in srgb, var(--accent) 55%, transparent),
-    0 18px 30px color-mix(in srgb, var(--background) 58%, transparent);
+    0 0 28px color-mix(in srgb, var(--accent-glow) 90%, transparent),
+    0 22px 34px color-mix(in srgb, var(--background) 52%, transparent);
 }
 
 .section-shell {

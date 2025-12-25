@@ -96,13 +96,13 @@ export function AppHeader() {
             className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"
             style={{ opacity: theme === "light" ? 0.18 : 0.35 }}
           />
-          <div className="relative flex items-center justify-between gap-3">
+          <div className="relative flex flex-wrap items-center gap-3 md:flex-nowrap md:justify-between">
             <Link href="/" className="flex shrink-0 items-center gap-3">
               <span className="pill font-extrabold">Tutorstartup</span>
             </Link>
 
             <nav
-              className="flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap"
+              className="flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap md:justify-end"
               aria-label="Primary"
             >
               <Link href="/tutors/search" className="ui-btn">
