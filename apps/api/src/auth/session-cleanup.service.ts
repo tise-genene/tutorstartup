@@ -42,7 +42,7 @@ export class SessionCleanupService implements OnModuleInit, OnModuleDestroy {
     );
   }
 
-  async onModuleDestroy(): Promise<void> {
+  onModuleDestroy(): void {
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = undefined;

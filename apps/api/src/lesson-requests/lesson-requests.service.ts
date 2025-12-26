@@ -55,7 +55,7 @@ export class LessonRequestsService {
       throw new ForbiddenException('Only tutors can view lesson requests');
     }
 
-    return this.prisma.lessonRequest.findMany({
+    return await this.prisma.lessonRequest.findMany({
       where: { tutorId: tutor.id },
       orderBy: { createdAt: 'desc' },
       include: {

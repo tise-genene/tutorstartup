@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import type { Session } from '@prisma/client';
 import type { User } from '@prisma/client';
 import { UserRole } from '../prisma/prisma.enums';
 import * as argon2 from 'argon2';
@@ -174,8 +175,8 @@ export class AuthService {
     }
   }
 
-  async listSessions(userId: string) {
-    return this.prisma.session.findMany({
+  async listSessions(userId: string): Promise<Session[]> {
+    return await this.prisma.session.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
     });
