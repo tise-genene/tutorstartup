@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { PageShell } from "../../_components/PageShell";
 import { useAuth, useI18n } from "../../providers";
 
 export default function LogoutPage() {
@@ -29,21 +28,23 @@ export default function LogoutPage() {
   }, [logout, router]);
 
   return (
-    <PageShell>
-      <div className="mx-auto max-w-xl glass-panel p-8 sm:p-10">
-        <div className="mb-3">
-          <h1 className="text-2xl font-semibold">{t("auth.logout.title")}</h1>
-          <p className="text-sm ui-muted">{t("auth.logout.subtitle")}</p>
+    <div className="min-h-screen">
+      <main id="main" className="px-4 pb-16 pt-10 md:px-10">
+        <div className="mx-auto max-w-xl glass-panel p-8 sm:p-10">
+          <div className="mb-3">
+            <h1 className="text-2xl font-semibold">{t("auth.logout.title")}</h1>
+            <p className="text-sm ui-muted">{t("auth.logout.subtitle")}</p>
+          </div>
+
+          {status && <p className="text-sm ui-muted">{status}</p>}
+
+          <p className="mt-4 text-sm ui-muted">
+            <Link href="/" className="underline underline-offset-4">
+              {t("nav.home")}
+            </Link>
+          </p>
         </div>
-
-        {status && <p className="text-sm ui-muted">{status}</p>}
-
-        <p className="mt-4 text-sm ui-muted">
-          <Link href="/" className="underline underline-offset-4">
-            {t("nav.home")}
-          </Link>
-        </p>
-      </div>
-    </PageShell>
+      </main>
+    </div>
   );
 }
