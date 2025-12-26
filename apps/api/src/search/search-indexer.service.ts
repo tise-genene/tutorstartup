@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../prisma/prisma.enums';
 import { SearchService } from './search.service';
 import { SearchTutorDocument } from './interfaces/search-tutor-document.interface';
 

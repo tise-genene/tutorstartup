@@ -1,4 +1,4 @@
-import { LessonRequestStatus } from '@prisma/client';
+import { LessonRequestStatus } from '../../prisma/prisma.enums';
 import { IsEnum } from 'class-validator';
 
 export class UpdateLessonRequestDto {

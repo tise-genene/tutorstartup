@@ -100,9 +100,24 @@ export default function RegisterPage() {
                 }))
               }
             >
-              <option value="STUDENT">{t("auth.role.student")}</option>
-              <option value="PARENT">{t("auth.role.parent")}</option>
-              <option value="TUTOR">{t("auth.role.tutor")}</option>
+              <option
+                value="STUDENT"
+                className="bg-white text-black dark:bg-neutral-900 dark:text-white"
+              >
+                {t("auth.role.student")}
+              </option>
+              <option
+                value="PARENT"
+                className="bg-white text-black dark:bg-neutral-900 dark:text-white"
+              >
+                {t("auth.role.parent")}
+              </option>
+              <option
+                value="TUTOR"
+                className="bg-white text-black dark:bg-neutral-900 dark:text-white"
+              >
+                {t("auth.role.tutor")}
+              </option>
             </select>
           </label>
 

@@ -1,9 +1,5 @@
-import {
-  LessonRequest,
-  LessonRequestStatus,
-  User,
-  UserRole,
-} from '@prisma/client';
+import type { LessonRequest, User } from '@prisma/client';
+import type { LessonRequestStatus, UserRole } from '../../prisma/prisma.enums';
 
 export class LessonRequestUserDto {
   id!: string;

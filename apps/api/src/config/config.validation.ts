@@ -10,6 +10,8 @@ const defaultMeilisearchHost = isTestEnv ? '' : 'http://localhost:7700';
 const defaultRateLimitDriver = isTestEnv ? 'memory' : 'redis';
 const defaultCsrfEnabled =
   (process.env.NODE_ENV ?? 'development') === 'production' ? 'true' : 'false';
+const defaultSessionCleanupEnabled =
+  (process.env.NODE_ENV ?? 'development') === 'production' ? 'true' : 'false';
 
 export const configValidationSchema = Joi.object({
   NODE_ENV: Joi.string()
@@ -33,6 +35,12 @@ export const configValidationSchema = Joi.object({
   AUTH_CSRF_ENABLED: Joi.string()
     .valid('true', 'false', '1', '0', 'yes', 'no', 'y', 'n', 'on', 'off')
     .default(defaultCsrfEnabled),
+
+  SESSION_CLEANUP_ENABLED: Joi.string()
+    .valid('true', 'false', '1', '0', 'yes', 'no', 'y', 'n', 'on', 'off')
+    .default(defaultSessionCleanupEnabled),
+  SESSION_CLEANUP_INTERVAL_MINUTES: Joi.number().integer().min(1).default(60),
+  SESSION_CLEANUP_RETENTION_DAYS: Joi.number().integer().min(1).default(30),
   SWAGGER_ENABLED: Joi.string()
     .valid('true', 'false', '1', '0', 'yes', 'no', 'y', 'n', 'on', 'off')
     .default('true'),

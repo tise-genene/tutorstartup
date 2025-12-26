@@ -1,4 +1,4 @@
-import { TutorProfile } from '@prisma/client';
+import type { TutorProfile } from '@prisma/client';
 
 export class TutorProfileDto {
   id!: string;
