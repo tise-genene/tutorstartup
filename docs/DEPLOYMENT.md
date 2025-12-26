@@ -36,6 +36,15 @@ If you want distributed rate limiting:
 
 - `RATE_LIMIT_DRIVER=redis`
 
+If running behind a reverse proxy/load balancer:
+
+- Set `TRUST_PROXY=1` (or higher if you have multiple hops) so `req.ip` and other proxy-derived fields are correct.
+
+CSRF (cookie-based refresh/logout):
+
+- `AUTH_CSRF_ENABLED=true` is recommended in production.
+- Ensure `FRONTEND_URL` lists the exact allowed frontend origins (comma-separated).
+
 ## 3) Apply database migrations
 
 Local/dev (creates & applies migrations):

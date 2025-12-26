@@ -8,11 +8,14 @@ const defaultSearchSyncEnabled = !isTestEnv;
 const defaultRedisUrl = isTestEnv ? '' : 'redis://localhost:6379';
 const defaultMeilisearchHost = isTestEnv ? '' : 'http://localhost:7700';
 const defaultRateLimitDriver = isTestEnv ? 'memory' : 'redis';
+const defaultCsrfEnabled =
+  (process.env.NODE_ENV ?? 'development') === 'production' ? 'true' : 'false';
 
 export const configValidationSchema = Joi.object({
   NODE_ENV: Joi.string()
     .valid('development', 'test', 'production')
     .default('development'),
+  TRUST_PROXY: Joi.string().allow('', null),
   PORT: Joi.number().default(3000),
   API_PREFIX: Joi.string().default('api'),
   API_VERSION: Joi.string().default('1'),
@@ -27,6 +30,9 @@ export const configValidationSchema = Joi.object({
   RATE_LIMIT_TTL: Joi.number().default(60),
   RATE_LIMIT_MAX: Joi.number().default(100),
   FRONTEND_URL: Joi.string().default('http://localhost:3000'),
+  AUTH_CSRF_ENABLED: Joi.string()
+    .valid('true', 'false', '1', '0', 'yes', 'no', 'y', 'n', 'on', 'off')
+    .default(defaultCsrfEnabled),
   SWAGGER_ENABLED: Joi.string()
     .valid('true', 'false', '1', '0', 'yes', 'no', 'y', 'n', 'on', 'off')
     .default('true'),

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Post,
   Req,
@@ -60,8 +61,15 @@ export class AuthController {
     @Body() dto: RefreshTokenDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
-    const refreshToken =
-      this.readCookie(req, this.getRefreshCookieName()) ?? dto.refreshToken;
+    const cookieRefreshToken = this.readCookie(
+      req,
+      this.getRefreshCookieName(),
+    );
+    if (cookieRefreshToken && this.isCsrfEnabled()) {
+      this.assertCsrfAllowed(req);
+    }
+
+    const refreshToken = cookieRefreshToken ?? dto.refreshToken;
 
     if (!refreshToken) {
       throw new UnauthorizedException('Missing refresh token');
@@ -78,6 +86,9 @@ export class AuthController {
   @Post('logout')
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = this.readCookie(req, this.getRefreshCookieName());
+    if (refreshToken && this.isCsrfEnabled()) {
+      this.assertCsrfAllowed(req);
+    }
     if (refreshToken) {
       await this.authService.revokeRefreshToken(refreshToken);
     }
@@ -171,5 +182,60 @@ export class AuthController {
     }
 
     return null;
+  }
+
+  private isCsrfEnabled(): boolean {
+    const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
+    const raw = this.configService.get<string>('AUTH_CSRF_ENABLED');
+    if (!raw || raw.trim().length === 0) {
+      return nodeEnv === 'production';
+    }
+
+    return ['true', '1', 'yes', 'y', 'on'].includes(raw.toLowerCase());
+  }
+
+  private getTrustedOrigins(): string[] {
+    return (this.configService.get<string>('FRONTEND_URL') ?? '')
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+  }
+
+  private assertCsrfAllowed(req: Request): void {
+    const trustedOrigins = this.getTrustedOrigins();
+    if (trustedOrigins.length === 0) {
+      return;
+    }
+
+    const originHeader = req.get('origin');
+    const refererHeader = req.get('referer');
+
+    const origin =
+      originHeader ?? this.extractOriginFromReferer(refererHeader ?? null);
+
+    if (!origin) {
+      const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
+      if (nodeEnv === 'production') {
+        throw new ForbiddenException('CSRF protection: missing Origin/Referer');
+      }
+      return;
+    }
+
+    if (!trustedOrigins.includes(origin)) {
+      throw new ForbiddenException('CSRF protection: origin not allowed');
+    }
+  }
+
+  private extractOriginFromReferer(referer: string | null): string | null {
+    if (!referer) {
+      return null;
+    }
+
+    try {
+      const url = new URL(referer);
+      return url.origin;
+    } catch {
+      return null;
+    }
   }
 }

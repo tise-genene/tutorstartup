@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import type { NextFunction, Request, Response } from 'express';
+import type { Express, NextFunction, Request, Response } from 'express';
 import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
@@ -12,6 +12,24 @@ async function bootstrap() {
   const config = app.get(ConfigService);
   const logger = app.get(Logger);
   app.useLogger(logger);
+
+  const trustProxyRaw = config.get<string>('TRUST_PROXY');
+  if (trustProxyRaw && trustProxyRaw.trim().length > 0) {
+    const normalized = trustProxyRaw.trim().toLowerCase();
+    const truthy = ['true', '1', 'yes', 'y', 'on'];
+    const falsy = ['false', '0', 'no', 'n', 'off'];
+
+    const expressApp = app.getHttpAdapter().getInstance() as Express;
+
+    if (truthy.includes(normalized)) {
+      expressApp.set('trust proxy', 1);
+    } else if (!falsy.includes(normalized)) {
+      const parsed = Number(normalized);
+      if (Number.isFinite(parsed) && parsed >= 0) {
+        expressApp.set('trust proxy', parsed);
+      }
+    }
+  }
 
   const defaultVersion = config.get<string>('API_VERSION', '1');
 
