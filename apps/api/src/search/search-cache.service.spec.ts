@@ -48,6 +48,36 @@ describe('SearchCacheService', () => {
 
   it('retrieves JSON payloads from Redis', async () => {
     const cached: TutorSearchResult = {
+      data: [
+        {
+          id: 'tutor-1',
+          profileId: 'profile-1',
+          name: 'Tutor One',
+          bio: null,
+          subjects: ['mathematics'],
+          languages: [],
+          location: null,
+          hourlyRate: null,
+          rating: null,
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+      meta: {
+        query: 'math',
+        limit: 20,
+        page: 1,
+        total: 1,
+        hasMore: false,
+        searchEnabled: true,
+      },
+    };
+    redisClient.get.mockResolvedValueOnce(JSON.stringify(cached));
+
+    await expect(service.get('cache-key')).resolves.toEqual(cached);
+  });
+
+  it('treats cached empty payloads as misses', async () => {
+    const cached: TutorSearchResult = {
       data: [],
       meta: {
         query: 'math',
@@ -60,10 +90,46 @@ describe('SearchCacheService', () => {
     };
     redisClient.get.mockResolvedValueOnce(JSON.stringify(cached));
 
-    await expect(service.get('cache-key')).resolves.toEqual(cached);
+    await expect(service.get('cache-key')).resolves.toBeNull();
   });
 
   it('writes JSON payloads with the configured TTL', async () => {
+    const payload: TutorSearchResult = {
+      data: [
+        {
+          id: 'tutor-1',
+          profileId: 'profile-1',
+          name: 'Tutor One',
+          bio: null,
+          subjects: ['mathematics'],
+          languages: [],
+          location: null,
+          hourlyRate: null,
+          rating: null,
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+      meta: {
+        query: '',
+        limit: 20,
+        page: 1,
+        total: 1,
+        hasMore: false,
+        searchEnabled: true,
+      },
+    };
+
+    await service.set('cache-key', payload);
+
+    expect(redisClient.set).toHaveBeenCalledWith(
+      'cache-key',
+      JSON.stringify(payload),
+      'EX',
+      45,
+    );
+  });
+
+  it('does not write empty payloads', async () => {
     const payload: TutorSearchResult = {
       data: [],
       meta: {
@@ -78,11 +144,6 @@ describe('SearchCacheService', () => {
 
     await service.set('cache-key', payload);
 
-    expect(redisClient.set).toHaveBeenCalledWith(
-      'cache-key',
-      JSON.stringify(payload),
-      'EX',
-      45,
-    );
+    expect(redisClient.set).not.toHaveBeenCalled();
   });
 });

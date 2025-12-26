@@ -13,10 +13,16 @@ export class SearchController {
 
   @Get('search')
   async searchTutors(@Query() query: SearchTutorsQueryDto) {
+    const queryParts = [query.q, query.location]
+      .map((value) => value?.trim())
+      .filter((value): value is string => Boolean(value && value.length > 0));
+
+    const combinedQuery = queryParts.join(' ');
+
     const params: TutorSearchParams = {
-      query: query.q?.trim() ?? '',
+      query: combinedQuery,
       subjects: (query.subjects ?? []).filter(Boolean),
-      location: query.location?.trim() || undefined,
+      location: undefined,
       limit: query.limit ?? 20,
       page: query.page ?? 1,
     };

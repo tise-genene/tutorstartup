@@ -189,7 +189,11 @@ export class SearchService {
       this.indexPromise = this.client
         .getIndex<SearchTutorDocument>(this.indexName)
         .catch(async (error) => {
-          const code = (error as { code?: string }).code;
+          const err = error as {
+            code?: string;
+            cause?: { code?: string };
+          };
+          const code = err?.cause?.code ?? err?.code;
           if (code === 'index_not_found') {
             await this.client!.createIndex(this.indexName, {
               primaryKey: 'id',

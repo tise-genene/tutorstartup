@@ -53,7 +53,12 @@ export class SearchCacheService {
       if (!raw) {
         return null;
       }
-      return JSON.parse(raw) as TutorSearchResult;
+
+      const parsed = JSON.parse(raw) as TutorSearchResult;
+      if ((parsed?.meta?.total ?? 0) === 0) {
+        return null;
+      }
+      return parsed;
     } catch (error) {
       const err = error as Error;
       this.logger.warn('Failed to read tutor search cache', err.stack);
@@ -62,6 +67,10 @@ export class SearchCacheService {
   }
 
   async set(key: string, value: TutorSearchResult): Promise<void> {
+    if ((value?.meta?.total ?? 0) === 0) {
+      return;
+    }
+
     if (this.driver === 'memory' || !this.redisService.isEnabled()) {
       this.setInMemory(key, value);
       return;
@@ -86,6 +95,10 @@ export class SearchCacheService {
 
     if (entry.expiresAt <= now) {
       this.memoryCache.delete(key);
+      return null;
+    }
+
+    if ((entry.value?.meta?.total ?? 0) === 0) {
       return null;
     }
 
