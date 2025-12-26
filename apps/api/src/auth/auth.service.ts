@@ -6,7 +6,8 @@ import {
 } from '@nestjs/common';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { User, UserRole } from '@prisma/client';
+import type { User } from '@prisma/client';
+import { UserRole } from '../prisma/prisma.enums';
 import * as argon2 from 'argon2';
 import { randomUUID, createHash } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -171,6 +172,30 @@ export class AuthService {
     } catch {
       // Ignore invalid tokens.
     }
+  }
+
+  async listSessions(userId: string) {
+    return this.prisma.session.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async revokeSessionById(userId: string, sessionId: string): Promise<void> {
+    await this.prisma.session.updateMany({
+      where: { id: sessionId, userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+  }
+
+  async revokeOtherSessions(
+    userId: string,
+    currentTokenId: string,
+  ): Promise<void> {
+    await this.prisma.session.updateMany({
+      where: { userId, tokenId: { not: currentTokenId }, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
   }
 
   async getProfile(userId: string): Promise<AuthenticatedUserDto> {

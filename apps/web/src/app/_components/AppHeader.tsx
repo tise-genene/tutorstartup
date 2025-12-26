@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useAuth, useI18n, useTheme } from "../providers";
 
@@ -113,6 +113,15 @@ export function AppHeader() {
   const { locale, setLocale, t } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const hasHydrated = useSyncExternalStore(
+    () => () => {
+      // no-op
+    },
+    () => true,
+    () => false
+  );
+
+  const effectiveTheme = hasHydrated ? theme : "dark";
 
   const toggleMobile = () => setMobileOpen((prev) => !prev);
   const closeMobile = () => setMobileOpen(false);
@@ -138,7 +147,7 @@ export function AppHeader() {
         >
           <span
             className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"
-            style={{ opacity: theme === "light" ? 0.18 : 0.35 }}
+            style={{ opacity: effectiveTheme === "light" ? 0.18 : 0.35 }}
           />
           <div className="relative flex w-full flex-wrap items-center gap-3 md:flex-nowrap md:justify-between">
             <div className="flex w-full items-center justify-between gap-2 md:w-auto md:gap-3">
@@ -198,14 +207,14 @@ export function AppHeader() {
                 onClick={toggleTheme}
                 className="ui-btn ui-icon-btn"
                 aria-label={
-                  theme === "dark"
+                  effectiveTheme === "dark"
                     ? "Switch to light mode"
                     : "Switch to dark mode"
                 }
-                title={theme === "dark" ? "Light mode" : "Dark mode"}
+                title={effectiveTheme === "dark" ? "Light mode" : "Dark mode"}
               >
                 <span className="block opacity-85 hover:opacity-100">
-                  {theme === "dark" ? <MoonIcon /> : <SunIcon />}
+                  {effectiveTheme === "dark" ? <MoonIcon /> : <SunIcon />}
                 </span>
               </button>
 
@@ -307,9 +316,13 @@ export function AppHeader() {
                         className="ui-btn ui-btn-block"
                       >
                         <span className="inline-flex items-center gap-2">
-                          {theme === "dark" ? <MoonIcon /> : <SunIcon />}
+                          {effectiveTheme === "dark" ? (
+                            <MoonIcon />
+                          ) : (
+                            <SunIcon />
+                          )}
                           <span className="text-sm font-semibold">
-                            {theme === "dark" ? "Dark" : "Light"} mode
+                            {effectiveTheme === "dark" ? "Dark" : "Light"} mode
                           </span>
                         </span>
                       </button>

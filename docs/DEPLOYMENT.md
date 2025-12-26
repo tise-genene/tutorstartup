@@ -45,6 +45,11 @@ CSRF (cookie-based refresh/logout):
 - `AUTH_CSRF_ENABLED=true` is recommended in production.
 - Ensure `FRONTEND_URL` lists the exact allowed frontend origins (comma-separated).
 
+Session cleanup (worker-only):
+
+- Runs only when `PROCESS_ROLE=worker` (or `all`).
+- Controlled by `SESSION_CLEANUP_ENABLED`, `SESSION_CLEANUP_INTERVAL_MINUTES`, `SESSION_CLEANUP_RETENTION_DAYS`.
+
 ## 3) Apply database migrations
 
 Local/dev (creates & applies migrations):

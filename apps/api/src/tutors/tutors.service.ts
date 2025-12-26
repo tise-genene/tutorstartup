@@ -7,7 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service.js';
 import { UpsertTutorProfileDto } from './dto/upsert-tutor-profile.dto.js';
 import { TutorProfileDto } from './dto/tutor-profile.dto.js';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../prisma/prisma.enums';
 import { SearchIndexQueueService } from '../search/search-queue.service.js';
 
 @Injectable()

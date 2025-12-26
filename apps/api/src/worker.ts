@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import './prisma/prisma-engine.guard';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';

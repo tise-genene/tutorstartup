@@ -178,182 +178,188 @@ html[lang="am"] body {
   font-family: var(--font-ethiopic), var(--font-display), system-ui;
 }
 
-.glass-panel {
-  border-radius: 32px;
-  border: 1px solid var(--glass-border);
-  background: var(--card);
-  box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(26px);
-  transition:
-    border-color 220ms ease,
-    transform 220ms ease,
-    box-shadow 220ms ease;
-}
+@layer components {
+  .glass-panel {
+    border-radius: 32px;
+    border: 1px solid var(--glass-border);
+    background: var(--card);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(26px);
+    transition:
+      border-color 220ms ease,
+      transform 220ms ease,
+      box-shadow 220ms ease;
+  }
 
-.glass-panel:hover {
-  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
-  transform: translateY(-4px);
-  box-shadow: 0 45px 95px color-mix(in srgb, var(--background) 38%, transparent);
-}
+  .glass-panel:hover {
+    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+    transform: translateY(-4px);
+    box-shadow: 0 45px 95px
+      color-mix(in srgb, var(--background) 38%, transparent);
+  }
 
-.pill {
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
-  padding: 0.15rem 0.65rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: color-mix(in srgb, var(--background) 72%, transparent);
-  color: color-mix(in srgb, var(--foreground) 70%, transparent);
-}
+  .pill {
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+    padding: 0.15rem 0.65rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: color-mix(in srgb, var(--background) 72%, transparent);
+    color: color-mix(in srgb, var(--foreground) 70%, transparent);
+  }
 
-.ui-muted {
-  color: var(--muted);
-}
+  .ui-muted {
+    color: var(--muted);
+  }
 
-.ui-field {
-  width: 100%;
-  border-radius: 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
-  background: var(--panel-surface);
-  padding: 0.55rem 0.9rem;
-  font-size: 0.875rem;
-  color: var(--foreground);
-  box-shadow: 0 10px 25px color-mix(in srgb, var(--background) 55%, transparent);
-  transition:
-    border-color 140ms ease,
-    background 140ms ease,
-    box-shadow 140ms ease,
-    transform 140ms ease;
-}
+  .ui-field {
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+    background: var(--panel-surface);
+    padding: 0.55rem 0.9rem;
+    font-size: 0.875rem;
+    color: var(--foreground);
+    box-shadow: 0 10px 25px
+      color-mix(in srgb, var(--background) 55%, transparent);
+    transition:
+      border-color 140ms ease,
+      background 140ms ease,
+      box-shadow 140ms ease,
+      transform 140ms ease;
+  }
 
-.ui-field:hover {
-  border-color: color-mix(in srgb, var(--foreground) 22%, transparent);
-}
+  .ui-field:hover {
+    border-color: color-mix(in srgb, var(--foreground) 22%, transparent);
+  }
 
-.ui-field::placeholder {
-  color: color-mix(in srgb, var(--foreground) 45%, transparent);
-}
+  .ui-field::placeholder {
+    color: color-mix(in srgb, var(--foreground) 45%, transparent);
+  }
 
-.ui-field:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--accent) 65%, transparent);
-  outline-offset: 2px;
-}
+  .ui-field:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--accent) 65%, transparent);
+    outline-offset: 2px;
+  }
 
-.ui-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border-radius: 0.75rem;
-  border: 1px solid var(--button-border);
-  background: var(--button-surface);
-  box-shadow: var(--button-shadow);
-  padding: 0.55rem 0.9rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--foreground);
-  backdrop-filter: blur(10px);
-  transition:
-    opacity 120ms ease,
-    background 120ms ease,
-    box-shadow 120ms ease,
-    transform 120ms ease;
-}
+  .ui-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--button-border);
+    background: var(--button-surface);
+    box-shadow: var(--button-shadow);
+    padding: 0.55rem 0.9rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+    backdrop-filter: blur(10px);
+    transition:
+      opacity 120ms ease,
+      background 120ms ease,
+      box-shadow 120ms ease,
+      transform 120ms ease;
+  }
 
-.ui-btn:hover {
-  background: color-mix(
-    in srgb,
-    var(--button-surface) 85%,
-    var(--foreground) 8%
-  );
-  transform: translateY(-1px);
-  box-shadow: 0 22px 38px color-mix(in srgb, var(--background) 45%, transparent);
-}
+  .ui-btn:hover {
+    background: color-mix(
+      in srgb,
+      var(--button-surface) 85%,
+      var(--foreground) 8%
+    );
+    transform: translateY(-1px);
+    box-shadow: 0 22px 38px
+      color-mix(in srgb, var(--background) 45%, transparent);
+  }
 
-.ui-btn:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--accent) 65%, transparent);
-  outline-offset: 2px;
-}
+  .ui-btn:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--accent) 65%, transparent);
+    outline-offset: 2px;
+  }
 
-.ui-btn-primary {
-  border-color: transparent;
-  background: var(--accent);
-  color: var(--background);
-  box-shadow:
-    0 0 20px color-mix(in srgb, var(--accent-glow) 80%, transparent),
-    0 18px 32px color-mix(in srgb, var(--background) 55%, transparent);
-  transition:
-    opacity 150ms ease,
-    transform 150ms ease,
-    box-shadow 150ms ease;
-}
+  .ui-btn-primary {
+    border-color: transparent;
+    background: var(--accent);
+    color: var(--background);
+    box-shadow:
+      0 0 20px color-mix(in srgb, var(--accent-glow) 80%, transparent),
+      0 18px 32px color-mix(in srgb, var(--background) 55%, transparent);
+    transition:
+      opacity 150ms ease,
+      transform 150ms ease,
+      box-shadow 150ms ease;
+  }
 
-.ui-btn-primary:hover {
-  opacity: 0.98;
-  transform: translateY(-1px);
-  background: var(--accent-hover);
-  box-shadow:
-    0 0 28px color-mix(in srgb, var(--accent-glow) 90%, transparent),
-    0 22px 34px color-mix(in srgb, var(--background) 52%, transparent);
-}
+  .ui-btn-primary:hover {
+    opacity: 0.98;
+    transform: translateY(-1px);
+    background: var(--accent-hover);
+    box-shadow:
+      0 0 28px color-mix(in srgb, var(--accent-glow) 90%, transparent),
+      0 22px 34px color-mix(in srgb, var(--background) 52%, transparent);
+  }
 
-.section-shell {
-  border-radius: 32px;
-  padding: clamp(1.75rem, 3vw, 3.25rem);
-}
+  .section-shell {
+    border-radius: 32px;
+    padding: clamp(1.75rem, 3vw, 3.25rem);
+  }
 
-.section-shell--tonal {
-  background: var(--panel-surface);
-  border: 1px solid var(--divider);
-  box-shadow: var(--section-shadow);
-}
+  .section-shell--tonal {
+    background: var(--panel-surface);
+    border: 1px solid var(--divider);
+    box-shadow: var(--section-shadow);
+  }
 
-.surface-card {
-  border-radius: 24px;
-  border: 1px solid var(--divider);
-  background: var(--card);
-  box-shadow: var(--tile-shadow);
-  transition:
-    transform 200ms ease,
-    box-shadow 200ms ease;
-}
+  .surface-card {
+    border-radius: 24px;
+    border: 1px solid var(--divider);
+    background: var(--card);
+    box-shadow: var(--tile-shadow);
+    transition:
+      transform 200ms ease,
+      box-shadow 200ms ease;
+  }
 
-.surface-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 32px 65px color-mix(in srgb, var(--background) 45%, transparent);
-}
+  .surface-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 32px 65px
+      color-mix(in srgb, var(--background) 45%, transparent);
+  }
 
-html[data-theme="light"] .surface-card:hover {
-  box-shadow: 0 24px 45px rgba(15, 23, 42, 0.12);
-}
+  html[data-theme="light"] .surface-card:hover {
+    box-shadow: 0 24px 45px rgba(15, 23, 42, 0.12);
+  }
 
-.surface-card--quiet {
-  background: var(--panel-surface);
-  box-shadow: none;
-}
+  .surface-card--quiet {
+    background: var(--panel-surface);
+    box-shadow: none;
+  }
 
-.surface-card--accent {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent) 30%, transparent),
-    var(--card)
-  );
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--divider));
-}
+  .surface-card--accent {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--accent) 30%, transparent),
+      var(--card)
+    );
+    border-color: color-mix(in srgb, var(--accent) 35%, var(--divider));
+  }
 
-.hero-chip {
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
-  padding: 0.2rem 0.95rem;
-  background: color-mix(in srgb, var(--background) 70%, transparent);
-  color: color-mix(in srgb, var(--foreground) 65%, transparent);
-}
+  .hero-chip {
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
+    padding: 0.2rem 0.95rem;
+    background: color-mix(in srgb, var(--background) 70%, transparent);
+    color: color-mix(in srgb, var(--foreground) 65%, transparent);
+  }
 
-.ui-btn-block {
-  width: 100%;
-}
+  .ui-btn-block {
+    width: 100%;
+  }
 
-.ui-icon-btn {
-  padding: 0.55rem;
+  .ui-icon-btn {
+    padding: 0.55rem;
+  }
 }

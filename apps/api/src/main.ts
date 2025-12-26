@@ -1,3 +1,5 @@
+import './prisma/prisma-engine.guard';
+
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';

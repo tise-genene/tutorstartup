@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { LessonRequestStatus, UserRole } from '@prisma/client';
+import { LessonRequestStatus, UserRole } from '../prisma/prisma.enums';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLessonRequestDto } from './dto/create-lesson-request.dto';
 

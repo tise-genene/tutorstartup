@@ -4,8 +4,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { AuthSessionsController } from './auth-sessions.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { SessionCleanupService } from './session-cleanup.service';
 
 @Module({
   imports: [
@@ -33,8 +35,8 @@ import { NotificationsModule } from '../notifications/notifications.module';
       },
     }),
   ],
-  controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  controllers: [AuthController, AuthSessionsController],
+  providers: [AuthService, JwtStrategy, SessionCleanupService],
   exports: [AuthService],
 })
 export class AuthModule {}
