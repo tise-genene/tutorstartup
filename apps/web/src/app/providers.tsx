@@ -213,6 +213,8 @@ const DICTS: Record<Locale, Dictionary> = {
     "auth.submit.register": "Create account",
     "auth.login.submit": "Sign in",
     "auth.register.submit": "Create account",
+    "auth.logout.title": "Signing you out",
+    "auth.logout.subtitle": "Ending your session…",
 
     "tutor.profile.title": "Tutor profile",
     "tutor.profile.subtitle":
@@ -461,6 +463,8 @@ const DICTS: Record<Locale, Dictionary> = {
     "auth.submit.register": "መለያ ፍጠር",
     "auth.login.submit": "ግባ",
     "auth.register.submit": "መለያ ፍጠር",
+    "auth.logout.title": "በመውጣት ላይ",
+    "auth.logout.subtitle": "ሴሽንዎን በመዝጋት ላይ…",
 
     "tutor.profile.title": "የአስተማሪ ፕሮፋይል",
     "tutor.profile.subtitle": "ፕሮፋይልዎን ያዘምኑ — ለፍለጋ ይመዘገባል።",
@@ -548,7 +552,7 @@ type AuthContextValue = {
   auth: AuthResponse | null;
   login: (payload: LoginPayload) => Promise<AuthResponse>;
   register: (payload: RegisterPayload) => Promise<AuthResponse>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -634,9 +638,14 @@ export function Providers({ children }: { children: ReactNode }) {
     return response;
   }, []);
 
-  const logout = useCallback(() => {
-    void logoutSession();
-    setAuth(null);
+  const logout = useCallback(async () => {
+    try {
+      await logoutSession();
+    } catch {
+      // If the API is unreachable, we still clear local auth state.
+    } finally {
+      setAuth(null);
+    }
   }, []);
 
   const i18nValue = useMemo<I18nContextValue>(

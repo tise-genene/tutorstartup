@@ -109,7 +109,7 @@ function CloseIcon() {
 }
 
 export function AppHeader() {
-  const { auth, logout } = useAuth();
+  const { auth } = useAuth();
   const { locale, setLocale, t } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -197,9 +197,9 @@ export function AppHeader() {
                   </Link>
                 </>
               ) : (
-                <button type="button" onClick={logout} className="ui-btn">
+                <Link href="/auth/logout" className="ui-btn">
                   {t("nav.logout")}
-                </button>
+                </Link>
               )}
 
               <button
@@ -294,16 +294,13 @@ export function AppHeader() {
                         </Link>
                       </>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          closeMobile();
-                          logout();
-                        }}
+                      <Link
+                        href="/auth/logout"
                         className="ui-btn ui-btn-block"
+                        onClick={closeMobile}
                       >
                         {t("nav.logout")}
-                      </button>
+                      </Link>
                     )}
 
                     <div className="mt-3 flex flex-col gap-2">
