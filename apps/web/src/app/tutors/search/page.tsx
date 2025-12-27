@@ -2,14 +2,23 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { PageShell } from "../../_components/PageShell";
 import { searchTutors } from "../../../lib/api";
 import type { TutorSearchResult } from "../../../lib/types";
 import { parseCsv } from "../../../lib/form";
-import { useI18n } from "../../providers";
+import { useAuth, useI18n } from "../../providers";
 
 export default function TutorSearchPage() {
   const { t } = useI18n();
+  const { auth } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (auth?.user.role === "TUTOR") {
+      router.replace("/work");
+    }
+  }, [auth, router]);
 
   const [form, setForm] = useState({
     q: "",
@@ -30,7 +39,7 @@ export default function TutorSearchPage() {
       limit: number;
       page: number;
     },
-    options?: { showMetaStatus?: boolean },
+    options?: { showMetaStatus?: boolean }
   ) => {
     const showMetaStatus = options?.showMetaStatus ?? true;
     setStatus(null);
@@ -44,7 +53,9 @@ export default function TutorSearchPage() {
           setStatus(t("search.meta.disabled"));
         } else {
           setStatus(
-            response.meta.cacheHit ? t("search.meta.cache") : t("search.meta.live"),
+            response.meta.cacheHit
+              ? t("search.meta.cache")
+              : t("search.meta.live")
           );
         }
       }
@@ -64,7 +75,7 @@ export default function TutorSearchPage() {
         limit: 20,
         page: 1,
       },
-      { showMetaStatus: false },
+      { showMetaStatus: false }
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

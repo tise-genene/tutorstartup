@@ -23,6 +23,18 @@ enum LessonRequestStatus {
   DECLINED
 }
 
+enum JobPostStatus {
+  OPEN
+  CLOSED
+}
+
+enum ProposalStatus {
+  SUBMITTED
+  WITHDRAWN
+  ACCEPTED
+  DECLINED
+}
+
 model User {
   id           String        @id @default(uuid())
   email        String        @unique
@@ -38,6 +50,9 @@ model User {
 
   lessonRequestsSent     LessonRequest[] @relation("LessonRequestsFromRequester")
   lessonRequestsReceived LessonRequest[] @relation("LessonRequestsToTutor")
+
+  jobPosts JobPost[] @relation("JobPostsByParent")
+  proposals Proposal[] @relation("ProposalsByTutor")
 
   sessions Session[]
 }
@@ -83,6 +98,12 @@ model LessonRequest {
   subject     String
   message     String
   status      LessonRequestStatus @default(PENDING)
+
+  tutorResponseMessage String?
+  tutorResponseFileUrl String?
+  tutorResponseVideoUrl String?
+  respondedAt DateTime?
+
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 
@@ -91,4 +112,42 @@ model LessonRequest {
 
   @@index([tutorId, createdAt])
   @@index([requesterId, createdAt])
+}
+
+model JobPost {
+  id          String       @id @default(uuid())
+  parentId    String
+  title       String
+  description String
+  subjects    String[]     @default([])
+  location    String?
+  budget      Int?
+  status      JobPostStatus @default(OPEN)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  parent      User         @relation("JobPostsByParent", fields: [parentId], references: [id], onDelete: Cascade)
+  proposals   Proposal[]
+
+  @@index([parentId, createdAt])
+  @@index([status, createdAt])
+}
+
+model Proposal {
+  id        String         @id @default(uuid())
+  jobPostId String
+  tutorId   String
+  message   String
+  fileUrl   String?
+  videoUrl  String?
+  status    ProposalStatus @default(SUBMITTED)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  jobPost   JobPost @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  tutor     User    @relation("ProposalsByTutor", fields: [tutorId], references: [id], onDelete: Cascade)
+
+  @@unique([jobPostId, tutorId])
+  @@index([tutorId, createdAt])
+  @@index([jobPostId, createdAt])
 }

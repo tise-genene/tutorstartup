@@ -4,24 +4,25 @@ NestJS 11 modular monolith powering authentication, tutor workflows, search, and
 
 ## Modules
 
-- **Auth**: JWT auth, refresh tokens, /v1/auth/* endpoints.
+- **Auth**: JWT auth, refresh tokens, /v1/auth/\* endpoints.
 - **Notifications**: BullMQ queue (with in-memory fallback) that currently logs welcome emails.
 - **Tutors**: CRUD helpers for tutor profiles plus DTO validation.
 - **Search**: Redis cache + Meilisearch client, queue factory for sync jobs, /v1/tutors/search endpoint.
 - **Health**: /health/live and /health/ready monitor DB, Redis, and queue connectivity.
+- **Jobs**: Parent job posts + tutor proposals (marketplace).
 
 ## Environment
 
 See .env.example; notable entries:
 
-| Variable | Description |
-| --- | --- |
-| DATABASE_URL | Postgres connection string |
-| REDIS_URL | Redis connection URI (cache + BullMQ) |
+| Variable                                  | Description                                               |
+| ----------------------------------------- | --------------------------------------------------------- |
+| DATABASE_URL                              | Postgres connection string                                |
+| REDIS_URL                                 | Redis connection URI (cache + BullMQ)                     |
 | MEILISEARCH_HOST / MEILISEARCH_MASTER_KEY | Search driver settings; leave blank to run in memory mode |
-| QUEUE_DRIVER | redis (default) or memory for inline execution |
-| SEARCH_SYNC_ENABLED | Toggle queue-driven indexing |
-| CACHE_DEFAULT_TTL | Seconds cached search results stay in Redis |
+| QUEUE_DRIVER                              | redis (default) or memory for inline execution            |
+| SEARCH_SYNC_ENABLED                       | Toggle queue-driven indexing                              |
+| CACHE_DEFAULT_TTL                         | Seconds cached search results stay in Redis               |
 
 ## Local scripts
 
@@ -40,6 +41,25 @@ pnpm --filter api test
 
 # Prisma client generation
 pnpm --filter api prisma generate
+
+# Create/update admin user (reads env vars; idempotent)
+pnpm --filter api prisma:seed
+```
+
+## Admin login credentials
+
+Admin accounts are created via Prisma seed (not self-registration).
+
+Set these env vars in `apps/api/.env.local` (or your environment):
+
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+- `ADMIN_NAME` (optional)
+
+Then run:
+
+```
+pnpm --filter api prisma:seed
 ```
 
 ## Testing notes

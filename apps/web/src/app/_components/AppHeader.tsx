@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import { fetchPendingLessonRequestCount } from "../../lib/api";
 import { useAuth, useI18n, useTheme } from "../providers";
 
 function SunIcon() {
@@ -113,6 +114,8 @@ export function AppHeader() {
   const { locale, setLocale, t } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [workMenuOpen, setWorkMenuOpen] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState<number>(0);
   const hasHydrated = useSyncExternalStore(
     () => () => {
       // no-op
@@ -123,8 +126,34 @@ export function AppHeader() {
 
   const effectiveTheme = hasHydrated ? theme : "dark";
 
+  const role = auth?.user.role ?? null;
+  const token = auth?.accessToken ?? null;
+  const isTutor = role === "TUTOR";
+  const isParent = role === "PARENT";
+
   const toggleMobile = () => setMobileOpen((prev) => !prev);
-  const closeMobile = () => setMobileOpen(false);
+  const closeMenus = () => {
+    setMobileOpen(false);
+    setWorkMenuOpen(false);
+  };
+
+  useEffect(() => {
+    const run = async () => {
+      if (!token || !isTutor) {
+        setPendingRequests(0);
+        return;
+      }
+
+      try {
+        const res = await fetchPendingLessonRequestCount(token);
+        setPendingRequests(res.pending);
+      } catch {
+        setPendingRequests(0);
+      }
+    };
+
+    void run();
+  }, [token, isTutor]);
 
   return (
     <header className="sticky top-0 z-50 px-4 pt-4 md:px-8">
@@ -175,15 +204,87 @@ export function AppHeader() {
               className="hidden min-w-0 flex-1 items-center justify-end gap-2 md:flex"
               aria-label="Primary navigation"
             >
-              <Link href="/tutors/search" className="ui-btn">
-                {t("nav.search")}
-              </Link>
-              <Link href="/tutor/profile" className="ui-btn">
-                {t("nav.profile")}
-              </Link>
-              {auth?.user.role === "TUTOR" && (
-                <Link href="/tutor/requests" className="ui-btn">
+              {isTutor ? (
+                <div className="relative">
+                  <button
+                    type="button"
+                    className="ui-btn"
+                    onClick={() => setWorkMenuOpen((prev) => !prev)}
+                    aria-expanded={workMenuOpen}
+                    aria-haspopup="menu"
+                  >
+                    {t("nav.findWork")}
+                  </button>
+
+                  {workMenuOpen && (
+                    <div
+                      className="absolute right-0 mt-2 w-56 overflow-hidden rounded-2xl border"
+                      style={{
+                        borderColor: "var(--divider)",
+                        background: "var(--panel-surface)",
+                        boxShadow: "var(--tile-shadow)",
+                      }}
+                      role="menu"
+                    >
+                      <div className="flex flex-col p-2">
+                        <Link
+                          href="/work"
+                          className="ui-btn ui-btn-block"
+                          onClick={() => setWorkMenuOpen(false)}
+                        >
+                          {t("nav.jobs")}
+                        </Link>
+                        <Link
+                          href="/work/saved"
+                          className="ui-btn ui-btn-block"
+                          onClick={() => setWorkMenuOpen(false)}
+                        >
+                          {t("nav.savedJobs")}
+                        </Link>
+                        <Link
+                          href="/work/proposals"
+                          className="ui-btn ui-btn-block"
+                          onClick={() => setWorkMenuOpen(false)}
+                        >
+                          {t("nav.proposals")}
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link href="/tutors/search" className="ui-btn">
+                  {t("nav.search")}
+                </Link>
+              )}
+
+              {isParent && (
+                <>
+                  <Link href="/jobs/post" className="ui-btn">
+                    {t("nav.postJob")}
+                  </Link>
+                  <Link href="/jobs/mine" className="ui-btn">
+                    {t("nav.myJobs")}
+                  </Link>
+                </>
+              )}
+
+              {isTutor && (
+                <Link href="/tutor/profile" className="ui-btn">
+                  {t("nav.profile")}
+                </Link>
+              )}
+
+              {isTutor && (
+                <Link href="/tutor/requests" className="ui-btn relative">
                   {t("nav.requests")}
+                  {pendingRequests > 0 && (
+                    <span
+                      aria-label="New requests"
+                      className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full"
+                      style={{ background: "var(--accent)" }}
+                    />
+                  )}
                 </Link>
               )}
 
@@ -241,7 +342,7 @@ export function AppHeader() {
                 <div
                   className="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm"
                   aria-hidden
-                  onClick={closeMobile}
+                  onClick={closeMenus}
                 />
                 <div
                   className="fixed left-4 top-24 z-50 w-[88vw] max-w-xs rounded-[32px] border p-5 shadow-[0_25px_80px_rgba(0,0,0,0.45)]"
@@ -252,28 +353,76 @@ export function AppHeader() {
                   }}
                 >
                   <div className="flex flex-col gap-2">
-                    <Link
-                      href="/tutors/search"
-                      className="ui-btn ui-btn-block"
-                      onClick={closeMobile}
-                    >
-                      {t("nav.search")}
-                    </Link>
-                    <Link
-                      href="/tutor/profile"
-                      className="ui-btn ui-btn-block"
-                      onClick={closeMobile}
-                    >
-                      {t("nav.profile")}
-                    </Link>
-                    {auth?.user.role === "TUTOR" && (
+                    {isTutor ? (
+                      <>
+                        <Link
+                          href="/work"
+                          className="ui-btn ui-btn-block"
+                          onClick={closeMenus}
+                        >
+                          {t("nav.findWork")}
+                        </Link>
+                        <Link
+                          href="/work/saved"
+                          className="ui-btn ui-btn-block"
+                          onClick={closeMenus}
+                        >
+                          {t("nav.savedJobs")}
+                        </Link>
+                        <Link
+                          href="/work/proposals"
+                          className="ui-btn ui-btn-block"
+                          onClick={closeMenus}
+                        >
+                          {t("nav.proposals")}
+                        </Link>
+                      </>
+                    ) : (
                       <Link
-                        href="/tutor/requests"
+                        href="/tutors/search"
                         className="ui-btn ui-btn-block"
-                        onClick={closeMobile}
+                        onClick={closeMenus}
                       >
-                        {t("nav.requests")}
+                        {t("nav.search")}
                       </Link>
+                    )}
+
+                    {isParent && (
+                      <>
+                        <Link
+                          href="/jobs/post"
+                          className="ui-btn ui-btn-block"
+                          onClick={closeMenus}
+                        >
+                          {t("nav.postJob")}
+                        </Link>
+                        <Link
+                          href="/jobs/mine"
+                          className="ui-btn ui-btn-block"
+                          onClick={closeMenus}
+                        >
+                          {t("nav.myJobs")}
+                        </Link>
+                      </>
+                    )}
+                    {isTutor && (
+                      <>
+                        <Link
+                          href="/tutor/profile"
+                          className="ui-btn ui-btn-block"
+                          onClick={closeMenus}
+                        >
+                          {t("nav.profile")}
+                        </Link>
+                        <Link
+                          href="/tutor/requests"
+                          className="ui-btn ui-btn-block"
+                          onClick={closeMenus}
+                        >
+                          {t("nav.requests")}
+                          {pendingRequests > 0 ? ` (${pendingRequests})` : ""}
+                        </Link>
+                      </>
                     )}
 
                     {!auth ? (
@@ -281,14 +430,14 @@ export function AppHeader() {
                         <Link
                           href="/auth/login"
                           className="ui-btn ui-btn-block"
-                          onClick={closeMobile}
+                          onClick={closeMenus}
                         >
                           {t("nav.login")}
                         </Link>
                         <Link
                           href="/auth/register"
                           className="ui-btn ui-btn-primary ui-btn-block"
-                          onClick={closeMobile}
+                          onClick={closeMenus}
                         >
                           {t("nav.register")}
                         </Link>
@@ -297,7 +446,7 @@ export function AppHeader() {
                       <Link
                         href="/auth/logout"
                         className="ui-btn ui-btn-block"
-                        onClick={closeMobile}
+                        onClick={closeMenus}
                       >
                         {t("nav.logout")}
                       </Link>
@@ -308,7 +457,7 @@ export function AppHeader() {
                         type="button"
                         onClick={() => {
                           toggleTheme();
-                          closeMobile();
+                          closeMenus();
                         }}
                         className="ui-btn ui-btn-block"
                       >
@@ -327,7 +476,7 @@ export function AppHeader() {
                         type="button"
                         onClick={() => {
                           setLocale(locale === "en" ? "am" : "en");
-                          closeMobile();
+                          closeMenus();
                         }}
                         className="ui-btn ui-btn-block"
                       >

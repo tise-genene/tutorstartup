@@ -16,3 +16,20 @@ export const LessonRequestStatus = {
 
 export type LessonRequestStatus =
   (typeof LessonRequestStatus)[keyof typeof LessonRequestStatus];
+
+export const JobPostStatus = {
+  OPEN: 'OPEN',
+  CLOSED: 'CLOSED',
+} as const;
+
+export type JobPostStatus = (typeof JobPostStatus)[keyof typeof JobPostStatus];
+
+export const ProposalStatus = {
+  SUBMITTED: 'SUBMITTED',
+  WITHDRAWN: 'WITHDRAWN',
+  ACCEPTED: 'ACCEPTED',
+  DECLINED: 'DECLINED',
+} as const;
+
+export type ProposalStatus =
+  (typeof ProposalStatus)[keyof typeof ProposalStatus];

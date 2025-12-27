@@ -7,6 +7,7 @@ import {
 import { LessonRequestStatus, UserRole } from '../prisma/prisma.enums';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLessonRequestDto } from './dto/create-lesson-request.dto';
+import { UpdateLessonRequestDto } from './dto/update-lesson-request.dto';
 
 @Injectable()
 export class LessonRequestsService {
@@ -67,10 +68,23 @@ export class LessonRequestsService {
     });
   }
 
+  async countPendingInbox(tutor: { id: string; role: UserRole }) {
+    if (tutor.role !== UserRole.TUTOR) {
+      throw new ForbiddenException('Only tutors can view lesson requests');
+    }
+
+    return await this.prisma.lessonRequest.count({
+      where: {
+        tutorId: tutor.id,
+        status: LessonRequestStatus.PENDING,
+      },
+    });
+  }
+
   async updateStatus(
     tutor: { id: string; role: UserRole },
     requestId: string,
-    status: LessonRequestStatus,
+    dto: UpdateLessonRequestDto,
   ) {
     if (tutor.role !== UserRole.TUTOR) {
       throw new ForbiddenException('Only tutors can update lesson requests');
@@ -89,9 +103,18 @@ export class LessonRequestsService {
       throw new ForbiddenException('Cannot modify this lesson request');
     }
 
+    const respondedAt =
+      dto.status === LessonRequestStatus.PENDING ? null : new Date();
+
     return this.prisma.lessonRequest.update({
       where: { id: requestId },
-      data: { status },
+      data: {
+        status: dto.status,
+        tutorResponseMessage: dto.tutorResponseMessage?.trim() || null,
+        tutorResponseFileUrl: dto.tutorResponseFileUrl?.trim() || null,
+        tutorResponseVideoUrl: dto.tutorResponseVideoUrl?.trim() || null,
+        respondedAt,
+      },
       include: {
         requester: {
           select: { id: true, name: true, email: true, role: true },

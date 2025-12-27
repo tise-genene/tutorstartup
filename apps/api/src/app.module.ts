@@ -23,6 +23,7 @@ import { QueueModule } from './queue/queue.module';
 import { SearchModule } from './search/search.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { LessonRequestsModule } from './lesson-requests/lesson-requests.module';
+import { JobsModule } from './jobs/jobs.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -100,6 +101,7 @@ import { AppService } from './app.service';
     SearchModule,
     NotificationsModule,
     LessonRequestsModule,
+    JobsModule,
     AuthModule,
     UsersModule,
     TutorsModule,

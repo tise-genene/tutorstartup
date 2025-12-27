@@ -15,6 +15,12 @@ export class LessonRequestDto {
   subject!: string;
   message!: string;
   status!: LessonRequestStatus;
+
+  tutorResponseMessage?: string | null;
+  tutorResponseFileUrl?: string | null;
+  tutorResponseVideoUrl?: string | null;
+  respondedAt?: Date | null;
+
   createdAt!: Date;
   updatedAt!: Date;
   requester!: LessonRequestUserDto;
@@ -31,6 +37,10 @@ export class LessonRequestDto {
       subject: entity.subject,
       message: entity.message,
       status: entity.status,
+      tutorResponseMessage: entity.tutorResponseMessage ?? null,
+      tutorResponseFileUrl: entity.tutorResponseFileUrl ?? null,
+      tutorResponseVideoUrl: entity.tutorResponseVideoUrl ?? null,
+      respondedAt: entity.respondedAt ?? null,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       requester: {

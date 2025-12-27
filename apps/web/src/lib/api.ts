@@ -1,9 +1,13 @@
 import type {
   AuthResponse,
+  CreateJobPayload,
   CreateLessonRequestPayload,
+  CreateProposalPayload,
+  JobPost,
   LessonRequest,
   LessonRequestStatus,
   LoginPayload,
+  Proposal,
   RegisterPayload,
   TutorProfile,
   TutorProfileInput,
@@ -162,11 +166,97 @@ export async function fetchLessonRequestInbox(
 export async function updateLessonRequestStatus(
   token: string,
   id: string,
-  status: LessonRequestStatus
+  status: LessonRequestStatus,
+  payload?: {
+    tutorResponseMessage?: string;
+    tutorResponseFileUrl?: string;
+    tutorResponseVideoUrl?: string;
+  }
 ): Promise<LessonRequest> {
   return request<LessonRequest>(`/v1/lesson-requests/${id}`, {
     method: "PATCH",
     token,
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, ...(payload ?? {}) }),
+  });
+}
+
+export async function fetchPendingLessonRequestCount(
+  token: string
+): Promise<{ pending: number }> {
+  return request<{ pending: number }>("/v1/lesson-requests/inbox/count", {
+    method: "GET",
+    token,
+  });
+}
+
+export async function createJob(
+  token: string,
+  payload: CreateJobPayload
+): Promise<JobPost> {
+  return request<JobPost>("/v1/jobs", {
+    method: "POST",
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function fetchOpenJobs(token: string): Promise<JobPost[]> {
+  return request<JobPost[]>("/v1/jobs/open", {
+    method: "GET",
+    token,
+  });
+}
+
+export async function fetchMyJobs(token: string): Promise<JobPost[]> {
+  return request<JobPost[]>("/v1/jobs/mine", {
+    method: "GET",
+    token,
+  });
+}
+
+export async function fetchJobById(
+  token: string,
+  id: string
+): Promise<JobPost> {
+  return request<JobPost>(`/v1/jobs/${id}`, {
+    method: "GET",
+    token,
+  });
+}
+
+export async function submitProposal(
+  token: string,
+  jobId: string,
+  payload: CreateProposalPayload
+): Promise<Proposal> {
+  return request<Proposal>(`/v1/jobs/${jobId}/proposals`, {
+    method: "POST",
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function fetchJobProposals(
+  token: string,
+  jobId: string
+): Promise<
+  (Proposal & {
+    tutor?: { id: string; name: string; email: string; role: string };
+  })[]
+> {
+  return request<
+    (Proposal & {
+      tutor?: { id: string; name: string; email: string; role: string };
+    })[]
+  >(`/v1/jobs/${jobId}/proposals`, {
+    method: "GET",
+    token,
+  });
+}
+
+export async function fetchMyProposals(token: string): Promise<Proposal[]> {
+  return request<Proposal[]>("/v1/proposals/mine", {
+    method: "GET",
+    token,
   });
 }

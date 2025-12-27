@@ -21,6 +21,9 @@ export default function TutorRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [responseDrafts, setResponseDrafts] = useState<
+    Record<string, { message: string; fileUrl: string; videoUrl: string }>
+  >({});
 
   const helper = useMemo(() => {
     if (!auth) return t("requests.guard.login");
@@ -55,14 +58,40 @@ export default function TutorRequestsPage() {
     setBusyId(id);
     setStatus(null);
 
+    const draft = responseDrafts[id];
+    const payload =
+      draft && (draft.message || draft.fileUrl || draft.videoUrl)
+        ? {
+            tutorResponseMessage: draft.message || undefined,
+            tutorResponseFileUrl: draft.fileUrl || undefined,
+            tutorResponseVideoUrl: draft.videoUrl || undefined,
+          }
+        : undefined;
+
     try {
-      const updated = await updateLessonRequestStatus(token, id, next);
+      const updated = await updateLessonRequestStatus(token, id, next, payload);
       setItems((prev) => prev.map((item) => (item.id === id ? updated : item)));
     } catch (error) {
       setStatus((error as Error).message);
     } finally {
       setBusyId(null);
     }
+  };
+
+  const updateDraft = (
+    id: string,
+    key: "message" | "fileUrl" | "videoUrl",
+    value: string
+  ) => {
+    setResponseDrafts((prev) => ({
+      ...prev,
+      [id]: {
+        message: prev[id]?.message ?? "",
+        fileUrl: prev[id]?.fileUrl ?? "",
+        videoUrl: prev[id]?.videoUrl ?? "",
+        [key]: value,
+      },
+    }));
   };
 
   return (
@@ -129,24 +158,94 @@ export default function TutorRequestsPage() {
                     {item.message}
                   </p>
 
+                  {item.status !== "PENDING" && item.tutorResponseMessage && (
+                    <div
+                      className="mt-4 rounded-2xl border p-4"
+                      style={{ borderColor: "var(--divider)" }}
+                    >
+                      <p className="text-xs ui-muted">Your response</p>
+                      <p
+                        className="mt-2 text-sm"
+                        style={{ whiteSpace: "pre-wrap" }}
+                      >
+                        {item.tutorResponseMessage}
+                      </p>
+                      {(item.tutorResponseFileUrl ||
+                        item.tutorResponseVideoUrl) && (
+                        <div className="mt-2 flex flex-col gap-1 text-sm">
+                          {item.tutorResponseFileUrl && (
+                            <a
+                              className="text-sm underline opacity-85 hover:opacity-100"
+                              href={item.tutorResponseFileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              File link
+                            </a>
+                          )}
+                          {item.tutorResponseVideoUrl && (
+                            <a
+                              className="text-sm underline opacity-85 hover:opacity-100"
+                              href={item.tutorResponseVideoUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Video link
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {item.status === "PENDING" && (
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        className="ui-btn ui-btn-primary"
-                        disabled={busyId === item.id}
-                        onClick={() => onUpdate(item.id, "ACCEPTED")}
-                      >
-                        {t("requests.accept")}
-                      </button>
-                      <button
-                        type="button"
-                        className="ui-btn"
-                        disabled={busyId === item.id}
-                        onClick={() => onUpdate(item.id, "DECLINED")}
-                      >
-                        {t("requests.decline")}
-                      </button>
+                    <div className="mt-4 space-y-3">
+                      <textarea
+                        className="ui-field"
+                        rows={3}
+                        placeholder="Add a message (optional)"
+                        value={responseDrafts[item.id]?.message ?? ""}
+                        onChange={(e) =>
+                          updateDraft(item.id, "message", e.target.value)
+                        }
+                      />
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <input
+                          className="ui-field"
+                          placeholder="File link (https://...)"
+                          value={responseDrafts[item.id]?.fileUrl ?? ""}
+                          onChange={(e) =>
+                            updateDraft(item.id, "fileUrl", e.target.value)
+                          }
+                        />
+                        <input
+                          className="ui-field"
+                          placeholder="Video link (https://...)"
+                          value={responseDrafts[item.id]?.videoUrl ?? ""}
+                          onChange={(e) =>
+                            updateDraft(item.id, "videoUrl", e.target.value)
+                          }
+                        />
+                      </div>
+
+                      <div className="flex flex-wrap gap-3">
+                        <button
+                          type="button"
+                          className="ui-btn ui-btn-primary"
+                          disabled={busyId === item.id}
+                          onClick={() => onUpdate(item.id, "ACCEPTED")}
+                        >
+                          {t("requests.accept")}
+                        </button>
+                        <button
+                          type="button"
+                          className="ui-btn"
+                          disabled={busyId === item.id}
+                          onClick={() => onUpdate(item.id, "DECLINED")}
+                        >
+                          {t("requests.decline")}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

@@ -43,6 +43,12 @@ export interface LessonRequest {
   subject: string;
   message: string;
   status: LessonRequestStatus;
+
+  tutorResponseMessage?: string | null;
+  tutorResponseFileUrl?: string | null;
+  tutorResponseVideoUrl?: string | null;
+  respondedAt?: string | null;
+
   createdAt: string;
   updatedAt: string;
   requester: LessonRequestUser;
@@ -52,6 +58,58 @@ export interface CreateLessonRequestPayload {
   tutorUserId: string;
   subject: string;
   message: string;
+}
+
+export type JobPostStatus = "OPEN" | "CLOSED";
+
+export interface JobPost {
+  id: string;
+  parentId: string;
+  title: string;
+  description: string;
+  subjects: string[];
+  location?: string | null;
+  budget?: number | null;
+  status: JobPostStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateJobPayload {
+  title: string;
+  description: string;
+  subjects?: string[];
+  location?: string;
+  budget?: number;
+}
+
+export type ProposalStatus =
+  | "SUBMITTED"
+  | "WITHDRAWN"
+  | "ACCEPTED"
+  | "DECLINED";
+
+export interface Proposal {
+  id: string;
+  jobPostId: string;
+  tutorId: string;
+  message: string;
+  fileUrl?: string | null;
+  videoUrl?: string | null;
+  status: ProposalStatus;
+  createdAt: string;
+  updatedAt: string;
+  jobPost?: {
+    id: string;
+    title: string;
+    status: string;
+  };
+}
+
+export interface CreateProposalPayload {
+  message: string;
+  fileUrl?: string;
+  videoUrl?: string;
 }
 
 export interface TutorProfileInput {
