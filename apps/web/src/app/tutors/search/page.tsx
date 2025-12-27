@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { PageShell } from "../../_components/PageShell";
 import { searchTutors } from "../../../lib/api";
@@ -22,36 +22,64 @@ export default function TutorSearchPage() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<TutorSearchResult | null>(null);
 
-  const onSubmit = async (event: FormEvent) => {
-    event.preventDefault();
+  const runSearch = async (
+    payload: {
+      query?: string;
+      subjects?: string[];
+      location?: string;
+      limit: number;
+      page: number;
+    },
+    options?: { showMetaStatus?: boolean },
+  ) => {
+    const showMetaStatus = options?.showMetaStatus ?? true;
     setStatus(null);
     setBusy(true);
 
     try {
-      const payload = {
-        query: form.q.trim() || undefined,
-        subjects: parseCsv(form.subjects),
-        location: form.location.trim() || undefined,
-        limit: form.limit,
-        page: form.page,
-      };
-
       const response = await searchTutors(payload);
       setResult(response);
-      if (!response.meta.searchEnabled) {
-        setStatus(t("search.meta.disabled"));
-      } else {
-        setStatus(
-          response.meta.cacheHit
-            ? t("search.meta.cache")
-            : t("search.meta.live")
-        );
+      if (showMetaStatus) {
+        if (!response.meta.searchEnabled) {
+          setStatus(t("search.meta.disabled"));
+        } else {
+          setStatus(
+            response.meta.cacheHit ? t("search.meta.cache") : t("search.meta.live"),
+          );
+        }
       }
     } catch (error) {
       setStatus((error as Error).message);
     } finally {
       setBusy(false);
     }
+  };
+
+  useEffect(() => {
+    void runSearch(
+      {
+        query: undefined,
+        subjects: [],
+        location: undefined,
+        limit: 20,
+        page: 1,
+      },
+      { showMetaStatus: false },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    const payload = {
+      query: form.q.trim() || undefined,
+      subjects: parseCsv(form.subjects),
+      location: form.location.trim() || undefined,
+      limit: form.limit,
+      page: form.page,
+    };
+
+    await runSearch(payload, { showMetaStatus: true });
   };
 
   return (
