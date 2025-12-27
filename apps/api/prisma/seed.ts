@@ -1,6 +1,9 @@
-import 'dotenv/config';
+import * as dotenv from 'dotenv';
 import { PrismaClient, UserRole } from '@prisma/client';
 import * as argon2 from 'argon2';
+
+dotenv.config({ path: '.env.local' });
+dotenv.config({ path: '.env' });
 
 const prisma = new PrismaClient();
 
