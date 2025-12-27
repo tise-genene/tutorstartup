@@ -18,15 +18,23 @@ export class UpdateLessonRequestDto {
 
   @IsOptional()
   @IsUrl(
-    { require_protocol: true },
-    { message: 'tutorResponseFileUrl must be a valid URL' },
+    {
+      require_protocol: true,
+      require_valid_protocol: true,
+      protocols: ['https'],
+    },
+    { message: 'tutorResponseFileUrl must be a valid https URL' },
   )
   tutorResponseFileUrl?: string;
 
   @IsOptional()
   @IsUrl(
-    { require_protocol: true },
-    { message: 'tutorResponseVideoUrl must be a valid URL' },
+    {
+      require_protocol: true,
+      require_valid_protocol: true,
+      protocols: ['https'],
+    },
+    { message: 'tutorResponseVideoUrl must be a valid https URL' },
   )
   tutorResponseVideoUrl?: string;
 }

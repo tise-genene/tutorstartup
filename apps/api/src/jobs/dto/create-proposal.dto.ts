@@ -6,13 +6,24 @@ export class CreateProposalDto {
   message!: string;
 
   @IsOptional()
-  @IsUrl({ require_protocol: true }, { message: 'fileUrl must be a valid URL' })
+  @IsUrl(
+    {
+      require_protocol: true,
+      require_valid_protocol: true,
+      protocols: ['https'],
+    },
+    { message: 'fileUrl must be a valid https URL' },
+  )
   fileUrl?: string;
 
   @IsOptional()
   @IsUrl(
-    { require_protocol: true },
-    { message: 'videoUrl must be a valid URL' },
+    {
+      require_protocol: true,
+      require_valid_protocol: true,
+      protocols: ['https'],
+    },
+    { message: 'videoUrl must be a valid https URL' },
   )
   videoUrl?: string;
 }
