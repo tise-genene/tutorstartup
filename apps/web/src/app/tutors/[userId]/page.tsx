@@ -2,18 +2,18 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { PageShell } from "../../_components/PageShell";
 import { createLessonRequest, fetchTutorByUserId } from "../../../lib/api";
 import type { TutorProfile } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
 
-export default function TutorDetailPage({
-  params,
-}: {
-  params: { userId: string };
-}) {
+export default function TutorDetailPage() {
   const { t } = useI18n();
   const { auth } = useAuth();
+  const params = useParams();
+  const userIdParam = params?.userId;
+  const userId = Array.isArray(userIdParam) ? userIdParam[0] : userIdParam;
 
   const [tutor, setTutor] = useState<TutorProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,11 +26,18 @@ export default function TutorDetailPage({
     auth?.user.role === "STUDENT" || auth?.user.role === "PARENT";
 
   useEffect(() => {
+    if (!userId) {
+      setTutor(null);
+      setLoading(false);
+      setStatus("Invalid tutor id");
+      return;
+    }
+
     const run = async () => {
       setLoading(true);
       setStatus(null);
       try {
-        const response = await fetchTutorByUserId(params.userId);
+        const response = await fetchTutorByUserId(userId);
         setTutor(response);
         setForm((prev) => ({
           ...prev,
@@ -44,7 +51,7 @@ export default function TutorDetailPage({
     };
 
     void run();
-  }, [params.userId]);
+  }, [userId, t]);
 
   const title = useMemo(() => {
     if (tutor?.name) return tutor.name;
