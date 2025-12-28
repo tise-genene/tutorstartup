@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { JwtModule, JwtModuleOptions, JwtSignOptions } from '@nestjs/jwt';
+import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
@@ -17,12 +17,12 @@ import { SessionCleanupService } from './session-cleanup.service';
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService): JwtModuleOptions => {
-        type ExpiresIn = NonNullable<JwtSignOptions['expiresIn']>;
-        const rawExpiresIn = String(configService.get('JWT_EXPIRES_IN') ?? '');
+        type ExpiresIn = string | number;
+        const rawExpiresIn = configService.get<string>('JWT_EXPIRES_IN') ?? '';
         const expiresIn: ExpiresIn =
           rawExpiresIn.length > 0 ? rawExpiresIn : '15m';
 
-        const jwtSecret = String(configService.get('JWT_SECRET') ?? '');
+        const jwtSecret = configService.get<string>('JWT_SECRET') ?? '';
         if (jwtSecret.length === 0) {
           throw new Error('JWT_SECRET not configured');
         }

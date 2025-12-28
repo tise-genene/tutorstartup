@@ -4,7 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService, JwtSignOptions } from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import type { Session } from '@prisma/client';
 import type { User } from '@prisma/client';
@@ -17,6 +17,8 @@ import { LoginDto } from './dto/login.dto';
 import { AuthTokensDto, AuthenticatedUserDto } from './dto/auth-response.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { NotificationsQueueService } from '../notifications/notifications.queue.service';
+
+type ExpiresIn = string | number;
 
 @Injectable()
 export class AuthService {
@@ -218,21 +220,17 @@ export class AuthService {
       role: user.role,
     };
 
-    type ExpiresIn = NonNullable<JwtSignOptions['expiresIn']>;
-    const accessTokenEnv = String(
-      this.configService.get('JWT_EXPIRES_IN') ?? '',
-    );
-    const refreshTokenEnv = String(
-      this.configService.get('JWT_REFRESH_EXPIRES_IN') ?? '',
-    );
+    const accessTokenEnv =
+      this.configService.get<string>('JWT_EXPIRES_IN') ?? '';
+    const refreshTokenEnv =
+      this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') ?? '';
     const accessTokenTtl: ExpiresIn =
       accessTokenEnv.length > 0 ? accessTokenEnv : '15m';
     const refreshTokenTtl: ExpiresIn =
       refreshTokenEnv.length > 0 ? refreshTokenEnv : '30d';
-    const jwtSecret = String(this.configService.get('JWT_SECRET') ?? '');
-    const refreshSecret = String(
-      this.configService.get('JWT_REFRESH_SECRET') ?? '',
-    );
+    const jwtSecret = this.configService.get<string>('JWT_SECRET') ?? '';
+    const refreshSecret =
+      this.configService.get<string>('JWT_REFRESH_SECRET') ?? '';
 
     if (jwtSecret.length === 0 || refreshSecret.length === 0) {
       throw new Error('JWT secrets are not configured');
@@ -281,21 +279,17 @@ export class AuthService {
       role: user.role,
     };
 
-    type ExpiresIn = NonNullable<JwtSignOptions['expiresIn']>;
-    const accessTokenEnv = String(
-      this.configService.get('JWT_EXPIRES_IN') ?? '',
-    );
-    const refreshTokenEnv = String(
-      this.configService.get('JWT_REFRESH_EXPIRES_IN') ?? '',
-    );
+    const accessTokenEnv =
+      this.configService.get<string>('JWT_EXPIRES_IN') ?? '';
+    const refreshTokenEnv =
+      this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') ?? '';
     const accessTokenTtl: ExpiresIn =
       accessTokenEnv.length > 0 ? accessTokenEnv : '15m';
     const refreshTokenTtl: ExpiresIn =
       refreshTokenEnv.length > 0 ? refreshTokenEnv : '30d';
-    const jwtSecret = String(this.configService.get('JWT_SECRET') ?? '');
-    const refreshSecret = String(
-      this.configService.get('JWT_REFRESH_SECRET') ?? '',
-    );
+    const jwtSecret = this.configService.get<string>('JWT_SECRET') ?? '';
+    const refreshSecret =
+      this.configService.get<string>('JWT_REFRESH_SECRET') ?? '';
 
     if (jwtSecret.length === 0 || refreshSecret.length === 0) {
       throw new Error('JWT secrets are not configured');
@@ -347,16 +341,12 @@ export class AuthService {
     return createHash('sha256').update(token).digest('hex');
   }
 
-  private computeRefreshExpiry(
-    expiresIn: NonNullable<JwtSignOptions['expiresIn']>,
-  ): Date {
+  private computeRefreshExpiry(expiresIn: ExpiresIn): Date {
     const ms = this.parseDurationToMs(expiresIn);
     return new Date(Date.now() + ms);
   }
 
-  private parseDurationToMs(
-    expiresIn: NonNullable<JwtSignOptions['expiresIn']>,
-  ): number {
+  private parseDurationToMs(expiresIn: ExpiresIn): number {
     if (typeof expiresIn === 'number') {
       // jsonwebtoken treats numbers as seconds.
       return expiresIn * 1000;

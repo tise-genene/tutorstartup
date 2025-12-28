@@ -16,13 +16,56 @@ import {
 
 const DEFAULT_CURRENCY = 'ETB';
 
+type UnknownRecord = Record<string, unknown>;
+
 function normalizeCurrency(value?: string | null): string {
   const c = (value ?? '').trim().toUpperCase();
   return c.length ? c : DEFAULT_CURRENCY;
 }
 
 function safeLower(value: unknown): string {
-  return String(value ?? '').toLowerCase();
+  if (typeof value === 'string') return value.toLowerCase();
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value).toLowerCase();
+  }
+  return '';
+}
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function getRecord(value: unknown): UnknownRecord | null {
+  return isRecord(value) ? value : null;
+}
+
+function getStringField(obj: unknown, key: string): string | undefined {
+  const rec = getRecord(obj);
+  const value = rec ? rec[key] : undefined;
+  return typeof value === 'string' && value.trim().length > 0
+    ? value
+    : undefined;
+}
+
+function getNested(obj: unknown, path: string[]): unknown {
+  let cur: unknown = obj;
+  for (const p of path) {
+    const rec = getRecord(cur);
+    if (!rec) return undefined;
+    cur = rec[p];
+  }
+  return cur;
+}
+
+function extractTxRef(payload: unknown): string | undefined {
+  const direct =
+    getStringField(payload, 'tx_ref') ?? getStringField(payload, 'trx_ref');
+  if (direct) return direct;
+
+  const nested = getNested(payload, ['data', 'tx_ref']);
+  return typeof nested === 'string' && nested.trim().length > 0
+    ? nested.trim()
+    : undefined;
 }
 
 function getChapaSignature(headers: Record<string, unknown>): string | null {
@@ -110,7 +153,7 @@ export class PaymentsService {
       },
     });
 
-    const json = (await resp.json().catch(() => null)) as any;
+    const json: unknown = await resp.json().catch(() => null);
     if (!resp.ok) {
       return {
         ok: false,
@@ -121,7 +164,9 @@ export class PaymentsService {
 
     // Chapa responses vary; we normalize based on common fields.
     const statusRaw =
-      json?.data?.status ?? json?.status ?? json?.data?.payment_status;
+      getNested(json, ['data', 'status']) ??
+      getNested(json, ['status']) ??
+      getNested(json, ['data', 'payment_status']);
     const normalized = safeLower(statusRaw);
     const succeeded = normalized === 'success' || normalized === 'successful';
     const failed = normalized === 'failed' || normalized === 'cancelled';
@@ -154,18 +199,20 @@ export class PaymentsService {
     const verified = await this.verifyTransactionWithChapa(txRef);
 
     return await this.prisma.$transaction(async (tx) => {
+      const metadata: UnknownRecord = {
+        source,
+        extra: extraMetadata ?? null,
+        verify: verified.providerResponse ?? null,
+      };
+      if (payment.metadata !== null && payment.metadata !== undefined) {
+        metadata.previous = payment.metadata as unknown;
+      }
+
       const updatedPayment = await tx.payment.update({
         where: { id: payment.id },
         data: {
           status: verified.status,
-          metadata: {
-            source,
-            ...(typeof payment.metadata === 'object' && payment.metadata
-              ? (payment.metadata as any)
-              : {}),
-            extra: extraMetadata,
-            verify: verified.providerResponse,
-          },
+          metadata,
         },
       });
 
@@ -295,14 +342,18 @@ export class PaymentsService {
       body: JSON.stringify(payload),
     });
 
-    const json = (await resp.json().catch(() => null)) as any;
+    const json: unknown = await resp.json().catch(() => null);
     if (!resp.ok) {
       throw new BadRequestException(
-        json?.message ?? 'Failed to create payment intent',
+        getStringField(json, 'message') ?? 'Failed to create payment intent',
       );
     }
 
-    const checkoutUrl: string | undefined = json?.data?.checkout_url;
+    const checkoutUrlRaw = getNested(json, ['data', 'checkout_url']);
+    const checkoutUrl =
+      typeof checkoutUrlRaw === 'string' && checkoutUrlRaw.trim().length > 0
+        ? checkoutUrlRaw
+        : undefined;
     if (!checkoutUrl) {
       throw new BadRequestException(
         'Payment provider did not return checkout url',
@@ -332,9 +383,8 @@ export class PaymentsService {
     };
   }
 
-  async handleChapaCallback(queryOrBody: any) {
-    const txRef: string | undefined =
-      queryOrBody?.tx_ref ?? queryOrBody?.trx_ref ?? queryOrBody?.data?.tx_ref;
+  async handleChapaCallback(queryOrBody: unknown) {
+    const txRef = extractTxRef(queryOrBody);
 
     if (!txRef) {
       throw new BadRequestException('Missing tx_ref');
@@ -343,11 +393,13 @@ export class PaymentsService {
     return await this.finalizePaymentFromTxRef(txRef, 'callback', queryOrBody);
   }
 
-  async handleChapaWebhook(body: any, headers: Record<string, unknown>) {
+  async handleChapaWebhook(body: unknown, headers: Record<string, unknown>) {
     this.verifyWebhookSignature(body, headers);
 
-    const txRef: string | undefined =
-      body?.tx_ref ?? body?.data?.tx_ref ?? body?.trx_ref ?? body?.reference;
+    const txRef =
+      extractTxRef(body) ??
+      getStringField(body, 'reference') ??
+      getStringField(getNested(body, ['data']), 'tx_ref');
 
     if (!txRef) {
       throw new BadRequestException('Missing tx_ref');

@@ -17,6 +17,13 @@ import { UserRole } from '../prisma/prisma.enums';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
 import { PaymentsService } from './payments.service';
 
+type CurrentUserPayload = {
+  id: string;
+  role: UserRole;
+  email: string;
+  name: string;
+};
+
 @Controller({ path: 'contracts', version: '1' })
 export class PaymentsController {
   constructor(private readonly payments: PaymentsService) {}
@@ -25,7 +32,7 @@ export class PaymentsController {
   @Post(':id/payments/intent')
   @Roles(UserRole.PARENT)
   async createIntent(
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
     @Param('id') contractId: string,
     @Body() dto: CreatePaymentIntentDto,
   ) {
@@ -45,7 +52,7 @@ export class PaymentsController {
   @Get(':id/payments')
   @Roles(UserRole.PARENT, UserRole.TUTOR)
   async listContractPayments(
-    @CurrentUser() user: any,
+    @CurrentUser() user: Pick<CurrentUserPayload, 'id' | 'role'>,
     @Param('id') contractId: string,
   ) {
     return await this.payments.listContractPayments(
@@ -61,16 +68,16 @@ export class PaymentsWebhookController {
 
   // Chapa calls callback_url with a GET after payment completion.
   @Get('chapa/callback')
-  async chapaCallback(@Query() query: any, @Req() req: Request) {
-    return await this.payments.handleChapaCallback(query ?? (req as any).query);
+  async chapaCallback(@Query() query: unknown, @Req() req: Request) {
+    return await this.payments.handleChapaCallback(query ?? req.query);
   }
 
   // Minimal webhook receiver. Configure Chapa to POST here.
   @Post('chapa/webhook')
-  async chapaWebhook(@Req() req: Request, @Body() body: any) {
+  async chapaWebhook(@Req() req: Request, @Body() body: unknown) {
     return await this.payments.handleChapaWebhook(
       body ?? req.body,
-      (req.headers ?? {}) as Record<string, unknown>,
+      req.headers as unknown as Record<string, unknown>,
     );
   }
 }
