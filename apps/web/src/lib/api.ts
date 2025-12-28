@@ -2,6 +2,7 @@ import type {
   AuthResponse,
   Contract,
   ContractMessage,
+  Payment,
   CreateJobPayload,
   CreateLessonRequestPayload,
   CreateProposalPayload,
@@ -340,5 +341,32 @@ export async function sendContractMessage(
     method: "POST",
     token,
     body: JSON.stringify(payload),
+  });
+}
+
+export async function createContractPaymentIntent(
+  token: string,
+  contractId: string,
+  payload?: { amount?: number; currency?: string }
+): Promise<{
+  paymentId: string;
+  providerReference?: string | null;
+  status: string;
+  checkoutUrl: string;
+}> {
+  return request(`/v1/contracts/${contractId}/payments/intent`, {
+    method: "POST",
+    token,
+    body: JSON.stringify(payload ?? {}),
+  });
+}
+
+export async function fetchContractPayments(
+  token: string,
+  contractId: string
+): Promise<Payment[]> {
+  return request<Payment[]>(`/v1/contracts/${contractId}/payments`, {
+    method: "GET",
+    token,
   });
 }

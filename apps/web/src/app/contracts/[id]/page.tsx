@@ -7,9 +7,11 @@ import { PageShell } from "../../_components/PageShell";
 import {
   fetchContractById,
   fetchContractMessages,
+  fetchContractPayments,
+  createContractPaymentIntent,
   sendContractMessage,
 } from "../../../lib/api";
-import type { Contract, ContractMessage } from "../../../lib/types";
+import type { Contract, ContractMessage, Payment } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
 
 export default function ContractDetailPage() {
@@ -26,8 +28,10 @@ export default function ContractDetailPage() {
 
   const [contract, setContract] = useState<Contract | null>(null);
   const [messages, setMessages] = useState<ContractMessage[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [paying, setPaying] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
   const [form, setForm] = useState({ body: "", attachmentUrl: "" });
@@ -51,6 +55,13 @@ export default function ContractDetailPage() {
       ]);
       setContract(loadedContract);
       setMessages(loadedMessages);
+
+      try {
+        const loadedPayments = await fetchContractPayments(token, contractId);
+        setPayments(loadedPayments);
+      } catch {
+        setPayments([]);
+      }
     } catch (e) {
       setStatus((e as Error).message);
     } finally {
@@ -85,6 +96,25 @@ export default function ContractDetailPage() {
       setStatus((e as Error).message);
     } finally {
       setSending(false);
+    }
+  };
+
+  const onPay = async () => {
+    if (!token || !contractId) return;
+    if (auth?.user.role !== "PARENT") {
+      setStatus("Only parents can pay.");
+      return;
+    }
+
+    setPaying(true);
+    setStatus(null);
+    try {
+      const intent = await createContractPaymentIntent(token, contractId);
+      window.location.href = intent.checkoutUrl;
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setPaying(false);
     }
   };
 
@@ -127,6 +157,46 @@ export default function ContractDetailPage() {
                   </div>
                   <span className="pill text-xs">{contract.status}</span>
                 </div>
+
+                {auth?.user.role === "PARENT" &&
+                  contract.status === "PENDING_PAYMENT" && (
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                      <p className="text-sm ui-muted">
+                        Amount: {contract.amount ?? "—"}{" "}
+                        {contract.currency ?? "ETB"}
+                      </p>
+                      <button
+                        type="button"
+                        className="ui-btn ui-btn-primary"
+                        disabled={paying}
+                        onClick={onPay}
+                      >
+                        {paying ? "Redirecting…" : "Pay"}
+                      </button>
+                    </div>
+                  )}
+
+                {payments.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-sm ui-muted">Payments</p>
+                    <div className="mt-2 space-y-2">
+                      {payments.map((p) => (
+                        <div
+                          key={p.id}
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3"
+                          style={{ borderColor: "var(--divider)" }}
+                        >
+                          <p className="text-sm ui-muted">
+                            {p.amount} {p.currency} — {p.status}
+                          </p>
+                          <p className="text-xs ui-muted">
+                            {new Date(p.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="surface-card surface-card--quiet p-5">

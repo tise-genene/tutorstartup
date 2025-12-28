@@ -44,7 +44,13 @@ export class JobsService {
     return await this.prisma.jobPost.findMany({
       where: {
         status: JobPostStatus.OPEN,
-        contracts: { none: { status: ContractStatus.ACTIVE } },
+        contracts: {
+          none: {
+            status: {
+              in: [ContractStatus.ACTIVE, ContractStatus.PENDING_PAYMENT],
+            },
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
       take: 50,
@@ -68,7 +74,11 @@ export class JobsService {
       where: { id: jobId },
       include: {
         contracts: {
-          where: { status: ContractStatus.ACTIVE },
+          where: {
+            status: {
+              in: [ContractStatus.ACTIVE, ContractStatus.PENDING_PAYMENT],
+            },
+          },
           select: { id: true, tutorId: true },
           take: 1,
         },

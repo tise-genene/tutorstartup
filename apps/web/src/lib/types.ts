@@ -107,7 +107,11 @@ export interface Proposal {
   };
 }
 
-export type ContractStatus = "ACTIVE" | "COMPLETED" | "CANCELLED";
+export type ContractStatus =
+  | "PENDING_PAYMENT"
+  | "ACTIVE"
+  | "COMPLETED"
+  | "CANCELLED";
 
 export interface PersonSummary {
   id: string;
@@ -122,11 +126,29 @@ export interface Contract {
   parentId: string;
   tutorId: string;
   status: ContractStatus;
+  amount?: number | null;
+  currency?: string;
   createdAt: string;
   updatedAt: string;
   jobPost?: { id: string; title: string; status: string };
   parent?: PersonSummary;
   tutor?: PersonSummary;
+}
+
+export type PaymentStatus = "PENDING" | "SUCCEEDED" | "FAILED";
+
+export interface Payment {
+  id: string;
+  provider: "CHAPA";
+  status: PaymentStatus;
+  contractId: string;
+  createdByUserId: string;
+  amount: number;
+  currency: string;
+  providerReference?: string | null;
+  checkoutUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ContractMessage {

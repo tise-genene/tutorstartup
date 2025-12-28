@@ -29,7 +29,9 @@ export class ContractsService {
       const proposal = await tx.proposal.findUnique({
         where: { id: proposalId },
         include: {
-          jobPost: { select: { id: true, parentId: true, status: true } },
+          jobPost: {
+            select: { id: true, parentId: true, status: true, budget: true },
+          },
         },
       });
 
@@ -67,7 +69,9 @@ export class ContractsService {
       const existingActiveForJob = await tx.contract.findFirst({
         where: {
           jobPostId: proposal.jobPostId,
-          status: ContractStatus.ACTIVE,
+          status: {
+            in: [ContractStatus.ACTIVE, ContractStatus.PENDING_PAYMENT],
+          },
         },
         select: { id: true },
       });
@@ -95,7 +99,12 @@ export class ContractsService {
           proposalId: proposal.id,
           parentId: parent.id,
           tutorId: proposal.tutorId,
-          status: ContractStatus.ACTIVE,
+          amount: proposal.jobPost?.budget ?? null,
+          currency: 'ETB',
+          status:
+            proposal.jobPost?.budget && proposal.jobPost.budget > 0
+              ? ContractStatus.PENDING_PAYMENT
+              : ContractStatus.ACTIVE,
         },
         include: {
           jobPost: true,

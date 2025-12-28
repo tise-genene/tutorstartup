@@ -36,9 +36,28 @@ enum ProposalStatus {
 }
 
 enum ContractStatus {
+  PENDING_PAYMENT
   ACTIVE
   COMPLETED
   CANCELLED
+}
+
+enum PaymentProvider {
+  CHAPA
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+enum LedgerEntryType {
+  CLIENT_CHARGE
+  PLATFORM_FEE
+  TUTOR_PAYABLE
+  TUTOR_PAYOUT
+  REFUND
 }
 
 model User {
@@ -64,6 +83,8 @@ model User {
   contractsAsTutor  Contract[] @relation("ContractsByTutor")
 
   contractMessages ContractMessage[]
+
+  payments Payment[] @relation("PaymentsByUser")
 
   sessions Session[]
 }
@@ -173,6 +194,8 @@ model Contract {
   parentId  String
   tutorId   String
   status    ContractStatus @default(ACTIVE)
+  amount    Int?
+  currency  String         @default("ETB")
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
@@ -182,10 +205,55 @@ model Contract {
   tutor     User      @relation("ContractsByTutor", fields: [tutorId], references: [id], onDelete: Cascade)
   messages  ContractMessage[]
 
+  payments  Payment[]
+  ledgerEntries LedgerEntry[]
+
   @@index([parentId, createdAt])
   @@index([tutorId, createdAt])
   @@index([jobPostId, createdAt])
   @@index([status, createdAt])
+}
+
+model Payment {
+  id                String          @id @default(uuid())
+  provider          PaymentProvider
+  status            PaymentStatus   @default(PENDING)
+  contractId        String
+  createdByUserId   String
+  amount            Int
+  currency          String          @default("ETB")
+  providerReference String?         @unique
+  checkoutUrl       String?
+  metadata          Json?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  contract          Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  createdBy         User            @relation("PaymentsByUser", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  ledgerEntries     LedgerEntry[]
+
+  @@index([contractId, createdAt])
+  @@index([createdByUserId, createdAt])
+  @@index([provider, status, createdAt])
+}
+
+model LedgerEntry {
+  id          String          @id @default(uuid())
+  contractId  String
+  paymentId   String?
+  type        LedgerEntryType
+  amount      Int
+  currency    String          @default("ETB")
+  // Idempotency guard: for webhooks, set to e.g. "CHAPA:<tx_ref>:CLIENT_CHARGE"
+  idempotencyKey String       @unique
+  createdAt   DateTime        @default(now())
+
+  contract    Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  payment     Payment?        @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@index([contractId, createdAt])
+  @@index([paymentId, createdAt])
+  @@index([type, createdAt])
 }
 
 model ContractMessage {

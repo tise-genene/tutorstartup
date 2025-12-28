@@ -25,6 +25,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { LessonRequestsModule } from './lesson-requests/lesson-requests.module';
 import { JobsModule } from './jobs/jobs.module';
 import { ContractsModule } from './contracts/contracts.module';
+import { PaymentsModule } from './payments/payments.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -104,6 +105,7 @@ import { AppService } from './app.service';
     LessonRequestsModule,
     JobsModule,
     ContractsModule,
+    PaymentsModule,
     AuthModule,
     UsersModule,
     TutorsModule,

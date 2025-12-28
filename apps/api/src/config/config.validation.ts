@@ -32,6 +32,8 @@ export const configValidationSchema = Joi.object({
   RATE_LIMIT_TTL: Joi.number().default(60),
   RATE_LIMIT_MAX: Joi.number().default(100),
   FRONTEND_URL: Joi.string().default('http://localhost:3000'),
+  API_PUBLIC_URL: Joi.string().uri().default('http://localhost:4000/api'),
+  CHAPA_SECRET_KEY: Joi.string().allow('', null).default(''),
   AUTH_CSRF_ENABLED: Joi.string()
     .valid('true', 'false', '1', '0', 'yes', 'no', 'y', 'n', 'on', 'off')
     .default(defaultCsrfEnabled),

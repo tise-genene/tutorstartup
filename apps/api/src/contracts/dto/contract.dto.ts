@@ -10,6 +10,8 @@ export class ContractDto {
   parentId!: string;
   tutorId!: string;
   status!: ContractStatus;
+  amount!: number | null;
+  currency!: string;
   createdAt!: Date;
   updatedAt!: Date;
 
@@ -31,6 +33,8 @@ export class ContractDto {
       parentId: entity.parentId,
       tutorId: entity.tutorId,
       status: entity.status,
+      amount: (entity as any).amount ?? null,
+      currency: (entity as any).currency ?? 'ETB',
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       jobPost: entity.jobPost

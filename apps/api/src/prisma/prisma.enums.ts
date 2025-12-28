@@ -35,6 +35,7 @@ export type ProposalStatus =
   (typeof ProposalStatus)[keyof typeof ProposalStatus];
 
 export const ContractStatus = {
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
   ACTIVE: 'ACTIVE',
   COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED',
@@ -42,3 +43,29 @@ export const ContractStatus = {
 
 export type ContractStatus =
   (typeof ContractStatus)[keyof typeof ContractStatus];
+
+export const PaymentProvider = {
+  CHAPA: 'CHAPA',
+} as const;
+
+export type PaymentProvider =
+  (typeof PaymentProvider)[keyof typeof PaymentProvider];
+
+export const PaymentStatus = {
+  PENDING: 'PENDING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+} as const;
+
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
+
+export const LedgerEntryType = {
+  CLIENT_CHARGE: 'CLIENT_CHARGE',
+  PLATFORM_FEE: 'PLATFORM_FEE',
+  TUTOR_PAYABLE: 'TUTOR_PAYABLE',
+  TUTOR_PAYOUT: 'TUTOR_PAYOUT',
+  REFUND: 'REFUND',
+} as const;
+
+export type LedgerEntryType =
+  (typeof LedgerEntryType)[keyof typeof LedgerEntryType];
