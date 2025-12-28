@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { createHmac } from 'node:crypto';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   ContractStatus,
@@ -17,6 +18,21 @@ import {
 const DEFAULT_CURRENCY = 'ETB';
 
 type UnknownRecord = Record<string, unknown>;
+
+function toInputJsonValue(value: unknown): Prisma.InputJsonValue | undefined {
+  if (value === null || value === undefined) return undefined;
+  try {
+    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  } catch {
+    return undefined;
+  }
+}
+
+function toNullableJsonField(
+  value: unknown,
+): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput {
+  return toInputJsonValue(value) ?? Prisma.JsonNull;
+}
 
 function normalizeCurrency(value?: string | null): string {
   const c = (value ?? '').trim().toUpperCase();
@@ -199,14 +215,19 @@ export class PaymentsService {
     const verified = await this.verifyTransactionWithChapa(txRef);
 
     return await this.prisma.$transaction(async (tx) => {
-      const metadata: UnknownRecord = {
+      const extra = toInputJsonValue(extraMetadata);
+      const verify = toInputJsonValue(verified.providerResponse);
+
+      const metadata = {
         source,
-        extra: extraMetadata ?? null,
-        verify: verified.providerResponse ?? null,
-      };
-      if (payment.metadata !== null && payment.metadata !== undefined) {
-        metadata.previous = payment.metadata as unknown;
-      }
+        ...(extra !== undefined ? { extra } : {}),
+        ...(verify !== undefined ? { verify } : {}),
+        ...(payment.metadata != null
+          ? {
+              previous: payment.metadata as unknown as Prisma.InputJsonValue,
+            }
+          : {}),
+      } satisfies Prisma.InputJsonObject;
 
       const updatedPayment = await tx.payment.update({
         where: { id: payment.id },
@@ -370,7 +391,7 @@ export class PaymentsService {
         currency,
         providerReference: txRef,
         checkoutUrl,
-        metadata: json,
+        metadata: toNullableJsonField(json),
       },
     });
 
