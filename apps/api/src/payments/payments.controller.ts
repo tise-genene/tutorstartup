@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -58,11 +59,18 @@ export class PaymentsController {
 export class PaymentsWebhookController {
   constructor(private readonly payments: PaymentsService) {}
 
+  // Chapa calls callback_url with a GET after payment completion.
+  @Get('chapa/callback')
+  async chapaCallback(@Query() query: any, @Req() req: Request) {
+    return await this.payments.handleChapaCallback(query ?? (req as any).query);
+  }
+
   // Minimal webhook receiver. Configure Chapa to POST here.
   @Post('chapa/webhook')
   async chapaWebhook(@Req() req: Request, @Body() body: any) {
-    // Note: signature verification is not implemented yet.
-    // We still enforce idempotency via stored payment reference + ledger idempotency key.
-    return await this.payments.handleChapaWebhook(body ?? req.body);
+    return await this.payments.handleChapaWebhook(
+      body ?? req.body,
+      (req.headers ?? {}) as Record<string, unknown>,
+    );
   }
 }

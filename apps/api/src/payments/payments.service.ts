@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { createHmac } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   ContractStatus,
@@ -20,9 +21,183 @@ function normalizeCurrency(value?: string | null): string {
   return c.length ? c : DEFAULT_CURRENCY;
 }
 
+function safeLower(value: unknown): string {
+  return String(value ?? '').toLowerCase();
+}
+
+function getChapaSignature(headers: Record<string, unknown>): string | null {
+  const candidates = [
+    headers['x-chapa-signature'],
+    headers['X-Chapa-Signature'],
+    headers['chapa-signature'],
+    headers['Chapa-Signature'],
+  ];
+  for (const c of candidates) {
+    if (typeof c === 'string' && c.trim().length > 0) return c.trim();
+    if (Array.isArray(c) && typeof c[0] === 'string' && c[0].trim().length > 0)
+      return c[0].trim();
+  }
+  return null;
+}
+
+function computeHmacSha256Hex(secret: string, payload: unknown): string {
+  return createHmac('sha256', secret)
+    .update(JSON.stringify(payload ?? {}))
+    .digest('hex');
+}
+
+type VerifyResult = {
+  ok: boolean;
+  status: PaymentStatus;
+  providerResponse?: unknown;
+};
+
 @Injectable()
 export class PaymentsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private getChapaBaseUrl(): string {
+    const raw = (
+      process.env.CHAPA_BASE_URL ?? 'https://api.chapa.co/v1'
+    ).trim();
+    return raw.replace(/\/$/, '');
+  }
+
+  private getChapaSecret(): string {
+    const secret = (process.env.CHAPA_SECRET_KEY ?? '').trim();
+    if (!secret) {
+      throw new BadRequestException('CHAPA_SECRET_KEY is not configured');
+    }
+    return secret;
+  }
+
+  private verifyWebhookSignature(
+    body: unknown,
+    headers: Record<string, unknown>,
+  ): void {
+    const secret = (process.env.CHAPA_WEBHOOK_SECRET ?? '').trim();
+    const nodeEnv = (process.env.NODE_ENV ?? 'development').toLowerCase();
+
+    if (!secret) {
+      if (nodeEnv === 'production') {
+        throw new BadRequestException('CHAPA_WEBHOOK_SECRET is not configured');
+      }
+      // dev: allow unsigned webhook/callback
+      return;
+    }
+
+    const provided = getChapaSignature(headers);
+    if (!provided) {
+      throw new ForbiddenException('Missing Chapa signature');
+    }
+
+    const expected = computeHmacSha256Hex(secret, body);
+    if (provided !== expected) {
+      throw new ForbiddenException('Invalid Chapa signature');
+    }
+  }
+
+  private async verifyTransactionWithChapa(
+    txRef: string,
+  ): Promise<VerifyResult> {
+    const baseUrl = this.getChapaBaseUrl();
+    const secret = this.getChapaSecret();
+
+    const resp = await fetch(`${baseUrl}/transaction/verify/${txRef}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${secret}`,
+      },
+    });
+
+    const json = (await resp.json().catch(() => null)) as any;
+    if (!resp.ok) {
+      return {
+        ok: false,
+        status: PaymentStatus.FAILED,
+        providerResponse: json,
+      };
+    }
+
+    // Chapa responses vary; we normalize based on common fields.
+    const statusRaw =
+      json?.data?.status ?? json?.status ?? json?.data?.payment_status;
+    const normalized = safeLower(statusRaw);
+    const succeeded = normalized === 'success' || normalized === 'successful';
+    const failed = normalized === 'failed' || normalized === 'cancelled';
+
+    return {
+      ok: succeeded,
+      status: succeeded
+        ? PaymentStatus.SUCCEEDED
+        : failed
+          ? PaymentStatus.FAILED
+          : PaymentStatus.PENDING,
+      providerResponse: json,
+    };
+  }
+
+  private async finalizePaymentFromTxRef(
+    txRef: string,
+    source: 'callback' | 'webhook',
+    extraMetadata?: unknown,
+  ) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { providerReference: txRef },
+      include: { contract: true },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Payment not found');
+    }
+
+    const verified = await this.verifyTransactionWithChapa(txRef);
+
+    return await this.prisma.$transaction(async (tx) => {
+      const updatedPayment = await tx.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: verified.status,
+          metadata: {
+            source,
+            ...(typeof payment.metadata === 'object' && payment.metadata
+              ? (payment.metadata as any)
+              : {}),
+            extra: extraMetadata,
+            verify: verified.providerResponse,
+          },
+        },
+      });
+
+      if (verified.status === PaymentStatus.SUCCEEDED) {
+        const ledgerKey = `CHAPA:${txRef}:CLIENT_CHARGE`;
+
+        await tx.ledgerEntry.upsert({
+          where: { idempotencyKey: ledgerKey },
+          update: {},
+          create: {
+            contractId: payment.contractId,
+            paymentId: payment.id,
+            type: LedgerEntryType.CLIENT_CHARGE,
+            amount: payment.amount,
+            currency: payment.currency,
+            idempotencyKey: ledgerKey,
+          },
+        });
+
+        await tx.contract.update({
+          where: { id: payment.contractId },
+          data: { status: ContractStatus.ACTIVE },
+        });
+      }
+
+      return {
+        ok: true,
+        paymentId: updatedPayment.id,
+        status: updatedPayment.status,
+      };
+    });
+  }
 
   async createContractPaymentIntent(
     user: { id: string; role: UserRole; email: string; name: string },
@@ -87,17 +262,13 @@ export class PaymentsService {
     }
 
     const successUrl = `${frontendUrl}/payments/success?tx_ref=${encodeURIComponent(txRef)}`;
-    const failureUrl = `${frontendUrl}/payments/failure?tx_ref=${encodeURIComponent(txRef)}`;
 
     const apiPublicUrl = (process.env.API_PUBLIC_URL ?? '').trim();
     if (!apiPublicUrl) {
       throw new BadRequestException('API_PUBLIC_URL is not configured');
     }
 
-    const chapaSecret = (process.env.CHAPA_SECRET_KEY ?? '').trim();
-    if (!chapaSecret) {
-      throw new BadRequestException('CHAPA_SECRET_KEY is not configured');
-    }
+    const chapaSecret = this.getChapaSecret();
 
     const payload = {
       amount: String(amount),
@@ -105,7 +276,8 @@ export class PaymentsService {
       email: user.email,
       first_name: user.name,
       tx_ref: txRef,
-      callback_url: `${apiPublicUrl}/v1/payments/chapa/webhook`,
+      // Chapa calls this URL (GET) after payment completes; handler must verify.
+      callback_url: `${apiPublicUrl}/v1/payments/chapa/callback`,
       return_url: successUrl,
       customization: {
         title: 'Tutorstartup Contract Payment',
@@ -160,74 +332,29 @@ export class PaymentsService {
     };
   }
 
-  async handleChapaWebhook(rawBody: any) {
-    // We treat this as untrusted. Minimal idempotency is done via LedgerEntry.idempotencyKey.
+  async handleChapaCallback(queryOrBody: any) {
     const txRef: string | undefined =
-      rawBody?.tx_ref ?? rawBody?.data?.tx_ref ?? rawBody?.reference;
-
-    const statusRaw: string | undefined =
-      rawBody?.status ?? rawBody?.data?.status ?? rawBody?.event;
+      queryOrBody?.tx_ref ?? queryOrBody?.trx_ref ?? queryOrBody?.data?.tx_ref;
 
     if (!txRef) {
       throw new BadRequestException('Missing tx_ref');
     }
 
-    const payment = await this.prisma.payment.findUnique({
-      where: { providerReference: txRef },
-      include: { contract: true },
-    });
+    return await this.finalizePaymentFromTxRef(txRef, 'callback', queryOrBody);
+  }
 
-    if (!payment) {
-      throw new NotFoundException('Payment not found');
+  async handleChapaWebhook(body: any, headers: Record<string, unknown>) {
+    this.verifyWebhookSignature(body, headers);
+
+    const txRef: string | undefined =
+      body?.tx_ref ?? body?.data?.tx_ref ?? body?.trx_ref ?? body?.reference;
+
+    if (!txRef) {
+      throw new BadRequestException('Missing tx_ref');
     }
 
-    const normalizedStatus = (statusRaw ?? '').toLowerCase();
-    const isSuccess =
-      normalizedStatus === 'success' || normalizedStatus === 'successful';
-    const isFailed = normalizedStatus === 'failed';
-
-    return await this.prisma.$transaction(async (tx) => {
-      const updatedPayment = await tx.payment.update({
-        where: { id: payment.id },
-        data: {
-          status: isSuccess
-            ? PaymentStatus.SUCCEEDED
-            : isFailed
-              ? PaymentStatus.FAILED
-              : PaymentStatus.PENDING,
-          metadata: rawBody,
-        },
-      });
-
-      if (isSuccess) {
-        const ledgerKey = `CHAPA:${txRef}:CLIENT_CHARGE`;
-
-        await tx.ledgerEntry.upsert({
-          where: { idempotencyKey: ledgerKey },
-          update: {},
-          create: {
-            contractId: payment.contractId,
-            paymentId: payment.id,
-            type: LedgerEntryType.CLIENT_CHARGE,
-            amount: payment.amount,
-            currency: payment.currency,
-            idempotencyKey: ledgerKey,
-          },
-        });
-
-        // Minimal rule: payment success activates contract.
-        await tx.contract.update({
-          where: { id: payment.contractId },
-          data: { status: ContractStatus.ACTIVE },
-        });
-      }
-
-      return {
-        ok: true,
-        paymentId: updatedPayment.id,
-        status: updatedPayment.status,
-      };
-    });
+    // Per docs: always verify before giving value.
+    return await this.finalizePaymentFromTxRef(txRef, 'webhook', body);
   }
 
   async listContractPayments(

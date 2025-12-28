@@ -34,6 +34,8 @@ export const configValidationSchema = Joi.object({
   FRONTEND_URL: Joi.string().default('http://localhost:3000'),
   API_PUBLIC_URL: Joi.string().uri().default('http://localhost:4000/api'),
   CHAPA_SECRET_KEY: Joi.string().allow('', null).default(''),
+  CHAPA_WEBHOOK_SECRET: Joi.string().allow('', null).default(''),
+  CHAPA_BASE_URL: Joi.string().uri().default('https://api.chapa.co/v1'),
   AUTH_CSRF_ENABLED: Joi.string()
     .valid('true', 'false', '1', '0', 'yes', 'no', 'y', 'n', 'on', 'off')
     .default(defaultCsrfEnabled),
