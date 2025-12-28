@@ -1,6 +1,7 @@
 import type {
   AuthResponse,
   Contract,
+  ContractMilestone,
   ContractMessage,
   Payment,
   CreateJobPayload,
@@ -369,4 +370,64 @@ export async function fetchContractPayments(
     method: "GET",
     token,
   });
+}
+
+export async function fetchContractMilestones(
+  token: string,
+  contractId: string
+): Promise<ContractMilestone[]> {
+  return request<ContractMilestone[]>(
+    `/v1/contracts/${contractId}/milestones`,
+    {
+      method: "GET",
+      token,
+    }
+  );
+}
+
+export async function createContractMilestone(
+  token: string,
+  contractId: string,
+  payload: { title: string; amount: number; currency?: string }
+): Promise<ContractMilestone> {
+  return request<ContractMilestone>(`/v1/contracts/${contractId}/milestones`, {
+    method: "POST",
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function createMilestonePaymentIntent(
+  token: string,
+  contractId: string,
+  milestoneId: string
+): Promise<{
+  paymentId: string;
+  providerReference?: string | null;
+  status: string;
+  checkoutUrl: string;
+}> {
+  return request(
+    `/v1/contracts/${contractId}/milestones/${milestoneId}/payments/intent`,
+    {
+      method: "POST",
+      token,
+      body: JSON.stringify({}),
+    }
+  );
+}
+
+export async function releaseContractMilestone(
+  token: string,
+  contractId: string,
+  milestoneId: string
+): Promise<ContractMilestone> {
+  return request<ContractMilestone>(
+    `/v1/contracts/${contractId}/milestones/${milestoneId}/release`,
+    {
+      method: "POST",
+      token,
+      body: JSON.stringify({}),
+    }
+  );
 }

@@ -54,10 +54,18 @@ enum PaymentStatus {
 
 enum LedgerEntryType {
   CLIENT_CHARGE
+  ESCROW_DEPOSIT
   PLATFORM_FEE
   TUTOR_PAYABLE
   TUTOR_PAYOUT
   REFUND
+}
+
+enum ContractMilestoneStatus {
+  DRAFT
+  FUNDED
+  RELEASED
+  CANCELLED
 }
 
 model User {
@@ -208,9 +216,31 @@ model Contract {
   payments  Payment[]
   ledgerEntries LedgerEntry[]
 
+  milestones ContractMilestone[]
+
   @@index([parentId, createdAt])
   @@index([tutorId, createdAt])
   @@index([jobPostId, createdAt])
+  @@index([status, createdAt])
+}
+
+model ContractMilestone {
+  id         String                  @id @default(uuid())
+  contractId String
+  title      String
+  amount     Int
+  currency   String                  @default("ETB")
+  status     ContractMilestoneStatus @default(DRAFT)
+  fundedAt   DateTime?
+  releasedAt DateTime?
+  createdAt  DateTime                @default(now())
+  updatedAt  DateTime                @updatedAt
+
+  contract   Contract                @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  payments   Payment[]
+  ledgerEntries LedgerEntry[]
+
+  @@index([contractId, createdAt])
   @@index([status, createdAt])
 }
 
@@ -219,6 +249,7 @@ model Payment {
   provider          PaymentProvider
   status            PaymentStatus   @default(PENDING)
   contractId        String
+  milestoneId       String?
   createdByUserId   String
   amount            Int
   currency          String          @default("ETB")
@@ -229,10 +260,12 @@ model Payment {
   updatedAt         DateTime        @updatedAt
 
   contract          Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  milestone         ContractMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
   createdBy         User            @relation("PaymentsByUser", fields: [createdByUserId], references: [id], onDelete: Cascade)
   ledgerEntries     LedgerEntry[]
 
   @@index([contractId, createdAt])
+  @@index([milestoneId, createdAt])
   @@index([createdByUserId, createdAt])
   @@index([provider, status, createdAt])
 }
@@ -241,6 +274,7 @@ model LedgerEntry {
   id          String          @id @default(uuid())
   contractId  String
   paymentId   String?
+  milestoneId String?
   type        LedgerEntryType
   amount      Int
   currency    String          @default("ETB")
@@ -250,9 +284,11 @@ model LedgerEntry {
 
   contract    Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
   payment     Payment?        @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  milestone   ContractMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
 
   @@index([contractId, createdAt])
   @@index([paymentId, createdAt])
+  @@index([milestoneId, createdAt])
   @@index([type, createdAt])
 }
 

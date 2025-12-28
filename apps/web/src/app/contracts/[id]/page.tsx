@@ -8,10 +8,19 @@ import {
   fetchContractById,
   fetchContractMessages,
   fetchContractPayments,
+  fetchContractMilestones,
+  createContractMilestone,
+  createMilestonePaymentIntent,
+  releaseContractMilestone,
   createContractPaymentIntent,
   sendContractMessage,
 } from "../../../lib/api";
-import type { Contract, ContractMessage, Payment } from "../../../lib/types";
+import type {
+  Contract,
+  ContractMessage,
+  ContractMilestone,
+  Payment,
+} from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
 
 export default function ContractDetailPage() {
@@ -29,12 +38,18 @@ export default function ContractDetailPage() {
   const [contract, setContract] = useState<Contract | null>(null);
   const [messages, setMessages] = useState<ContractMessage[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [milestones, setMilestones] = useState<ContractMilestone[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [milestoneBusyId, setMilestoneBusyId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
 
   const [form, setForm] = useState({ body: "", attachmentUrl: "" });
+  const [milestoneForm, setMilestoneForm] = useState({
+    title: "",
+    amount: "",
+  });
 
   const helper = useMemo(() => {
     if (!auth) return t("state.loginRequired");
@@ -61,6 +76,16 @@ export default function ContractDetailPage() {
         setPayments(loadedPayments);
       } catch {
         setPayments([]);
+      }
+
+      try {
+        const loadedMilestones = await fetchContractMilestones(
+          token,
+          contractId
+        );
+        setMilestones(loadedMilestones);
+      } catch {
+        setMilestones([]);
       }
     } catch (e) {
       setStatus((e as Error).message);
@@ -115,6 +140,78 @@ export default function ContractDetailPage() {
       setStatus((e as Error).message);
     } finally {
       setPaying(false);
+    }
+  };
+
+  const onCreateMilestone = async () => {
+    if (!token || !contractId) return;
+    if (auth?.user.role !== "PARENT") {
+      setStatus("Only parents can create milestones.");
+      return;
+    }
+
+    const title = milestoneForm.title.trim();
+    const amount = Number(milestoneForm.amount);
+    if (title.length === 0) {
+      setStatus("Milestone title is required.");
+      return;
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setStatus("Milestone amount must be > 0.");
+      return;
+    }
+
+    setStatus(null);
+    setMilestoneBusyId("__create__");
+    try {
+      await createContractMilestone(token, contractId, { title, amount });
+      setMilestoneForm({ title: "", amount: "" });
+      await reload();
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setMilestoneBusyId(null);
+    }
+  };
+
+  const onFundMilestone = async (milestoneId: string) => {
+    if (!token || !contractId) return;
+    if (auth?.user.role !== "PARENT") {
+      setStatus("Only parents can fund milestones.");
+      return;
+    }
+
+    setStatus(null);
+    setMilestoneBusyId(milestoneId);
+    try {
+      const intent = await createMilestonePaymentIntent(
+        token,
+        contractId,
+        milestoneId
+      );
+      window.location.href = intent.checkoutUrl;
+    } catch (e) {
+      setStatus((e as Error).message);
+      setMilestoneBusyId(null);
+    }
+  };
+
+  const onReleaseMilestone = async (milestoneId: string) => {
+    if (!token || !contractId) return;
+    if (auth?.user.role !== "PARENT") {
+      setStatus("Only parents can release milestones.");
+      return;
+    }
+
+    setStatus(null);
+    setMilestoneBusyId(milestoneId);
+    try {
+      await releaseContractMilestone(token, contractId, milestoneId);
+      await reload();
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setMilestoneBusyId(null);
     }
   };
 
@@ -195,6 +292,105 @@ export default function ContractDetailPage() {
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="surface-card surface-card--quiet p-5">
+                <h2
+                  className="text-lg font-semibold"
+                  style={{ color: "var(--foreground)" }}
+                >
+                  Milestones
+                </h2>
+
+                {milestones.length === 0 ? (
+                  <p className="mt-3 text-sm ui-muted">No milestones yet.</p>
+                ) : (
+                  <div className="mt-4 space-y-2">
+                    {milestones.map((m) => (
+                      <div
+                        key={m.id}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3"
+                        style={{ borderColor: "var(--divider)" }}
+                      >
+                        <div>
+                          <p className="text-sm ui-muted">{m.title}</p>
+                          <p className="text-xs ui-muted">
+                            {m.amount} {m.currency} — {m.status}
+                          </p>
+                        </div>
+
+                        {auth?.user.role === "PARENT" && (
+                          <div className="flex items-center gap-2">
+                            {m.status === "DRAFT" && (
+                              <button
+                                type="button"
+                                className="ui-btn ui-btn-primary"
+                                disabled={milestoneBusyId === m.id}
+                                onClick={() => onFundMilestone(m.id)}
+                              >
+                                {milestoneBusyId === m.id
+                                  ? "Redirecting…"
+                                  : "Fund"}
+                              </button>
+                            )}
+                            {m.status === "FUNDED" && (
+                              <button
+                                type="button"
+                                className="ui-btn"
+                                disabled={milestoneBusyId === m.id}
+                                onClick={() => onReleaseMilestone(m.id)}
+                              >
+                                {milestoneBusyId === m.id
+                                  ? "Releasing…"
+                                  : "Release"}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {auth?.user.role === "PARENT" && (
+                  <div className="mt-6 space-y-3">
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <input
+                        className="ui-field sm:col-span-2"
+                        placeholder="Milestone title"
+                        value={milestoneForm.title}
+                        onChange={(e) =>
+                          setMilestoneForm((p) => ({
+                            ...p,
+                            title: e.target.value,
+                          }))
+                        }
+                      />
+                      <input
+                        className="ui-field"
+                        placeholder="Amount"
+                        inputMode="numeric"
+                        value={milestoneForm.amount}
+                        onChange={(e) =>
+                          setMilestoneForm((p) => ({
+                            ...p,
+                            amount: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      className="ui-btn"
+                      disabled={milestoneBusyId === "__create__"}
+                      onClick={onCreateMilestone}
+                    >
+                      {milestoneBusyId === "__create__"
+                        ? "Creating…"
+                        : "Add milestone"}
+                    </button>
                   </div>
                 )}
               </div>

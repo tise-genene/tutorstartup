@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { UserRole } from '../prisma/prisma.enums';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
+import { CreateMilestonePaymentIntentDto } from './dto/create-milestone-payment-intent.dto';
 import { PaymentsService } from './payments.service';
 
 type CurrentUserPayload = {
@@ -44,6 +45,28 @@ export class PaymentsController {
         name: user.name,
       },
       contractId,
+      dto,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post(':id/milestones/:milestoneId/payments/intent')
+  @Roles(UserRole.PARENT)
+  async createMilestoneIntent(
+    @CurrentUser() user: CurrentUserPayload,
+    @Param('id') contractId: string,
+    @Param('milestoneId') milestoneId: string,
+    @Body() dto: CreateMilestonePaymentIntentDto,
+  ) {
+    return await this.payments.createMilestonePaymentIntent(
+      {
+        id: user.id,
+        role: user.role,
+        email: user.email,
+        name: user.name,
+      },
+      contractId,
+      milestoneId,
       dto,
     );
   }

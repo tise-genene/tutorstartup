@@ -113,6 +113,12 @@ export type ContractStatus =
   | "COMPLETED"
   | "CANCELLED";
 
+export type ContractMilestoneStatus =
+  | "DRAFT"
+  | "FUNDED"
+  | "RELEASED"
+  | "CANCELLED";
+
 export interface PersonSummary {
   id: string;
   name: string;
@@ -133,6 +139,19 @@ export interface Contract {
   jobPost?: { id: string; title: string; status: string };
   parent?: PersonSummary;
   tutor?: PersonSummary;
+}
+
+export interface ContractMilestone {
+  id: string;
+  contractId: string;
+  title: string;
+  amount: number;
+  currency: string;
+  status: ContractMilestoneStatus;
+  fundedAt?: string | null;
+  releasedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type PaymentStatus = "PENDING" | "SUCCEEDED" | "FAILED";

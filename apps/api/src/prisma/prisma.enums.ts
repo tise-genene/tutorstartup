@@ -61,6 +61,7 @@ export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
 
 export const LedgerEntryType = {
   CLIENT_CHARGE: 'CLIENT_CHARGE',
+  ESCROW_DEPOSIT: 'ESCROW_DEPOSIT',
   PLATFORM_FEE: 'PLATFORM_FEE',
   TUTOR_PAYABLE: 'TUTOR_PAYABLE',
   TUTOR_PAYOUT: 'TUTOR_PAYOUT',
@@ -69,3 +70,13 @@ export const LedgerEntryType = {
 
 export type LedgerEntryType =
   (typeof LedgerEntryType)[keyof typeof LedgerEntryType];
+
+export const ContractMilestoneStatus = {
+  DRAFT: 'DRAFT',
+  FUNDED: 'FUNDED',
+  RELEASED: 'RELEASED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export type ContractMilestoneStatus =
+  (typeof ContractMilestoneStatus)[keyof typeof ContractMilestoneStatus];
