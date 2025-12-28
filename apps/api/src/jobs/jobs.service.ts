@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { CreateProposalDto } from './dto/create-proposal.dto';
 import {
+  ContractStatus,
   JobPostStatus,
   ProposalStatus,
   UserRole,
@@ -41,7 +42,10 @@ export class JobsService {
     }
 
     return await this.prisma.jobPost.findMany({
-      where: { status: JobPostStatus.OPEN },
+      where: {
+        status: JobPostStatus.OPEN,
+        contracts: { none: { status: ContractStatus.ACTIVE } },
+      },
       orderBy: { createdAt: 'desc' },
       take: 50,
     });
@@ -60,7 +64,16 @@ export class JobsService {
   }
 
   async getJobById(user: { id: string; role: UserRole }, jobId: string) {
-    const job = await this.prisma.jobPost.findUnique({ where: { id: jobId } });
+    const job = await this.prisma.jobPost.findUnique({
+      where: { id: jobId },
+      include: {
+        contracts: {
+          where: { status: ContractStatus.ACTIVE },
+          select: { id: true, tutorId: true },
+          take: 1,
+        },
+      },
+    });
     if (!job) {
       throw new NotFoundException('Job not found');
     }
@@ -73,11 +86,48 @@ export class JobsService {
       throw new ForbiddenException('Job not available');
     }
 
+    if (user.role === UserRole.TUTOR) {
+      const activeContract = job.contracts[0];
+      if (activeContract && activeContract.tutorId !== user.id) {
+        throw new ForbiddenException('Job not available');
+      }
+    }
+
     if (user.role !== UserRole.PARENT && user.role !== UserRole.TUTOR) {
       throw new ForbiddenException('Only tutors or parents can view jobs');
     }
 
     return job;
+  }
+
+  async closeJob(parent: { id: string; role: UserRole }, jobId: string) {
+    if (parent.role !== UserRole.PARENT) {
+      throw new ForbiddenException('Only parents can close jobs');
+    }
+
+    const job = await this.prisma.jobPost.findUnique({
+      where: { id: jobId },
+      select: { id: true, parentId: true, status: true },
+    });
+
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+
+    if (job.parentId !== parent.id) {
+      throw new ForbiddenException('Cannot close this job');
+    }
+
+    if (job.status === JobPostStatus.CLOSED) {
+      return await this.prisma.jobPost.findUniqueOrThrow({
+        where: { id: jobId },
+      });
+    }
+
+    return await this.prisma.jobPost.update({
+      where: { id: jobId },
+      data: { status: JobPostStatus.CLOSED },
+    });
   }
 
   async submitProposal(
@@ -114,7 +164,71 @@ export class JobsService {
         videoUrl: dto.videoUrl?.trim() || null,
         status: ProposalStatus.SUBMITTED,
       },
-      include: { jobPost: true },
+      include: { jobPost: true, contract: { select: { id: true } } },
+    });
+  }
+
+  async withdrawProposal(
+    tutor: { id: string; role: UserRole },
+    proposalId: string,
+  ) {
+    if (tutor.role !== UserRole.TUTOR) {
+      throw new ForbiddenException('Only tutors can withdraw proposals');
+    }
+
+    const proposal = await this.prisma.proposal.findUnique({
+      where: { id: proposalId },
+      select: { id: true, tutorId: true, status: true },
+    });
+
+    if (!proposal) {
+      throw new NotFoundException('Proposal not found');
+    }
+
+    if (proposal.tutorId !== tutor.id) {
+      throw new ForbiddenException('Cannot withdraw this proposal');
+    }
+
+    if (proposal.status === ProposalStatus.ACCEPTED) {
+      throw new BadRequestException('Accepted proposals cannot be withdrawn');
+    }
+
+    return await this.prisma.proposal.update({
+      where: { id: proposal.id },
+      data: { status: ProposalStatus.WITHDRAWN },
+      include: { jobPost: true, contract: { select: { id: true } } },
+    });
+  }
+
+  async declineProposal(
+    parent: { id: string; role: UserRole },
+    proposalId: string,
+  ) {
+    if (parent.role !== UserRole.PARENT) {
+      throw new ForbiddenException('Only parents can decline proposals');
+    }
+
+    const proposal = await this.prisma.proposal.findUnique({
+      where: { id: proposalId },
+      include: { jobPost: { select: { parentId: true } } },
+    });
+
+    if (!proposal || !proposal.jobPost) {
+      throw new NotFoundException('Proposal not found');
+    }
+
+    if (proposal.jobPost.parentId !== parent.id) {
+      throw new ForbiddenException('Cannot decline proposals for this job');
+    }
+
+    if (proposal.status === ProposalStatus.ACCEPTED) {
+      throw new BadRequestException('Accepted proposals cannot be declined');
+    }
+
+    return await this.prisma.proposal.update({
+      where: { id: proposal.id },
+      data: { status: ProposalStatus.DECLINED },
+      include: { jobPost: true, contract: { select: { id: true } } },
     });
   }
 
@@ -144,6 +258,7 @@ export class JobsService {
       orderBy: { createdAt: 'desc' },
       include: {
         tutor: { select: { id: true, name: true, email: true, role: true } },
+        contract: { select: { id: true } },
       },
       take: 50,
     });
@@ -157,7 +272,7 @@ export class JobsService {
     return await this.prisma.proposal.findMany({
       where: { tutorId: tutor.id },
       orderBy: { createdAt: 'desc' },
-      include: { jobPost: true },
+      include: { jobPost: true, contract: { select: { id: true } } },
       take: 50,
     });
   }

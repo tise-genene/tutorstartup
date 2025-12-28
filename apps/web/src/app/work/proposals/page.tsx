@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { PageShell } from "../../_components/PageShell";
-import { fetchMyProposals } from "../../../lib/api";
+import { fetchMyProposals, withdrawProposal } from "../../../lib/api";
 import type { Proposal } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
 
@@ -16,6 +16,7 @@ export default function WorkProposalsPage() {
 
   const [items, setItems] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
 
   const helper = useMemo(() => {
@@ -45,6 +46,22 @@ export default function WorkProposalsPage() {
 
     void run();
   }, [token, isTutor]);
+
+  const onWithdraw = async (proposalId: string) => {
+    if (!token) return;
+    setBusyId(proposalId);
+    setStatus(null);
+    try {
+      const updated = await withdrawProposal(token, proposalId);
+      setItems((prev) =>
+        prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
+      );
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   return (
     <PageShell>
@@ -117,6 +134,30 @@ export default function WorkProposalsPage() {
                           Video link
                         </a>
                       )}
+                    </div>
+                  )}
+
+                  {p.status === "ACCEPTED" && p.contractId && (
+                    <div className="mt-4">
+                      <Link
+                        className="ui-btn ui-btn-primary"
+                        href={`/contracts/${p.contractId}`}
+                      >
+                        Open contract
+                      </Link>
+                    </div>
+                  )}
+
+                  {p.status === "SUBMITTED" && (
+                    <div className="mt-4">
+                      <button
+                        type="button"
+                        className="ui-btn"
+                        disabled={busyId === p.id}
+                        onClick={() => onWithdraw(p.id)}
+                      >
+                        {busyId === p.id ? "Withdrawing…" : "Withdraw"}
+                      </button>
                     </div>
                   )}
                 </div>

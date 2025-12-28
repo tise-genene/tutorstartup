@@ -24,6 +24,7 @@ import { SearchModule } from './search/search.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { LessonRequestsModule } from './lesson-requests/lesson-requests.module';
 import { JobsModule } from './jobs/jobs.module';
+import { ContractsModule } from './contracts/contracts.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -102,6 +103,7 @@ import { AppService } from './app.service';
     NotificationsModule,
     LessonRequestsModule,
     JobsModule,
+    ContractsModule,
     AuthModule,
     UsersModule,
     TutorsModule,

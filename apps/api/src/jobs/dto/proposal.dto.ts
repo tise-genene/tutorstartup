@@ -5,6 +5,7 @@ export class ProposalDto {
   id!: string;
   jobPostId!: string;
   tutorId!: string;
+  contractId?: string | null;
   message!: string;
   fileUrl?: string | null;
   videoUrl?: string | null;
@@ -18,12 +19,16 @@ export class ProposalDto {
   };
 
   static fromEntity(
-    entity: Proposal & { jobPost?: JobPost | null },
+    entity: Proposal & {
+      jobPost?: JobPost | null;
+      contract?: { id: string } | null;
+    },
   ): ProposalDto {
     return {
       id: entity.id,
       jobPostId: entity.jobPostId,
       tutorId: entity.tutorId,
+      contractId: entity.contract?.id ?? null,
       message: entity.message,
       fileUrl: entity.fileUrl ?? null,
       videoUrl: entity.videoUrl ?? null,

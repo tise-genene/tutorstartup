@@ -35,6 +35,12 @@ enum ProposalStatus {
   DECLINED
 }
 
+enum ContractStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id           String        @id @default(uuid())
   email        String        @unique
@@ -53,6 +59,11 @@ model User {
 
   jobPosts JobPost[] @relation("JobPostsByParent")
   proposals Proposal[] @relation("ProposalsByTutor")
+
+  contractsAsParent Contract[] @relation("ContractsByParent")
+  contractsAsTutor  Contract[] @relation("ContractsByTutor")
+
+  contractMessages ContractMessage[]
 
   sessions Session[]
 }
@@ -128,6 +139,7 @@ model JobPost {
 
   parent      User         @relation("JobPostsByParent", fields: [parentId], references: [id], onDelete: Cascade)
   proposals   Proposal[]
+  contracts   Contract[]
 
   @@index([parentId, createdAt])
   @@index([status, createdAt])
@@ -147,7 +159,46 @@ model Proposal {
   jobPost   JobPost @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
   tutor     User    @relation("ProposalsByTutor", fields: [tutorId], references: [id], onDelete: Cascade)
 
+  contract  Contract?
+
   @@unique([jobPostId, tutorId])
   @@index([tutorId, createdAt])
   @@index([jobPostId, createdAt])
+}
+
+model Contract {
+  id        String         @id @default(uuid())
+  jobPostId String
+  proposalId String        @unique
+  parentId  String
+  tutorId   String
+  status    ContractStatus @default(ACTIVE)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  jobPost   JobPost   @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  proposal  Proposal  @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  parent    User      @relation("ContractsByParent", fields: [parentId], references: [id], onDelete: Cascade)
+  tutor     User      @relation("ContractsByTutor", fields: [tutorId], references: [id], onDelete: Cascade)
+  messages  ContractMessage[]
+
+  @@index([parentId, createdAt])
+  @@index([tutorId, createdAt])
+  @@index([jobPostId, createdAt])
+  @@index([status, createdAt])
+}
+
+model ContractMessage {
+  id            String   @id @default(uuid())
+  contractId    String
+  senderId      String
+  body          String
+  attachmentUrl String?
+  createdAt     DateTime @default(now())
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  sender   User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, createdAt])
+  @@index([senderId, createdAt])
 }

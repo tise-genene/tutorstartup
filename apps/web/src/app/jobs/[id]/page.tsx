@@ -4,7 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PageShell } from "../../_components/PageShell";
-import { fetchJobById, fetchJobProposals } from "../../../lib/api";
+import {
+  acceptProposal,
+  closeJob,
+  declineProposal,
+  fetchJobById,
+  fetchJobProposals,
+} from "../../../lib/api";
 import type { JobPost, Proposal } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
 
@@ -26,6 +32,8 @@ export default function JobDetailForParentPage() {
   const [job, setJob] = useState<JobPost | null>(null);
   const [proposals, setProposals] = useState<ProposalWithTutor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busyProposalId, setBusyProposalId] = useState<string | null>(null);
+  const [closing, setClosing] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
   const helper = useMemo(() => {
@@ -60,6 +68,57 @@ export default function JobDetailForParentPage() {
 
     void run();
   }, [token, isParent, jobId]);
+
+  const onDecline = async (proposalId: string) => {
+    if (!token) return;
+    setBusyProposalId(proposalId);
+    setStatus(null);
+    try {
+      const updated = await declineProposal(token, proposalId);
+      setProposals((prev) =>
+        prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
+      );
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setBusyProposalId(null);
+    }
+  };
+
+  const onAccept = async (proposalId: string) => {
+    if (!token) return;
+    setBusyProposalId(proposalId);
+    setStatus(null);
+    try {
+      const contract = await acceptProposal(token, proposalId);
+      setProposals((prev) =>
+        prev.map((p) =>
+          p.id === proposalId
+            ? { ...p, status: "ACCEPTED", contractId: contract.id }
+            : p
+        )
+      );
+      window.location.href = `/contracts/${contract.id}`;
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setBusyProposalId(null);
+    }
+  };
+
+  const onCloseJob = async () => {
+    if (!token || !jobId) return;
+    setClosing(true);
+    setStatus(null);
+    try {
+      const updated = await closeJob(token, jobId);
+      setJob(updated);
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setClosing(false);
+    }
+  };
 
   return (
     <PageShell>
@@ -101,6 +160,19 @@ export default function JobDetailForParentPage() {
                   </div>
                   <span className="pill text-xs">{job.status}</span>
                 </div>
+
+                {job.status === "OPEN" && (
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      className="ui-btn"
+                      disabled={closing}
+                      onClick={onCloseJob}
+                    >
+                      {closing ? "Closing…" : "Close job"}
+                    </button>
+                  </div>
+                )}
                 {job.subjects.length > 0 && (
                   <p className="mt-3 text-sm ui-muted">
                     Subjects: {job.subjects.join(", ")}
@@ -176,6 +248,42 @@ export default function JobDetailForParentPage() {
                                 Video link
                               </a>
                             )}
+                          </div>
+                        )}
+
+                        {p.status === "ACCEPTED" && p.contractId && (
+                          <div className="mt-4">
+                            <Link
+                              className="ui-btn ui-btn-primary"
+                              href={`/contracts/${p.contractId}`}
+                            >
+                              Open contract
+                            </Link>
+                          </div>
+                        )}
+
+                        {p.status === "SUBMITTED" && (
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              className="ui-btn ui-btn-primary"
+                              disabled={busyProposalId === p.id}
+                              onClick={() => onAccept(p.id)}
+                            >
+                              {busyProposalId === p.id
+                                ? "Accepting…"
+                                : "Accept"}
+                            </button>
+                            <button
+                              type="button"
+                              className="ui-btn"
+                              disabled={busyProposalId === p.id}
+                              onClick={() => onDecline(p.id)}
+                            >
+                              {busyProposalId === p.id
+                                ? "Declining…"
+                                : "Decline"}
+                            </button>
                           </div>
                         )}
                       </div>

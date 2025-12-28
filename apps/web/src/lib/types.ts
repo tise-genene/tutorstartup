@@ -93,6 +93,7 @@ export interface Proposal {
   id: string;
   jobPostId: string;
   tutorId: string;
+  contractId?: string | null;
   message: string;
   fileUrl?: string | null;
   videoUrl?: string | null;
@@ -104,6 +105,38 @@ export interface Proposal {
     title: string;
     status: string;
   };
+}
+
+export type ContractStatus = "ACTIVE" | "COMPLETED" | "CANCELLED";
+
+export interface PersonSummary {
+  id: string;
+  name: string;
+  role: string;
+}
+
+export interface Contract {
+  id: string;
+  jobPostId: string;
+  proposalId: string;
+  parentId: string;
+  tutorId: string;
+  status: ContractStatus;
+  createdAt: string;
+  updatedAt: string;
+  jobPost?: { id: string; title: string; status: string };
+  parent?: PersonSummary;
+  tutor?: PersonSummary;
+}
+
+export interface ContractMessage {
+  id: string;
+  contractId: string;
+  senderId: string;
+  body: string;
+  attachmentUrl?: string | null;
+  createdAt: string;
+  sender?: PersonSummary;
 }
 
 export interface CreateProposalPayload {

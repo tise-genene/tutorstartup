@@ -57,6 +57,20 @@ export class JobsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PARENT)
+  @Post(':id/close')
+  async close(
+    @CurrentUser() user: JwtPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    const updated = await this.service.closeJob(
+      { id: user.sub, role: user.role },
+      id,
+    );
+    return JobDto.fromEntity(updated);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.PARENT, UserRole.TUTOR)
   @Get(':id')
   async getById(

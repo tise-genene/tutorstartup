@@ -1,5 +1,7 @@
 import type {
   AuthResponse,
+  Contract,
+  ContractMessage,
   CreateJobPayload,
   CreateLessonRequestPayload,
   CreateProposalPayload,
@@ -258,5 +260,85 @@ export async function fetchMyProposals(token: string): Promise<Proposal[]> {
   return request<Proposal[]>("/v1/proposals/mine", {
     method: "GET",
     token,
+  });
+}
+
+export async function withdrawProposal(
+  token: string,
+  proposalId: string
+): Promise<Proposal> {
+  return request<Proposal>(`/v1/proposals/${proposalId}/withdraw`, {
+    method: "POST",
+    token,
+    body: JSON.stringify({}),
+  });
+}
+
+export async function declineProposal(
+  token: string,
+  proposalId: string
+): Promise<Proposal> {
+  return request<Proposal>(`/v1/proposals/${proposalId}/decline`, {
+    method: "POST",
+    token,
+    body: JSON.stringify({}),
+  });
+}
+
+export async function acceptProposal(
+  token: string,
+  proposalId: string
+): Promise<Contract> {
+  return request<Contract>(`/v1/proposals/${proposalId}/accept`, {
+    method: "POST",
+    token,
+    body: JSON.stringify({}),
+  });
+}
+
+export async function closeJob(token: string, jobId: string): Promise<JobPost> {
+  return request<JobPost>(`/v1/jobs/${jobId}/close`, {
+    method: "POST",
+    token,
+    body: JSON.stringify({}),
+  });
+}
+
+export async function fetchMyContracts(token: string): Promise<Contract[]> {
+  return request<Contract[]>("/v1/contracts/mine", {
+    method: "GET",
+    token,
+  });
+}
+
+export async function fetchContractById(
+  token: string,
+  id: string
+): Promise<Contract> {
+  return request<Contract>(`/v1/contracts/${id}`, {
+    method: "GET",
+    token,
+  });
+}
+
+export async function fetchContractMessages(
+  token: string,
+  contractId: string
+): Promise<ContractMessage[]> {
+  return request<ContractMessage[]>(`/v1/contracts/${contractId}/messages`, {
+    method: "GET",
+    token,
+  });
+}
+
+export async function sendContractMessage(
+  token: string,
+  contractId: string,
+  payload: { body: string; attachmentUrl?: string }
+): Promise<ContractMessage> {
+  return request<ContractMessage>(`/v1/contracts/${contractId}/messages`, {
+    method: "POST",
+    token,
+    body: JSON.stringify(payload),
   });
 }

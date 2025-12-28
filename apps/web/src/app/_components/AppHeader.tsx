@@ -248,6 +248,13 @@ export function AppHeader() {
                         >
                           {t("nav.proposals")}
                         </Link>
+                        <Link
+                          href="/contracts"
+                          className="ui-btn ui-btn-block"
+                          onClick={() => setWorkMenuOpen(false)}
+                        >
+                          {t("nav.contracts")}
+                        </Link>
                       </div>
                     </div>
                   )}
@@ -265,6 +272,9 @@ export function AppHeader() {
                   </Link>
                   <Link href="/jobs/mine" className="ui-btn">
                     {t("nav.myJobs")}
+                  </Link>
+                  <Link href="/contracts" className="ui-btn">
+                    {t("nav.contracts")}
                   </Link>
                 </>
               )}
@@ -376,6 +386,13 @@ export function AppHeader() {
                         >
                           {t("nav.proposals")}
                         </Link>
+                        <Link
+                          href="/contracts"
+                          className="ui-btn ui-btn-block"
+                          onClick={closeMenus}
+                        >
+                          {t("nav.contracts")}
+                        </Link>
                       </>
                     ) : (
                       <Link
@@ -402,6 +419,13 @@ export function AppHeader() {
                           onClick={closeMenus}
                         >
                           {t("nav.myJobs")}
+                        </Link>
+                        <Link
+                          href="/contracts"
+                          className="ui-btn ui-btn-block"
+                          onClick={closeMenus}
+                        >
+                          {t("nav.contracts")}
                         </Link>
                       </>
                     )}

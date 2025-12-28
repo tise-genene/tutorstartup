@@ -33,3 +33,12 @@ export const ProposalStatus = {
 
 export type ProposalStatus =
   (typeof ProposalStatus)[keyof typeof ProposalStatus];
+
+export const ContractStatus = {
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export type ContractStatus =
+  (typeof ContractStatus)[keyof typeof ContractStatus];
