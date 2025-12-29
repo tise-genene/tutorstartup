@@ -231,6 +231,8 @@ export default function ContractDetailPage() {
     try {
       await payoutContractMilestone(token, contractId, milestoneId);
       await reload();
+      setStatus("Payout recorded.");
+      window.setTimeout(() => setStatus(null), 3000);
     } catch (e) {
       setStatus((e as Error).message);
     } finally {
