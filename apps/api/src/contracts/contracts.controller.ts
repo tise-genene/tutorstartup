@@ -20,6 +20,7 @@ import { SendContractMessageDto } from './dto/send-contract-message.dto';
 import { ContractMilestoneDto } from './dto/contract-milestone.dto';
 import { CreateContractMilestoneDto } from './dto/create-contract-milestone.dto';
 import { ReleaseContractMilestoneDto } from './dto/release-contract-milestone.dto';
+import { PayoutContractMilestoneDto } from './dto/payout-contract-milestone.dto';
 
 @Controller({ path: 'contracts', version: '1' })
 export class ContractsController {
@@ -119,5 +120,22 @@ export class ContractsController {
       dto,
     );
     return ContractMilestoneDto.fromEntity(updated);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Post(':id/milestones/:milestoneId/payout')
+  async payoutMilestone(
+    @CurrentUser() user: JwtPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('milestoneId', new ParseUUIDPipe()) milestoneId: string,
+    @Body() dto: PayoutContractMilestoneDto,
+  ) {
+    return await this.service.payoutMilestone(
+      { id: user.sub, role: user.role },
+      id,
+      milestoneId,
+      dto,
+    );
   }
 }

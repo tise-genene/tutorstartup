@@ -16,6 +16,7 @@ import {
 import { SendContractMessageDto } from './dto/send-contract-message.dto';
 import { CreateContractMilestoneDto } from './dto/create-contract-milestone.dto';
 import { ReleaseContractMilestoneDto } from './dto/release-contract-milestone.dto';
+import { PayoutContractMilestoneDto } from './dto/payout-contract-milestone.dto';
 
 @Injectable()
 export class ContractsService {
@@ -344,6 +345,20 @@ export class ContractsService {
         throw new BadRequestException('Milestone must be FUNDED to release');
       }
 
+      const escrowDeposited = await tx.ledgerEntry.aggregate({
+        where: {
+          contractId: contract.id,
+          milestoneId: milestone.id,
+          type: LedgerEntryType.ESCROW_DEPOSIT,
+        },
+        _sum: { amount: true },
+      });
+
+      const escrowAmount = escrowDeposited._sum.amount ?? 0;
+      if (escrowAmount < milestone.amount) {
+        throw new BadRequestException('Insufficient escrow for this milestone');
+      }
+
       const releaseKey = `MILESTONE:${milestone.id}:RELEASE`;
 
       await tx.ledgerEntry.upsert({
@@ -369,6 +384,107 @@ export class ContractsService {
 
       void dto;
       return updated;
+    });
+  }
+
+  async payoutMilestone(
+    user: { id: string; role: UserRole },
+    contractId: string,
+    milestoneId: string,
+    dto?: PayoutContractMilestoneDto,
+  ) {
+    if (user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only admins can payout milestones');
+    }
+
+    return await this.prisma.$transaction(async (tx) => {
+      const contract = await tx.contract.findUnique({
+        where: { id: contractId },
+        select: { id: true, tutorId: true, status: true },
+      });
+
+      if (!contract) {
+        throw new NotFoundException('Contract not found');
+      }
+
+      if (
+        contract.status === ContractStatus.CANCELLED ||
+        contract.status === ContractStatus.COMPLETED
+      ) {
+        throw new BadRequestException('Contract is not payable');
+      }
+
+      const milestone = await tx.contractMilestone.findUnique({
+        where: { id: milestoneId },
+      });
+
+      if (!milestone || milestone.contractId !== contract.id) {
+        throw new NotFoundException('Milestone not found');
+      }
+
+      if (milestone.status !== ContractMilestoneStatus.RELEASED) {
+        throw new BadRequestException('Milestone must be RELEASED to payout');
+      }
+
+      const [escrowDeposited, payableSum, payoutSum] = await Promise.all([
+        tx.ledgerEntry.aggregate({
+          where: {
+            contractId: contract.id,
+            milestoneId: milestone.id,
+            type: LedgerEntryType.ESCROW_DEPOSIT,
+          },
+          _sum: { amount: true },
+        }),
+        tx.ledgerEntry.aggregate({
+          where: {
+            contractId: contract.id,
+            milestoneId: milestone.id,
+            type: LedgerEntryType.TUTOR_PAYABLE,
+          },
+          _sum: { amount: true },
+        }),
+        tx.ledgerEntry.aggregate({
+          where: {
+            contractId: contract.id,
+            milestoneId: milestone.id,
+            type: LedgerEntryType.TUTOR_PAYOUT,
+          },
+          _sum: { amount: true },
+        }),
+      ]);
+
+      const escrowAmount = escrowDeposited._sum.amount ?? 0;
+      const payableAmount = payableSum._sum.amount ?? 0;
+      const alreadyPaid = payoutSum._sum.amount ?? 0;
+      const remainingPayable = payableAmount - alreadyPaid;
+
+      if (remainingPayable <= 0) {
+        throw new BadRequestException('Nothing left to payout');
+      }
+
+      const remainingEscrow = escrowAmount - alreadyPaid;
+      if (remainingEscrow < remainingPayable) {
+        throw new BadRequestException('Insufficient escrow to payout');
+      }
+
+      const payoutKey = `MILESTONE:${milestone.id}:PAYOUT`;
+
+      const created = await tx.ledgerEntry.upsert({
+        where: { idempotencyKey: payoutKey },
+        update: {},
+        create: {
+          contractId: contract.id,
+          milestoneId: milestone.id,
+          type: LedgerEntryType.TUTOR_PAYOUT,
+          amount: remainingPayable,
+          currency: milestone.currency,
+          idempotencyKey: payoutKey,
+        },
+      });
+
+      void contract;
+      void dto;
+      return created;
     });
   }
 }
