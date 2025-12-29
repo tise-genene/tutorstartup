@@ -79,15 +79,6 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
-          <a className="ui-btn ui-btn-block" href={getGoogleAuthUrl()}>
-            Continue with Google
-          </a>
-
-          <div
-            className="my-2 h-px w-full"
-            style={{ backgroundColor: "var(--divider)" }}
-          />
-
           <input
             className="ui-field"
             placeholder={t("auth.email")}
@@ -139,6 +130,15 @@ export default function LoginPage() {
               {t("auth.login.footer.link")}
             </Link>
           </p>
+
+          <div
+            className="my-2 h-px w-full"
+            style={{ backgroundColor: "var(--divider)" }}
+          />
+
+          <a className="ui-btn ui-btn-block" href={getGoogleAuthUrl()}>
+            Continue with Google
+          </a>
         </form>
       </div>
     </PageShell>

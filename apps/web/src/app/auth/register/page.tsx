@@ -6,6 +6,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { PageShell } from "../../_components/PageShell";
 import type { UserRole } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
+import { getGoogleAuthUrl } from "../../../lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -137,6 +138,15 @@ export default function RegisterPage() {
               {t("auth.register.footer.link")}
             </Link>
           </p>
+
+          <div
+            className="my-2 h-px w-full"
+            style={{ backgroundColor: "var(--divider)" }}
+          />
+
+          <a className="ui-btn ui-btn-block" href={getGoogleAuthUrl()}>
+            Continue with Google
+          </a>
         </form>
       </div>
     </PageShell>
