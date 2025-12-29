@@ -12,6 +12,7 @@ import {
   createContractMilestone,
   createMilestonePaymentIntent,
   releaseContractMilestone,
+  payoutContractMilestone,
   createContractPaymentIntent,
   sendContractMessage,
 } from "../../../lib/api";
@@ -32,8 +33,10 @@ export default function ContractDetailPage() {
   const contractId = Array.isArray(idParam) ? idParam[0] : idParam;
 
   const token = auth?.accessToken ?? null;
-  const isParentOrTutor =
-    auth?.user.role === "PARENT" || auth?.user.role === "TUTOR";
+  const isParentTutorOrAdmin =
+    auth?.user.role === "PARENT" ||
+    auth?.user.role === "TUTOR" ||
+    auth?.user.role === "ADMIN";
 
   const [contract, setContract] = useState<Contract | null>(null);
   const [messages, setMessages] = useState<ContractMessage[]>([]);
@@ -53,13 +56,14 @@ export default function ContractDetailPage() {
 
   const helper = useMemo(() => {
     if (!auth) return t("state.loginRequired");
-    if (!isParentOrTutor) return "This page is for parents and tutors only.";
+    if (!isParentTutorOrAdmin)
+      return "This page is for parents, tutors, and admins only.";
     if (!contractId) return "Invalid contract id";
     return null;
-  }, [auth, isParentOrTutor, contractId, t]);
+  }, [auth, isParentTutorOrAdmin, contractId, t]);
 
   const reload = async () => {
-    if (!token || !isParentOrTutor || !contractId) return;
+    if (!token || !isParentTutorOrAdmin || !contractId) return;
 
     setLoading(true);
     setStatus(null);
@@ -97,7 +101,7 @@ export default function ContractDetailPage() {
   useEffect(() => {
     void reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, isParentOrTutor, contractId]);
+  }, [token, isParentTutorOrAdmin, contractId]);
 
   const onSend = async () => {
     if (!token || !contractId) return;
@@ -207,6 +211,25 @@ export default function ContractDetailPage() {
     setMilestoneBusyId(milestoneId);
     try {
       await releaseContractMilestone(token, contractId, milestoneId);
+      await reload();
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setMilestoneBusyId(null);
+    }
+  };
+
+  const onPayoutMilestone = async (milestoneId: string) => {
+    if (!token || !contractId) return;
+    if (auth?.user.role !== "ADMIN") {
+      setStatus("Only admins can payout milestones.");
+      return;
+    }
+
+    setStatus(null);
+    setMilestoneBusyId(milestoneId);
+    try {
+      await payoutContractMilestone(token, contractId, milestoneId);
       await reload();
     } catch (e) {
       setStatus((e as Error).message);
@@ -345,6 +368,23 @@ export default function ContractDetailPage() {
                                 {milestoneBusyId === m.id
                                   ? "Releasing…"
                                   : "Release"}
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        {auth?.user.role === "ADMIN" && (
+                          <div className="flex items-center gap-2">
+                            {m.status === "RELEASED" && (
+                              <button
+                                type="button"
+                                className="ui-btn"
+                                disabled={milestoneBusyId === m.id}
+                                onClick={() => onPayoutMilestone(m.id)}
+                              >
+                                {milestoneBusyId === m.id
+                                  ? "Paying…"
+                                  : "Payout"}
                               </button>
                             )}
                           </div>

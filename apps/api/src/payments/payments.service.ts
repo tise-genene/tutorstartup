@@ -610,7 +610,11 @@ export class PaymentsService {
       throw new NotFoundException('Contract not found');
     }
 
-    if (contract.parentId !== user.id && contract.tutorId !== user.id) {
+    if (
+      user.role !== UserRole.ADMIN &&
+      contract.parentId !== user.id &&
+      contract.tutorId !== user.id
+    ) {
       throw new ForbiddenException('Cannot view contract payments');
     }
 

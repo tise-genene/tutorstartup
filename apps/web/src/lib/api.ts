@@ -431,3 +431,18 @@ export async function releaseContractMilestone(
     }
   );
 }
+
+export async function payoutContractMilestone(
+  token: string,
+  contractId: string,
+  milestoneId: string
+): Promise<unknown> {
+  return request(
+    `/v1/contracts/${contractId}/milestones/${milestoneId}/payout`,
+    {
+      method: "POST",
+      token,
+      body: JSON.stringify({}),
+    }
+  );
+}

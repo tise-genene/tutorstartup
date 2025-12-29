@@ -163,14 +163,18 @@ export class ContractsService {
       throw new NotFoundException('Contract not found');
     }
 
-    if (contract.parentId !== user.id && contract.tutorId !== user.id) {
+    if (
+      user.role !== UserRole.ADMIN &&
+      contract.parentId !== user.id &&
+      contract.tutorId !== user.id
+    ) {
       throw new ForbiddenException('Cannot view this contract');
     }
 
     return contract;
   }
 
-  async listMessages(user: { id: string }, contractId: string) {
+  async listMessages(user: { id: string; role: UserRole }, contractId: string) {
     const contract = await this.prisma.contract.findUnique({
       where: { id: contractId },
       select: { id: true, parentId: true, tutorId: true },
@@ -180,7 +184,11 @@ export class ContractsService {
       throw new NotFoundException('Contract not found');
     }
 
-    if (contract.parentId !== user.id && contract.tutorId !== user.id) {
+    if (
+      user.role !== UserRole.ADMIN &&
+      contract.parentId !== user.id &&
+      contract.tutorId !== user.id
+    ) {
       throw new ForbiddenException('Cannot view contract messages');
     }
 
@@ -242,7 +250,11 @@ export class ContractsService {
       throw new NotFoundException('Contract not found');
     }
 
-    if (contract.parentId !== user.id && contract.tutorId !== user.id) {
+    if (
+      user.role !== UserRole.ADMIN &&
+      contract.parentId !== user.id &&
+      contract.tutorId !== user.id
+    ) {
       throw new ForbiddenException('Cannot view contract milestones');
     }
 

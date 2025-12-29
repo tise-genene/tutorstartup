@@ -38,7 +38,7 @@ export class ContractsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT, UserRole.TUTOR)
+  @Roles(UserRole.PARENT, UserRole.TUTOR, UserRole.ADMIN)
   @Get(':id')
   async getById(
     @CurrentUser() user: JwtPayload,
@@ -52,13 +52,16 @@ export class ContractsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT, UserRole.TUTOR)
+  @Roles(UserRole.PARENT, UserRole.TUTOR, UserRole.ADMIN)
   @Get(':id/messages')
   async listMessages(
     @CurrentUser() user: JwtPayload,
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
-    const items = await this.service.listMessages({ id: user.sub }, id);
+    const items = await this.service.listMessages(
+      { id: user.sub, role: user.role },
+      id,
+    );
     return items.map((m) => ContractMessageDto.fromEntity(m));
   }
 
@@ -75,7 +78,7 @@ export class ContractsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT, UserRole.TUTOR)
+  @Roles(UserRole.PARENT, UserRole.TUTOR, UserRole.ADMIN)
   @Get(':id/milestones')
   async listMilestones(
     @CurrentUser() user: JwtPayload,

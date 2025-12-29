@@ -73,7 +73,7 @@ export class PaymentsController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id/payments')
-  @Roles(UserRole.PARENT, UserRole.TUTOR)
+  @Roles(UserRole.PARENT, UserRole.TUTOR, UserRole.ADMIN)
   async listContractPayments(
     @CurrentUser() user: Pick<CurrentUserPayload, 'id' | 'role'>,
     @Param('id') contractId: string,
