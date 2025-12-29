@@ -6,14 +6,17 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { AuthSessionsController } from './auth-sessions.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { SessionCleanupService } from './session-cleanup.service';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
     ConfigModule,
     PassportModule,
     NotificationsModule,
+    EmailModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService): JwtModuleOptions => {
@@ -36,7 +39,7 @@ import { SessionCleanupService } from './session-cleanup.service';
     }),
   ],
   controllers: [AuthController, AuthSessionsController],
-  providers: [AuthService, JwtStrategy, SessionCleanupService],
+  providers: [AuthService, JwtStrategy, GoogleStrategy, SessionCleanupService],
   exports: [AuthService],
 })
 export class AuthModule {}

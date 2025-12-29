@@ -80,3 +80,10 @@ export const ContractMilestoneStatus = {
 
 export type ContractMilestoneStatus =
   (typeof ContractMilestoneStatus)[keyof typeof ContractMilestoneStatus];
+
+export const AuthTokenType = {
+  EMAIL_VERIFY: 'EMAIL_VERIFY',
+  PASSWORD_RESET: 'PASSWORD_RESET',
+} as const;
+
+export type AuthTokenType = (typeof AuthTokenType)[keyof typeof AuthTokenType];

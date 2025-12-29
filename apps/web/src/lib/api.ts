@@ -68,8 +68,8 @@ async function request<T>(path: string, options: ApiOptions = {}): Promise<T> {
 
 export async function registerUser(
   payload: RegisterPayload
-): Promise<AuthResponse> {
-  return request<AuthResponse>("/v1/auth/register", {
+): Promise<{ ok: true }> {
+  return request<{ ok: true }>("/v1/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -94,6 +94,34 @@ export async function logoutSession(): Promise<{ ok: true } | { ok: boolean }> {
     method: "POST",
     body: JSON.stringify({}),
   });
+}
+
+export async function fetchMe(token: string): Promise<AuthResponse["user"]> {
+  return request<AuthResponse["user"]>("/v1/auth/me", {
+    method: "GET",
+    token,
+  });
+}
+
+export async function forgotPassword(email: string): Promise<{ ok: true }> {
+  return request<{ ok: true }>("/v1/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function resetPassword(params: {
+  token: string;
+  password: string;
+}): Promise<{ ok: true }> {
+  return request<{ ok: true }>("/v1/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify(params),
+  });
+}
+
+export function getGoogleAuthUrl(): string {
+  return `${API_BASE_URL}/v1/auth/google`;
 }
 
 export async function fetchTutorProfile(token: string): Promise<TutorProfile> {

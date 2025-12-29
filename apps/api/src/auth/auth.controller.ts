@@ -3,7 +3,9 @@ import {
   Controller,
   ForbiddenException,
   Get,
+  HttpCode,
   Post,
+  Query,
   Req,
   Res,
   UnauthorizedException,
@@ -11,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -32,13 +35,51 @@ export class AuthController {
     @Req() req: Request,
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<AuthResponseDto> {
-    const tokens = await this.authService.register(dto, {
+  ): Promise<{ ok: true }> {
+    void res;
+    await this.authService.register(dto, {
       ip: req.ip,
       userAgent: req.get('user-agent'),
     });
-    this.setRefreshCookie(res, tokens.refreshToken);
-    return { accessToken: tokens.accessToken, user: tokens.user };
+    return { ok: true };
+  }
+
+  @Get('verify-email')
+  async verifyEmail(
+    @Query('token') token: string | undefined,
+    @Res() res: Response,
+  ) {
+    if (!token || token.trim().length === 0) {
+      return res.redirect(`${this.getFrontendUrl()}/auth/login?verified=0`);
+    }
+
+    try {
+      await this.authService.verifyEmail(token);
+      return res.redirect(`${this.getFrontendUrl()}/auth/login?verified=1`);
+    } catch {
+      return res.redirect(`${this.getFrontendUrl()}/auth/login?verified=0`);
+    }
+  }
+
+  @Post('forgot-password')
+  @HttpCode(200)
+  async forgotPassword(@Body() body: { email?: string }) {
+    const email = (body.email ?? '').trim();
+    if (email.length > 0) {
+      await this.authService.requestPasswordReset(email);
+    }
+    return { ok: true };
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: { token?: string; password?: string }) {
+    const token = (body.token ?? '').trim();
+    const password = body.password ?? '';
+    if (!token) {
+      throw new UnauthorizedException('Missing reset token');
+    }
+    await this.authService.resetPassword(token, password);
+    return { ok: true };
   }
 
   @Post('login')
@@ -94,6 +135,36 @@ export class AuthController {
     }
     this.clearRefreshCookie(res);
     return { ok: true };
+  }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  googleLogin() {
+    return;
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleCallback(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const user = (req.user ?? null) as { id: string } | null;
+    if (!user) {
+      return res.redirect(`${this.getFrontendUrl()}/auth/login?oauth=0`);
+    }
+
+    const tokens = await this.authService.issueTokensForUserId(user.id, {
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+    this.setRefreshCookie(res, tokens.refreshToken);
+
+    return res.redirect(
+      `${this.getFrontendUrl()}/auth/oauth#accessToken=${encodeURIComponent(
+        tokens.accessToken,
+      )}`,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -199,6 +270,13 @@ export class AuthController {
       .split(',')
       .map((origin) => origin.trim())
       .filter(Boolean);
+  }
+
+  private getFrontendUrl(): string {
+    const url = (this.configService.get<string>('FRONTEND_URL') ?? '')
+      .split(',')[0]
+      .trim();
+    return (url.length > 0 ? url : 'http://localhost:3000').replace(/\/$/, '');
   }
 
   private assertCsrfAllowed(req: Request): void {

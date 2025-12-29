@@ -82,4 +82,17 @@ export const configValidationSchema = Joi.object({
     .valid('true', 'false', '1', '0', 'yes', 'no', 'y', 'n', 'on', 'off')
     .allow('', null),
   AUTH_REFRESH_COOKIE_MAXAGE_DAYS: Joi.number().default(30),
+
+  RESEND_API_KEY: Joi.string().allow('', null).default(''),
+  RESEND_FROM_EMAIL: Joi.string()
+    .email()
+    .default('no-reply@tutorstartup.local'),
+  AUTH_EMAIL_VERIFY_TTL_MINUTES: Joi.number()
+    .integer()
+    .min(5)
+    .default(60 * 24),
+  AUTH_PASSWORD_RESET_TTL_MINUTES: Joi.number().integer().min(5).default(60),
+
+  GOOGLE_CLIENT_ID: Joi.string().allow('', null).default(''),
+  GOOGLE_CLIENT_SECRET: Joi.string().allow('', null).default(''),
 });

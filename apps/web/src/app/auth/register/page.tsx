@@ -34,10 +34,11 @@ export default function RegisterPage() {
     setBusy(true);
 
     try {
-      const auth = await register(form);
-      router.push(
-        auth.user.role === "TUTOR" ? "/tutor/profile" : "/tutors/search"
+      await register(form);
+      setStatus(
+        "Account created. Please check your email and verify before logging in."
       );
+      router.push("/auth/login?registered=1");
     } catch (error) {
       setStatus((error as Error).message);
     } finally {

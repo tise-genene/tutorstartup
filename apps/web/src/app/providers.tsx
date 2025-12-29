@@ -11,6 +11,7 @@ import {
 import type { ReactNode } from "react";
 import type { AuthResponse } from "../lib/types";
 import {
+  fetchMe,
   loginUser,
   logoutSession,
   refreshSession,
@@ -565,8 +566,9 @@ export function useTheme(): ThemeContextValue {
 type AuthContextValue = {
   auth: AuthResponse | null;
   login: (payload: LoginPayload) => Promise<AuthResponse>;
-  register: (payload: RegisterPayload) => Promise<AuthResponse>;
+  register: (payload: RegisterPayload) => Promise<{ ok: true }>;
   logout: () => Promise<void>;
+  consumeAccessToken: (accessToken: string) => Promise<AuthResponse>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -647,7 +649,12 @@ export function Providers({ children }: { children: ReactNode }) {
   }, []);
 
   const register = useCallback(async (payload: RegisterPayload) => {
-    const response = await registerUser(payload);
+    return await registerUser(payload);
+  }, []);
+
+  const consumeAccessToken = useCallback(async (accessToken: string) => {
+    const user = await fetchMe(accessToken);
+    const response: AuthResponse = { accessToken, user };
     setAuth(response);
     return response;
   }, []);
@@ -673,8 +680,8 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   const authValue = useMemo<AuthContextValue>(
-    () => ({ auth, login, register, logout }),
-    [auth, login, register, logout]
+    () => ({ auth, login, register, logout, consumeAccessToken }),
+    [auth, login, register, logout, consumeAccessToken]
   );
 
   return (
