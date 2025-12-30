@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
@@ -7,6 +7,8 @@ import { UserRole } from '../../prisma/prisma.enums';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+  private readonly logger = new Logger(GoogleStrategy.name);
+
   constructor(
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
@@ -22,12 +24,21 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       configService.get<string>('API_PUBLIC_URL') ?? 'http://localhost:4000/api'
     ).replace(/\/$/, '');
 
+    const enabled = clientID.length > 0 && clientSecret.length > 0;
     super({
-      clientID,
-      clientSecret,
+      clientID: enabled ? clientID : 'disabled',
+      clientSecret: enabled ? clientSecret : 'disabled',
       callbackURL: `${apiPublicUrl}/v1/auth/google/callback`,
       scope: ['email', 'profile'],
     });
+
+    if (!enabled) {
+      // Passport throws if clientID is missing, so we provide placeholders.
+      // This keeps the API booting (signup/login still work) even if Google isn't configured yet.
+      this.logger.warn(
+        'Google OAuth not configured (missing GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET). Google sign-in is disabled until configured.',
+      );
+    }
   }
 
   async validate(
@@ -79,7 +90,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         role: UserRole.STUDENT,
         googleId,
         isVerified: true,
-        passwordHash: null,
       },
     });
   }
