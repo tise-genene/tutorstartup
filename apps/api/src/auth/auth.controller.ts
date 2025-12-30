@@ -199,6 +199,11 @@ export class AuthController {
         ? isProduction
         : ['true', '1', 'yes', 'y', 'on'].includes(secureRaw.toLowerCase());
 
+    // When the web app and API are on different origins (common on Render),
+    // refresh cookies must be SameSite=None to be sent with cross-site fetches.
+    // Browsers require SameSite=None cookies to also be Secure.
+    const sameSite = secure ? 'none' : 'lax';
+
     const domain = this.configService.get<string>('AUTH_REFRESH_COOKIE_DOMAIN');
     const maxAgeDaysRaw = this.configService.get<string>(
       'AUTH_REFRESH_COOKIE_MAXAGE_DAYS',
@@ -212,7 +217,7 @@ export class AuthController {
     res.cookie(this.getRefreshCookieName(), token, {
       httpOnly: true,
       secure,
-      sameSite: 'lax',
+      sameSite,
       path: this.getAuthCookiePath(),
       maxAge: maxAgeMs,
       domain: domain && domain.trim().length > 0 ? domain.trim() : undefined,
@@ -220,8 +225,24 @@ export class AuthController {
   }
 
   private clearRefreshCookie(res: Response): void {
+    const isProduction =
+      (this.configService.get<string>('NODE_ENV') ?? 'development') ===
+      'production';
+
+    const secureRaw = this.configService.get<string>(
+      'AUTH_REFRESH_COOKIE_SECURE',
+    );
+    const secure =
+      secureRaw === undefined
+        ? isProduction
+        : ['true', '1', 'yes', 'y', 'on'].includes(secureRaw.toLowerCase());
+
+    const sameSite = secure ? 'none' : 'lax';
     const domain = this.configService.get<string>('AUTH_REFRESH_COOKIE_DOMAIN');
     res.clearCookie(this.getRefreshCookieName(), {
+      httpOnly: true,
+      secure,
+      sameSite,
       path: this.getAuthCookiePath(),
       domain: domain && domain.trim().length > 0 ? domain.trim() : undefined,
     });

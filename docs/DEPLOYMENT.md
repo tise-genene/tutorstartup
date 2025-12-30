@@ -5,6 +5,10 @@ This repo is a pnpm + Turborepo monorepo:
 - API: `apps/api` (NestJS + Prisma)
 - Web: `apps/web` (Next.js)
 
+## Render
+
+For a step-by-step private beta deployment on Render, see `docs/RENDER.md`.
+
 ## 1) Start dependencies (recommended for staging)
 
 From repo root:
