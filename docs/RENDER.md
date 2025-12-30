@@ -119,7 +119,7 @@ Create another **Web Service** from the same repo.
 
 ### Start Command (Web)
 
-`pnpm --filter web start -- -p $PORT`
+`pnpm --filter web start:render`
 
 ### Web environment variables
 
