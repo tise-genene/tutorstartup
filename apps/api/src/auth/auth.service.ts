@@ -71,6 +71,12 @@ export class AuthService {
       where: { email: normalizedEmail },
     });
     if (existing) {
+      if (!existing.isVerified) {
+        await this.sendEmailVerification(existing.id, existing.email, existing.name);
+        throw new ConflictException(
+          'Email already registered. Verification email resent.',
+        );
+      }
       throw new ConflictException('Email already registered');
     }
 
@@ -91,6 +97,26 @@ export class AuthService {
     // Keep the welcome email behavior but send it after verification later if desired.
     void meta;
     return { ok: true };
+  }
+
+  /**
+   * Resend verification email for an existing account.
+   * Intentionally does not reveal whether the email exists.
+   */
+  async resendVerificationEmail(email: string): Promise<void> {
+    const normalizedEmail = email.toLowerCase().trim();
+    if (!normalizedEmail) {
+      return;
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+    if (!user || user.isVerified) {
+      return;
+    }
+
+    await this.sendEmailVerification(user.id, user.email, user.name);
   }
 
   async login(
@@ -257,6 +283,15 @@ export class AuthService {
     email: string,
     name: string,
   ): Promise<void> {
+    // Remove any previous unused verification tokens so only the latest works.
+    await this.prisma.authToken.deleteMany({
+      where: {
+        userId,
+        type: AuthTokenType.EMAIL_VERIFY,
+        usedAt: null,
+      },
+    });
+
     const rawToken = randomUUID();
     const tokenHash = this.hashOpaqueToken(rawToken);
     const ttlMinutesRaw = this.configService.get<number>(

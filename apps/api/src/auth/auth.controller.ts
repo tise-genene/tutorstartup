@@ -71,6 +71,16 @@ export class AuthController {
     return { ok: true };
   }
 
+  @Post('resend-verification')
+  @HttpCode(200)
+  async resendVerification(@Body() body: { email?: string }) {
+    const email = (body.email ?? '').trim();
+    if (email.length > 0) {
+      await this.authService.resendVerificationEmail(email);
+    }
+    return { ok: true };
+  }
+
   @Post('reset-password')
   async resetPassword(@Body() body: { token?: string; password?: string }) {
     const token = (body.token ?? '').trim();
