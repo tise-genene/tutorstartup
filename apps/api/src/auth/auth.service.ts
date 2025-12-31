@@ -72,7 +72,11 @@ export class AuthService {
     });
     if (existing) {
       if (!existing.isVerified) {
-        await this.sendEmailVerification(existing.id, existing.email, existing.name);
+        await this.sendEmailVerification(
+          existing.id,
+          existing.email,
+          existing.name,
+        );
         throw new ConflictException(
           'Email already registered. Verification email resent.',
         );
