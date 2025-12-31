@@ -84,9 +84,9 @@ export const configValidationSchema = Joi.object({
   AUTH_REFRESH_COOKIE_MAXAGE_DAYS: Joi.number().default(30),
 
   RESEND_API_KEY: Joi.string().allow('', null).default(''),
-  RESEND_FROM_EMAIL: Joi.string()
-    .email()
-    .default('no-reply@tutorstartup.local'),
+  // Leave empty by default so EmailService can fall back to Resend's dev sender.
+  // In production you should set this to a verified sender/domain.
+  RESEND_FROM_EMAIL: Joi.string().email().allow('', null).default(''),
   AUTH_EMAIL_VERIFY_TTL_MINUTES: Joi.number()
     .integer()
     .min(5)

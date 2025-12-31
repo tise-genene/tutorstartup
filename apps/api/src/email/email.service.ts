@@ -30,7 +30,17 @@ export class EmailService {
     const { Resend } = await import('resend');
     const resend = new Resend(apiKey);
 
-    const resolvedFrom = from.length > 0 ? from : 'onboarding@resend.dev';
+    const placeholderFrom = 'no-reply@tutorstartup.local';
+    const resolvedFrom =
+      from.length === 0 || from.toLowerCase() === placeholderFrom
+        ? 'onboarding@resend.dev'
+        : from;
+
+    if (from.toLowerCase() === placeholderFrom) {
+      this.logger.warn(
+        `RESEND_FROM_EMAIL is set to placeholder (${placeholderFrom}); using onboarding@resend.dev instead. Set RESEND_FROM_EMAIL to a verified sender for production.`,
+      );
+    }
 
     try {
       const result = await resend.emails.send({
