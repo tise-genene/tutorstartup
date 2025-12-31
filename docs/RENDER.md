@@ -100,6 +100,11 @@ Optional (can be blank in beta):
 - `GOOGLE_CLIENT_ID=`
 - `GOOGLE_CLIENT_SECRET=`
 
+Notes on email verification:
+
+- If you set `RESEND_API_KEY` but your domain isn’t verified yet, set `RESEND_FROM_EMAIL=onboarding@resend.dev` (or another sender that Resend allows) so emails actually deliver.
+- Also set `API_PUBLIC_URL=https://<your-api-service>.onrender.com/api` so verification links point to your deployed API.
+
 ### Health check
 
 Your API should respond:
