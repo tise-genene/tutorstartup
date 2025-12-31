@@ -37,11 +37,13 @@ export class EmailService {
         return;
       }
 
-      // Resend may be in testing mode (403) and only allow sending to the account email.
-      // If SMTP is configured, fall back so verification emails still deliver.
-      if (resendOutcome.fallbackToSmtp && smtp.configured) {
+      // If Resend fails for any reason and SMTP is configured, fall back so auth flows
+      // still deliver emails in environments where Resend cannot (e.g. testing mode).
+      if (smtp.configured) {
+        this.logger.warn(
+          `Resend failed; falling back to SMTP for ${params.to} (${params.subject})`,
+        );
         await this.sendViaSmtp(smtp, params);
-        return;
       }
 
       // If Resend failed and SMTP isn't configured, we're done.
@@ -103,6 +105,10 @@ export class EmailService {
         host: smtp.host,
         port: smtp.port,
         secure,
+        // Fail fast on platforms that block outbound SMTP.
+        connectionTimeout: 10_000,
+        greetingTimeout: 10_000,
+        socketTimeout: 10_000,
         ...(smtp.user && smtp.password
           ? { auth: { user: smtp.user, pass: smtp.password } }
           : {}),

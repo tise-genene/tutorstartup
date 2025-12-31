@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -23,6 +24,8 @@ type ExpiresIn = string | number;
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   private readonly allowedSelfAssignableRoles = new Set<UserRole>([
     UserRole.STUDENT,
     UserRole.PARENT,
@@ -72,10 +75,13 @@ export class AuthService {
     });
     if (existing) {
       if (!existing.isVerified) {
-        await this.sendEmailVerification(
-          existing.id,
-          existing.email,
-          existing.name,
+        this.fireAndForget(
+          this.sendEmailVerification(
+            existing.id,
+            existing.email,
+            existing.name,
+          ),
+          'sendEmailVerification(existing)',
         );
         throw new ConflictException(
           'Email already registered. Verification email resent.',
@@ -96,7 +102,10 @@ export class AuthService {
       },
     });
 
-    await this.sendEmailVerification(user.id, user.email, user.name);
+    this.fireAndForget(
+      this.sendEmailVerification(user.id, user.email, user.name),
+      'sendEmailVerification(new-user)',
+    );
 
     // Keep the welcome email behavior but send it after verification later if desired.
     void meta;
@@ -120,7 +129,10 @@ export class AuthService {
       return;
     }
 
-    await this.sendEmailVerification(user.id, user.email, user.name);
+    this.fireAndForget(
+      this.sendEmailVerification(user.id, user.email, user.name),
+      'sendEmailVerification(resend)',
+    );
   }
 
   async login(
@@ -235,11 +247,22 @@ export class AuthService {
       rawToken,
     )}`;
 
-    await this.email.sendEmail({
-      to: user.email,
-      subject: 'Reset your password',
-      html: `<p>Hello ${escapeHtml(user.name)},</p><p>Reset your password using this link:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>If you didn’t request this, you can ignore this email.</p>`,
-      text: `Hello ${user.name}\n\nReset your password using this link:\n${resetUrl}\n\nIf you didn’t request this, you can ignore this email.`,
+    this.fireAndForget(
+      this.email.sendEmail({
+        to: user.email,
+        subject: 'Reset your password',
+        html: `<p>Hello ${escapeHtml(user.name)},</p><p>Reset your password using this link:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>If you didn’t request this, you can ignore this email.</p>`,
+        text: `Hello ${user.name}\n\nReset your password using this link:\n${resetUrl}\n\nIf you didn’t request this, you can ignore this email.`,
+      }),
+      'sendPasswordResetEmail',
+    );
+  }
+
+  private fireAndForget(task: Promise<unknown>, label: string): void {
+    void task.catch((error) => {
+      const message =
+        error instanceof Error ? error.message : JSON.stringify(error);
+      this.logger.warn(`${label} failed: ${message}`);
     });
   }
 
