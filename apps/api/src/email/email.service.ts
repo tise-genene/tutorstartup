@@ -51,7 +51,23 @@ export class EmailService {
         text: params.text,
       });
 
-      const id = (result as { id?: string } | undefined)?.id;
+      const maybe = result as unknown as {
+        data?: { id?: string } | null;
+        error?: unknown;
+      };
+
+      if (maybe?.error) {
+        const message =
+          maybe.error instanceof Error
+            ? maybe.error.message
+            : JSON.stringify(maybe.error);
+        this.logger.error(
+          `Failed to send email to ${params.to} (${params.subject}) from=${resolvedFrom}: ${message}`,
+        );
+        return;
+      }
+
+      const id = maybe?.data?.id;
       this.logger.log(
         `Sent email to ${params.to} (${params.subject})${id ? ` id=${id}` : ''}`,
       );
