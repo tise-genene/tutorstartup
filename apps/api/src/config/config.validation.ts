@@ -87,6 +87,14 @@ export const configValidationSchema = Joi.object({
   // Leave empty by default so EmailService can fall back to Resend's dev sender.
   // In production you should set this to a verified sender/domain.
   RESEND_FROM_EMAIL: Joi.string().email().allow('', null).default(''),
+
+  // Optional SMTP fallback (useful when Resend is in testing mode).
+  SMTP_HOST: Joi.string().allow('', null).default(''),
+  SMTP_PORT: Joi.number().integer().min(1).max(65535).default(587),
+  SMTP_USER: Joi.string().allow('', null).default(''),
+  SMTP_PASSWORD: Joi.string().allow('', null).default(''),
+  SMTP_FROM: Joi.string().email().allow('', null).default(''),
+
   AUTH_EMAIL_VERIFY_TTL_MINUTES: Joi.number()
     .integer()
     .min(5)
