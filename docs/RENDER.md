@@ -81,6 +81,13 @@ Required:
 - `API_PUBLIC_URL=https://<your-api-service>.onrender.com/api`
 - `TRUST_PROXY=1`
 
+Required for email verification + password reset:
+
+- `RESEND_API_KEY=<your resend api key>`
+  - Without a working email provider, users cannot receive verification/password reset links.
+- `RESEND_FROM_EMAIL=<verified sender>`
+  - If you haven't verified a domain in Resend yet, use `onboarding@resend.dev` while testing.
+
 Recommended for a real browser deployment:
 
 - `AUTH_CSRF_ENABLED=true`
@@ -95,8 +102,6 @@ Disable infra you don’t want in beta:
 
 Optional (can be blank in beta):
 
-- `RESEND_API_KEY=`
-- `RESEND_FROM_EMAIL=`
 - `GOOGLE_CLIENT_ID=`
 - `GOOGLE_CLIENT_SECRET=`
 

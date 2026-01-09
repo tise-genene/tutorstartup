@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { AppHeader } from "./AppHeader";
+import { ChatWidget } from "./ChatWidget";
 
 export function PageShell({ children }: { children: ReactNode }) {
   return (
@@ -8,6 +9,7 @@ export function PageShell({ children }: { children: ReactNode }) {
       <main id="main" className="px-4 pb-16 pt-10 md:px-10">
         {children}
       </main>
+      <ChatWidget />
     </div>
   );
 }

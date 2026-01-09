@@ -285,6 +285,12 @@ export function AppHeader() {
                 </Link>
               )}
 
+              {auth && (
+                <Link href="/account" className="ui-btn">
+                  {t("nav.account")}
+                </Link>
+              )}
+
               {isTutor && (
                 <Link href="/tutor/requests" className="ui-btn relative">
                   {t("nav.requests")}
