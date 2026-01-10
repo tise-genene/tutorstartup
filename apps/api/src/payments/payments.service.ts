@@ -299,8 +299,8 @@ export class PaymentsService {
     contractId: string,
     input?: { amount?: number; currency?: string },
   ) {
-    if (user.role !== UserRole.PARENT) {
-      throw new ForbiddenException('Only parents can pay');
+    if (user.role !== UserRole.PARENT && user.role !== UserRole.STUDENT) {
+      throw new ForbiddenException('Only clients can pay');
     }
 
     const contract = await this.prisma.contract.findUnique({
@@ -437,8 +437,8 @@ export class PaymentsService {
     milestoneId: string,
     input?: { amount?: number; currency?: string },
   ) {
-    if (user.role !== UserRole.PARENT) {
-      throw new ForbiddenException('Only parents can pay');
+    if (user.role !== UserRole.PARENT && user.role !== UserRole.STUDENT) {
+      throw new ForbiddenException('Only clients can pay');
     }
 
     const contract = await this.prisma.contract.findUnique({

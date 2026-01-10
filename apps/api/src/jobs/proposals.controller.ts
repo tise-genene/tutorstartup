@@ -50,7 +50,7 @@ export class ProposalsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT)
+  @Roles(UserRole.PARENT, UserRole.STUDENT)
   @Post(':id/decline')
   async decline(
     @CurrentUser() user: JwtPayload,
@@ -64,7 +64,7 @@ export class ProposalsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT)
+  @Roles(UserRole.PARENT, UserRole.STUDENT)
   @Post(':id/accept')
   async accept(
     @CurrentUser() user: JwtPayload,

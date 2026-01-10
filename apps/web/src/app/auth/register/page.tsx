@@ -17,7 +17,7 @@ export default function RegisterPage() {
     name: "",
     email: "",
     password: "",
-    role: "STUDENT" as UserRole,
+    role: "PARENT" as UserRole,
   });
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

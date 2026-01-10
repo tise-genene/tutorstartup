@@ -130,7 +130,7 @@ export function AppHeader() {
   const role = auth?.user.role ?? null;
   const token = auth?.accessToken ?? null;
   const isTutor = role === "TUTOR";
-  const isParent = role === "PARENT";
+  const isClient = role === "PARENT" || role === "STUDENT";
 
   const toggleMobile = () => setMobileOpen((prev) => !prev);
   const closeMenus = () => {
@@ -267,7 +267,7 @@ export function AppHeader() {
                 </Link>
               )}
 
-              {isParent && (
+              {isClient && (
                 <>
                   <Link href="/jobs/post" className="ui-btn">
                     {t("nav.postJob")}
@@ -371,7 +371,7 @@ export function AppHeader() {
                           </Link>
                         )}
 
-                        {isParent && (
+                        {isClient && (
                           <Link
                             href="/jobs/mine"
                             className="ui-btn ui-btn-block"
@@ -493,7 +493,7 @@ export function AppHeader() {
                       </Link>
                     )}
 
-                    {isParent && (
+                    {isClient && (
                       <>
                         <Link
                           href="/jobs/post"

@@ -31,8 +31,8 @@ export class ContractsService {
     parent: { id: string; role: UserRole },
     proposalId: string,
   ) {
-    if (parent.role !== UserRole.PARENT) {
-      throw new ForbiddenException('Only parents can accept proposals');
+    if (parent.role !== UserRole.PARENT && parent.role !== UserRole.STUDENT) {
+      throw new ForbiddenException('Only clients can accept proposals');
     }
 
     return await this.prisma.$transaction(async (tx) => {
@@ -128,12 +128,16 @@ export class ContractsService {
   }
 
   async listMine(user: { id: string; role: UserRole }) {
-    if (user.role !== UserRole.PARENT && user.role !== UserRole.TUTOR) {
-      throw new ForbiddenException('Only tutors or parents can view contracts');
+    if (
+      user.role !== UserRole.PARENT &&
+      user.role !== UserRole.STUDENT &&
+      user.role !== UserRole.TUTOR
+    ) {
+      throw new ForbiddenException('Only tutors or clients can view contracts');
     }
 
     const where =
-      user.role === UserRole.PARENT
+      user.role === UserRole.PARENT || user.role === UserRole.STUDENT
         ? { parentId: user.id }
         : { tutorId: user.id };
 
@@ -270,8 +274,8 @@ export class ContractsService {
     contractId: string,
     dto: CreateContractMilestoneDto,
   ) {
-    if (user.role !== UserRole.PARENT) {
-      throw new ForbiddenException('Only parents can create milestones');
+    if (user.role !== UserRole.PARENT && user.role !== UserRole.STUDENT) {
+      throw new ForbiddenException('Only clients can create milestones');
     }
 
     const contract = await this.prisma.contract.findUnique({
@@ -318,8 +322,8 @@ export class ContractsService {
     milestoneId: string,
     dto?: ReleaseContractMilestoneDto,
   ) {
-    if (user.role !== UserRole.PARENT) {
-      throw new ForbiddenException('Only parents can release milestones');
+    if (user.role !== UserRole.PARENT && user.role !== UserRole.STUDENT) {
+      throw new ForbiddenException('Only clients can release milestones');
     }
 
     return await this.prisma.$transaction(async (tx) => {

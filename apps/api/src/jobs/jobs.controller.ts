@@ -24,7 +24,7 @@ export class JobsController {
   constructor(private readonly service: JobsService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT)
+  @Roles(UserRole.PARENT, UserRole.STUDENT)
   @Post()
   async createJob(@CurrentUser() user: JwtPayload, @Body() dto: CreateJobDto) {
     const created = await this.service.createJob(
@@ -46,7 +46,7 @@ export class JobsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT)
+  @Roles(UserRole.PARENT, UserRole.STUDENT)
   @Get('mine')
   async listMine(@CurrentUser() user: JwtPayload) {
     const items = await this.service.listMyJobs({
@@ -57,7 +57,7 @@ export class JobsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT)
+  @Roles(UserRole.PARENT, UserRole.STUDENT)
   @Post(':id/close')
   async close(
     @CurrentUser() user: JwtPayload,
@@ -71,7 +71,7 @@ export class JobsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT, UserRole.TUTOR)
+  @Roles(UserRole.PARENT, UserRole.STUDENT, UserRole.TUTOR)
   @Get(':id')
   async getById(
     @CurrentUser() user: JwtPayload,
@@ -101,7 +101,7 @@ export class JobsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT)
+  @Roles(UserRole.PARENT, UserRole.STUDENT)
   @Get(':id/proposals')
   async proposalsForJob(
     @CurrentUser() user: JwtPayload,

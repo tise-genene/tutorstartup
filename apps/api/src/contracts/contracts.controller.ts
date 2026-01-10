@@ -27,7 +27,7 @@ export class ContractsController {
   constructor(private readonly service: ContractsService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT, UserRole.TUTOR)
+  @Roles(UserRole.PARENT, UserRole.STUDENT, UserRole.TUTOR)
   @Get('mine')
   async mine(@CurrentUser() user: JwtPayload) {
     const items = await this.service.listMine({
@@ -38,7 +38,7 @@ export class ContractsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT, UserRole.TUTOR, UserRole.ADMIN)
+  @Roles(UserRole.PARENT, UserRole.STUDENT, UserRole.TUTOR, UserRole.ADMIN)
   @Get(':id')
   async getById(
     @CurrentUser() user: JwtPayload,
@@ -52,7 +52,7 @@ export class ContractsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT, UserRole.TUTOR, UserRole.ADMIN)
+  @Roles(UserRole.PARENT, UserRole.STUDENT, UserRole.TUTOR, UserRole.ADMIN)
   @Get(':id/messages')
   async listMessages(
     @CurrentUser() user: JwtPayload,
@@ -66,7 +66,7 @@ export class ContractsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT, UserRole.TUTOR)
+  @Roles(UserRole.PARENT, UserRole.STUDENT, UserRole.TUTOR)
   @Post(':id/messages')
   async sendMessage(
     @CurrentUser() user: JwtPayload,
@@ -78,7 +78,7 @@ export class ContractsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT, UserRole.TUTOR, UserRole.ADMIN)
+  @Roles(UserRole.PARENT, UserRole.STUDENT, UserRole.TUTOR, UserRole.ADMIN)
   @Get(':id/milestones')
   async listMilestones(
     @CurrentUser() user: JwtPayload,
@@ -92,7 +92,7 @@ export class ContractsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT)
+  @Roles(UserRole.PARENT, UserRole.STUDENT)
   @Post(':id/milestones')
   async createMilestone(
     @CurrentUser() user: JwtPayload,
@@ -108,7 +108,7 @@ export class ContractsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.PARENT)
+  @Roles(UserRole.PARENT, UserRole.STUDENT)
   @Post(':id/milestones/:milestoneId/release')
   async releaseMilestone(
     @CurrentUser() user: JwtPayload,

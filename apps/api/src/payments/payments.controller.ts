@@ -31,7 +31,7 @@ export class PaymentsController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post(':id/payments/intent')
-  @Roles(UserRole.PARENT)
+  @Roles(UserRole.PARENT, UserRole.STUDENT)
   async createIntent(
     @CurrentUser() user: CurrentUserPayload,
     @Param('id') contractId: string,
@@ -51,7 +51,7 @@ export class PaymentsController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post(':id/milestones/:milestoneId/payments/intent')
-  @Roles(UserRole.PARENT)
+  @Roles(UserRole.PARENT, UserRole.STUDENT)
   async createMilestoneIntent(
     @CurrentUser() user: CurrentUserPayload,
     @Param('id') contractId: string,

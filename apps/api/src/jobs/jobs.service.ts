@@ -19,8 +19,8 @@ export class JobsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createJob(parent: { id: string; role: UserRole }, dto: CreateJobDto) {
-    if (parent.role !== UserRole.PARENT) {
-      throw new ForbiddenException('Only parents can post tutor jobs');
+    if (parent.role !== UserRole.PARENT && parent.role !== UserRole.STUDENT) {
+      throw new ForbiddenException('Only clients can post tutor jobs');
     }
 
     return await this.prisma.jobPost.create({
@@ -58,8 +58,8 @@ export class JobsService {
   }
 
   async listMyJobs(parent: { id: string; role: UserRole }) {
-    if (parent.role !== UserRole.PARENT) {
-      throw new ForbiddenException('Only parents can view their job posts');
+    if (parent.role !== UserRole.PARENT && parent.role !== UserRole.STUDENT) {
+      throw new ForbiddenException('Only clients can view their job posts');
     }
 
     return await this.prisma.jobPost.findMany({
@@ -88,7 +88,10 @@ export class JobsService {
       throw new NotFoundException('Job not found');
     }
 
-    if (user.role === UserRole.PARENT && job.parentId !== user.id) {
+    if (
+      (user.role === UserRole.PARENT || user.role === UserRole.STUDENT) &&
+      job.parentId !== user.id
+    ) {
       throw new ForbiddenException('Cannot view this job');
     }
 
@@ -103,16 +106,20 @@ export class JobsService {
       }
     }
 
-    if (user.role !== UserRole.PARENT && user.role !== UserRole.TUTOR) {
-      throw new ForbiddenException('Only tutors or parents can view jobs');
+    if (
+      user.role !== UserRole.PARENT &&
+      user.role !== UserRole.STUDENT &&
+      user.role !== UserRole.TUTOR
+    ) {
+      throw new ForbiddenException('Only tutors or clients can view jobs');
     }
 
     return job;
   }
 
   async closeJob(parent: { id: string; role: UserRole }, jobId: string) {
-    if (parent.role !== UserRole.PARENT) {
-      throw new ForbiddenException('Only parents can close jobs');
+    if (parent.role !== UserRole.PARENT && parent.role !== UserRole.STUDENT) {
+      throw new ForbiddenException('Only clients can close jobs');
     }
 
     const job = await this.prisma.jobPost.findUnique({
@@ -214,8 +221,8 @@ export class JobsService {
     parent: { id: string; role: UserRole },
     proposalId: string,
   ) {
-    if (parent.role !== UserRole.PARENT) {
-      throw new ForbiddenException('Only parents can decline proposals');
+    if (parent.role !== UserRole.PARENT && parent.role !== UserRole.STUDENT) {
+      throw new ForbiddenException('Only clients can decline proposals');
     }
 
     const proposal = await this.prisma.proposal.findUnique({
@@ -255,12 +262,15 @@ export class JobsService {
       throw new NotFoundException('Job not found');
     }
 
-    if (user.role === UserRole.PARENT && job.parentId !== user.id) {
+    if (
+      (user.role === UserRole.PARENT || user.role === UserRole.STUDENT) &&
+      job.parentId !== user.id
+    ) {
       throw new ForbiddenException('Cannot view proposals for this job');
     }
 
-    if (user.role !== UserRole.PARENT) {
-      throw new ForbiddenException('Only parents can view job proposals');
+    if (user.role !== UserRole.PARENT && user.role !== UserRole.STUDENT) {
+      throw new ForbiddenException('Only clients can view job proposals');
     }
 
     return await this.prisma.proposal.findMany({
