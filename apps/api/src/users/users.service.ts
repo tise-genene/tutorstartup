@@ -16,4 +16,19 @@ export class UsersService {
     }
     return user;
   }
+
+  async updateMe(
+    userId: string,
+    data: {
+      avatarUrl?: string;
+    },
+  ) {
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        avatarUrl: data.avatarUrl,
+      },
+    });
+    return updated;
+  }
 }

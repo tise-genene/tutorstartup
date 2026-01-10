@@ -6,6 +6,7 @@ export class AuthenticatedUserDto {
   name!: string;
   role!: UserRole;
   isVerified!: boolean;
+  avatarUrl!: string | null;
 }
 
 export class AuthTokensDto {

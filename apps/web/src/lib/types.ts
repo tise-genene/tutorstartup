@@ -8,6 +8,7 @@ export interface AuthenticatedUser {
   name: string;
   role: UserRole;
   isVerified: boolean;
+  avatarUrl?: string | null;
 }
 
 export interface AuthResponse {

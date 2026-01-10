@@ -656,6 +656,7 @@ export class AuthService {
       name: user.name,
       role: user.role,
       isVerified: user.isVerified,
+      avatarUrl: user.avatarUrl ?? null,
     };
   }
 }

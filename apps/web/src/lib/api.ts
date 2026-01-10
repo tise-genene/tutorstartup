@@ -103,6 +103,17 @@ export async function fetchMe(token: string): Promise<AuthResponse["user"]> {
   });
 }
 
+export async function updateMe(
+  token: string,
+  payload: { avatarUrl?: string }
+): Promise<AuthResponse["user"]> {
+  return request<AuthResponse["user"]>("/v1/users/me", {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function forgotPassword(email: string): Promise<{ ok: true }> {
   return request<{ ok: true }>("/v1/auth/forgot-password", {
     method: "POST",

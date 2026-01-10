@@ -115,6 +115,7 @@ export function AppHeader() {
   const { theme, toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [workMenuOpen, setWorkMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<number>(0);
   const hasHydrated = useSyncExternalStore(
     () => () => {
@@ -135,6 +136,7 @@ export function AppHeader() {
   const closeMenus = () => {
     setMobileOpen(false);
     setWorkMenuOpen(false);
+    setUserMenuOpen(false);
   };
 
   useEffect(() => {
@@ -285,12 +287,6 @@ export function AppHeader() {
                 </Link>
               )}
 
-              {auth && (
-                <Link href="/account" className="ui-btn">
-                  {t("nav.account")}
-                </Link>
-              )}
-
               {isTutor && (
                 <Link href="/tutor/requests" className="ui-btn relative">
                   {t("nav.requests")}
@@ -314,9 +310,96 @@ export function AppHeader() {
                   </Link>
                 </>
               ) : (
-                <Link href="/auth/logout" className="ui-btn">
-                  {t("nav.logout")}
-                </Link>
+                <div className="relative">
+                  <button
+                    type="button"
+                    className="ui-btn ui-icon-btn"
+                    onClick={() => setUserMenuOpen((prev) => !prev)}
+                    aria-haspopup="menu"
+                    aria-expanded={userMenuOpen}
+                    title={t("nav.account")}
+                  >
+                    <span
+                      className="relative block h-7 w-7 overflow-hidden rounded-full border"
+                      style={{
+                        borderColor: "var(--divider)",
+                        background: "var(--panel-surface)",
+                      }}
+                    >
+                      {auth.user.avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={auth.user.avatarUrl}
+                          alt="Profile"
+                          className="h-full w-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <span className="flex h-full w-full items-center justify-center text-xs font-bold">
+                          {auth.user.name.slice(0, 1).toUpperCase()}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+
+                  {userMenuOpen && (
+                    <div
+                      className="absolute right-0 mt-2 w-56 overflow-hidden rounded-2xl border"
+                      style={{
+                        borderColor: "var(--divider)",
+                        background: "var(--panel-surface)",
+                        boxShadow: "var(--tile-shadow)",
+                      }}
+                      role="menu"
+                    >
+                      <div className="flex flex-col p-2">
+                        <Link
+                          href="/account"
+                          className="ui-btn ui-btn-block"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          {t("nav.account")}
+                        </Link>
+
+                        {isTutor && (
+                          <Link
+                            href="/tutor/profile"
+                            className="ui-btn ui-btn-block"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            {t("nav.profile")}
+                          </Link>
+                        )}
+
+                        {isParent && (
+                          <Link
+                            href="/jobs/mine"
+                            className="ui-btn ui-btn-block"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            {t("nav.myJobs")}
+                          </Link>
+                        )}
+
+                        <Link
+                          href="/contracts"
+                          className="ui-btn ui-btn-block"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          {t("nav.contracts")}
+                        </Link>
+
+                        <Link
+                          href="/auth/logout"
+                          className="ui-btn ui-btn-block"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          {t("nav.logout")}
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
 
               <button
@@ -473,13 +556,22 @@ export function AppHeader() {
                         </Link>
                       </>
                     ) : (
-                      <Link
-                        href="/auth/logout"
-                        className="ui-btn ui-btn-block"
-                        onClick={closeMenus}
-                      >
-                        {t("nav.logout")}
-                      </Link>
+                      <>
+                        <Link
+                          href="/account"
+                          className="ui-btn ui-btn-block"
+                          onClick={closeMenus}
+                        >
+                          {t("nav.account")}
+                        </Link>
+                        <Link
+                          href="/auth/logout"
+                          className="ui-btn ui-btn-block"
+                          onClick={closeMenus}
+                        >
+                          {t("nav.logout")}
+                        </Link>
+                      </>
                     )}
 
                     <div className="mt-3 flex flex-col gap-2">
