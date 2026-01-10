@@ -48,9 +48,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!auth) return;
-    router.replace(
-      auth.user.role === "TUTOR" ? "/tutor/profile" : "/tutors/search"
-    );
+    router.replace(auth.user.role === "TUTOR" ? "/work" : "/dashboard");
   }, [auth, router]);
 
   const onSubmit = async (event: FormEvent) => {
@@ -60,9 +58,7 @@ export default function LoginPage() {
 
     try {
       const auth = await login(form);
-      router.push(
-        auth.user.role === "TUTOR" ? "/tutor/profile" : "/tutors/search"
-      );
+      router.push(auth.user.role === "TUTOR" ? "/work" : "/dashboard");
     } catch (error) {
       setStatus((error as Error).message);
     } finally {

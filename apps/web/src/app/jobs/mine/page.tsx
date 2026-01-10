@@ -12,7 +12,7 @@ export default function MyJobsPage() {
   const { auth } = useAuth();
 
   const token = auth?.accessToken ?? null;
-  const isParent = auth?.user.role === "PARENT";
+  const isClient = auth?.user.role === "PARENT" || auth?.user.role === "STUDENT";
 
   const [items, setItems] = useState<JobPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,13 +20,13 @@ export default function MyJobsPage() {
 
   const helper = useMemo(() => {
     if (!auth) return t("state.loginRequired");
-    if (!isParent) return "This page is for parents only.";
+    if (!isClient) return "This page is for clients only.";
     return null;
-  }, [auth, isParent, t]);
+  }, [auth, isClient, t]);
 
   useEffect(() => {
     const run = async () => {
-      if (!token || !isParent) {
+      if (!token || !isClient) {
         setLoading(false);
         return;
       }
@@ -44,7 +44,7 @@ export default function MyJobsPage() {
     };
 
     void run();
-  }, [token, isParent]);
+  }, [token, isClient]);
 
   return (
     <PageShell>
@@ -66,11 +66,11 @@ export default function MyJobsPage() {
             <p className="mt-6 text-sm ui-muted">{t("common.loading")}</p>
           )}
 
-          {!loading && isParent && items.length === 0 && (
+          {!loading && isClient && items.length === 0 && (
             <p className="mt-6 text-sm ui-muted">No jobs yet.</p>
           )}
 
-          {!loading && isParent && items.length > 0 && (
+          {!loading && isClient && items.length > 0 && (
             <div className="mt-6 space-y-4">
               {items.map((job) => (
                 <Link

@@ -41,6 +41,19 @@ export class JobsService {
       throw new ForbiddenException('Only tutors can browse job posts');
     }
 
+    const tutor = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: { id: true, role: true, isVerified: true },
+    });
+
+    if (!tutor || tutor.role !== UserRole.TUTOR) {
+      throw new ForbiddenException('Only tutors can browse job posts');
+    }
+
+    if (!tutor.isVerified) {
+      throw new ForbiddenException('Verify your email to browse job posts');
+    }
+
     return await this.prisma.jobPost.findMany({
       where: {
         status: JobPostStatus.OPEN,

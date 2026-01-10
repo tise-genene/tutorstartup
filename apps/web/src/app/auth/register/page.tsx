@@ -24,9 +24,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (!auth) return;
-    router.replace(
-      auth.user.role === "TUTOR" ? "/tutor/profile" : "/tutors/search"
-    );
+    router.replace(auth.user.role === "TUTOR" ? "/work" : "/dashboard");
   }, [auth, router]);
 
   const onSubmit = async (event: FormEvent) => {

@@ -12,7 +12,7 @@ export default function PostJobPage() {
   const { auth } = useAuth();
 
   const token = auth?.accessToken ?? null;
-  const isParent = auth?.user.role === "PARENT";
+  const isClient = auth?.user.role === "PARENT" || auth?.user.role === "STUDENT";
 
   const [form, setForm] = useState({
     title: "",
@@ -26,9 +26,9 @@ export default function PostJobPage() {
 
   const helper = useMemo(() => {
     if (!auth) return t("state.loginRequired");
-    if (!isParent) return "This page is for parents only.";
+    if (!isClient) return "This page is for clients only.";
     return null;
-  }, [auth, isParent, t]);
+  }, [auth, isClient, t]);
 
   const onSubmit = async () => {
     if (!token) return;
@@ -84,7 +84,7 @@ export default function PostJobPage() {
           {helper && <p className="mt-6 text-sm ui-muted">{helper}</p>}
           {status && <p className="mt-6 text-sm ui-muted">{status}</p>}
 
-          {auth && isParent && (
+          {auth && isClient && (
             <div className="mt-6 space-y-3">
               <input
                 className="ui-field"

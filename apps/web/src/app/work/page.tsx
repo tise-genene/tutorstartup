@@ -54,7 +54,7 @@ export default function WorkPage() {
             <div>
               <h1 className="text-2xl font-semibold">{t("nav.findWork")}</h1>
               <p className="mt-1 text-sm ui-muted">
-                Browse tutor job posts from parents.
+                Browse tutor job posts from clients.
               </p>
             </div>
             {auth && isTutor && (

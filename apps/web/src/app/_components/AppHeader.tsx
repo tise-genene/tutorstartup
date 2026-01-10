@@ -131,6 +131,7 @@ export function AppHeader() {
   const token = auth?.accessToken ?? null;
   const isTutor = role === "TUTOR";
   const isClient = role === "PARENT" || role === "STUDENT";
+  const homeHref = auth ? (isTutor ? "/work" : "/dashboard") : "/";
 
   const toggleMobile = () => setMobileOpen((prev) => !prev);
   const closeMenus = () => {
@@ -195,7 +196,7 @@ export function AppHeader() {
               </button>
 
               <Link
-                href="/"
+                href={homeHref}
                 className="flex flex-1 items-center justify-center gap-3 md:flex-auto md:justify-start"
               >
                 <span className="pill font-extrabold">Tutorstartup</span>
