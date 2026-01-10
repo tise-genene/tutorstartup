@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateJobDto } from './dto/create-job.dto';
+import { UpdateJobDto } from './dto/update-job.dto';
 import { CreateProposalDto } from './dto/create-proposal.dto';
 import {
   ContractStatus,
@@ -17,6 +18,11 @@ import {
 @Injectable()
 export class JobsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private normalizeCurrency(value?: string | null): string | undefined {
+    const raw = (value ?? '').trim().toUpperCase();
+    return raw.length > 0 ? raw : undefined;
+  }
 
   async createJob(parent: { id: string; role: UserRole }, dto: CreateJobDto) {
     if (parent.role !== UserRole.PARENT && parent.role !== UserRole.STUDENT) {
@@ -39,6 +45,11 @@ export class JobsService {
       throw new ForbiddenException('Verify your email to post a job');
     }
 
+    const requestedStatus = dto.status ?? 'OPEN';
+    const status =
+      requestedStatus === 'DRAFT' ? JobPostStatus.DRAFT : JobPostStatus.OPEN;
+    const publishedAt = status === JobPostStatus.OPEN ? new Date() : null;
+
     return await this.prisma.jobPost.create({
       data: {
         parentId: parent.id,
@@ -46,6 +57,16 @@ export class JobsService {
         description: dto.description.trim(),
         subjects: (dto.subjects ?? []).map((s) => s.trim()).filter(Boolean),
         location: dto.location?.trim() || null,
+        locationLat:
+          typeof dto.locationLat === 'number' &&
+          Number.isFinite(dto.locationLat)
+            ? dto.locationLat
+            : null,
+        locationLng:
+          typeof dto.locationLng === 'number' &&
+          Number.isFinite(dto.locationLng)
+            ? dto.locationLng
+            : null,
         budget: dto.budget ?? null,
         grade: dto.grade ?? null,
         sessionMinutes: dto.sessionMinutes ?? null,
@@ -60,8 +81,9 @@ export class JobsService {
         monthlyAmount: dto.monthlyAmount ?? null,
         fixedAmount: dto.fixedAmount ?? null,
         genderPreference: (dto.genderPreference as unknown as any) ?? undefined,
-        currency: dto.currency?.trim().toUpperCase() || undefined,
-        status: JobPostStatus.OPEN,
+        currency: this.normalizeCurrency(dto.currency),
+        status,
+        publishedAt,
       },
     });
   }
@@ -87,6 +109,7 @@ export class JobsService {
     return await this.prisma.jobPost.findMany({
       where: {
         status: JobPostStatus.OPEN,
+        publishedAt: { not: null },
         contracts: {
           none: {
             status: {
@@ -142,6 +165,14 @@ export class JobsService {
       throw new ForbiddenException('Job not available');
     }
 
+    if (
+      user.role === UserRole.TUTOR &&
+      job.status === JobPostStatus.OPEN &&
+      job.publishedAt === null
+    ) {
+      throw new ForbiddenException('Job not available');
+    }
+
     if (user.role === UserRole.TUTOR) {
       const activeContract = job.contracts[0];
       if (activeContract && activeContract.tutorId !== user.id) {
@@ -186,7 +217,121 @@ export class JobsService {
 
     return await this.prisma.jobPost.update({
       where: { id: jobId },
-      data: { status: JobPostStatus.CLOSED },
+      data: { status: JobPostStatus.CLOSED, closedAt: new Date() },
+    });
+  }
+
+  async updateJob(
+    parent: { id: string; role: UserRole },
+    jobId: string,
+    dto: UpdateJobDto,
+  ) {
+    if (parent.role !== UserRole.PARENT && parent.role !== UserRole.STUDENT) {
+      throw new ForbiddenException('Only clients can update jobs');
+    }
+
+    const job = await this.prisma.jobPost.findUnique({
+      where: { id: jobId },
+      include: {
+        contracts: {
+          where: {
+            status: {
+              in: [ContractStatus.ACTIVE, ContractStatus.PENDING_PAYMENT],
+            },
+          },
+          select: { id: true },
+          take: 1,
+        },
+      },
+    });
+
+    if (!job) throw new NotFoundException('Job not found');
+    if (job.parentId !== parent.id) {
+      throw new ForbiddenException('Cannot update this job');
+    }
+
+    if (job.contracts.length > 0) {
+      throw new BadRequestException(
+        'Cannot update a job with an active contract',
+      );
+    }
+
+    if (job.status !== JobPostStatus.DRAFT) {
+      throw new BadRequestException('Only draft jobs can be updated');
+    }
+
+    return await this.prisma.jobPost.update({
+      where: { id: jobId },
+      data: {
+        title: dto.title?.trim(),
+        description: dto.description?.trim(),
+        subjects: dto.subjects
+          ? dto.subjects.map((s) => s.trim()).filter(Boolean)
+          : undefined,
+        location:
+          dto.location != null ? dto.location.trim() || null : undefined,
+        locationLat:
+          typeof dto.locationLat === 'number' &&
+          Number.isFinite(dto.locationLat)
+            ? dto.locationLat
+            : dto.locationLat === null
+              ? null
+              : undefined,
+        locationLng:
+          typeof dto.locationLng === 'number' &&
+          Number.isFinite(dto.locationLng)
+            ? dto.locationLng
+            : dto.locationLng === null
+              ? null
+              : undefined,
+        budget: dto.budget ?? undefined,
+        grade: dto.grade ?? undefined,
+        sessionMinutes: dto.sessionMinutes ?? undefined,
+        daysPerWeek: dto.daysPerWeek ?? undefined,
+        startTime:
+          dto.startTime != null ? dto.startTime.trim() || null : undefined,
+        endTime: dto.endTime != null ? dto.endTime.trim() || null : undefined,
+        preferredDays: dto.preferredDays
+          ? dto.preferredDays.map((d) => d.trim()).filter(Boolean)
+          : undefined,
+        payType: (dto.payType as unknown as any) ?? undefined,
+        hourlyAmount: dto.hourlyAmount ?? undefined,
+        monthlyAmount: dto.monthlyAmount ?? undefined,
+        fixedAmount: dto.fixedAmount ?? undefined,
+        genderPreference: (dto.genderPreference as unknown as any) ?? undefined,
+        currency: this.normalizeCurrency(dto.currency) ?? undefined,
+      },
+    });
+  }
+
+  async publishJob(parent: { id: string; role: UserRole }, jobId: string) {
+    if (parent.role !== UserRole.PARENT && parent.role !== UserRole.STUDENT) {
+      throw new ForbiddenException('Only clients can publish jobs');
+    }
+
+    const job = await this.prisma.jobPost.findUnique({
+      where: { id: jobId },
+      select: { id: true, parentId: true, status: true, publishedAt: true },
+    });
+
+    if (!job) throw new NotFoundException('Job not found');
+    if (job.parentId !== parent.id) {
+      throw new ForbiddenException('Cannot publish this job');
+    }
+
+    if (job.status === JobPostStatus.CLOSED) {
+      throw new BadRequestException('Cannot publish a closed job');
+    }
+
+    if (job.status === JobPostStatus.OPEN && job.publishedAt) {
+      return await this.prisma.jobPost.findUniqueOrThrow({
+        where: { id: jobId },
+      });
+    }
+
+    return await this.prisma.jobPost.update({
+      where: { id: jobId },
+      data: { status: JobPostStatus.OPEN, publishedAt: new Date() },
     });
   }
 
@@ -201,10 +346,22 @@ export class JobsService {
 
     const job = await this.prisma.jobPost.findUnique({
       where: { id: jobId },
-      select: { id: true, status: true },
+      select: { id: true, status: true, publishedAt: true },
     });
 
-    if (!job || job.status !== JobPostStatus.OPEN) {
+    if (!job || job.status !== JobPostStatus.OPEN || !job.publishedAt) {
+      throw new BadRequestException('Job not found or not open');
+    }
+
+    const activeContract = await this.prisma.contract.findFirst({
+      where: {
+        jobPostId: jobId,
+        status: { in: [ContractStatus.ACTIVE, ContractStatus.PENDING_PAYMENT] },
+      },
+      select: { id: true },
+    });
+
+    if (activeContract) {
       throw new BadRequestException('Job not found or not open');
     }
 

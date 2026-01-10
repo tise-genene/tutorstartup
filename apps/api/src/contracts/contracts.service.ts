@@ -17,6 +17,7 @@ import { SendContractMessageDto } from './dto/send-contract-message.dto';
 import { CreateContractMilestoneDto } from './dto/create-contract-milestone.dto';
 import { ReleaseContractMilestoneDto } from './dto/release-contract-milestone.dto';
 import { PayoutContractMilestoneDto } from './dto/payout-contract-milestone.dto';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
 
 @Injectable()
 export class ContractsService {
@@ -25,6 +26,94 @@ export class ContractsService {
   private normalizeCurrency(value?: string | null): string {
     const raw = (value ?? '').trim().toUpperCase();
     return raw.length > 0 ? raw : 'ETB';
+  }
+
+  private async ensureContractMember(userId: string, contractId: string) {
+    const contract = await this.prisma.contract.findUnique({
+      where: { id: contractId },
+      select: {
+        id: true,
+        parentId: true,
+        tutorId: true,
+      },
+    });
+
+    if (!contract) throw new NotFoundException('Contract not found');
+
+    const isMember =
+      contract.parentId === userId || contract.tutorId === userId;
+    if (!isMember) throw new ForbiddenException('Not allowed');
+
+    return contract;
+  }
+
+  async listAppointments(
+    user: { id: string; role: UserRole },
+    contractId: string,
+  ) {
+    await this.ensureContractMember(user.id, contractId);
+
+    return await this.prisma.appointment.findMany({
+      where: { contractId, cancelledAt: null },
+      orderBy: { startAt: 'asc' },
+    });
+  }
+
+  async createAppointment(
+    user: { id: string; role: UserRole },
+    contractId: string,
+    dto: CreateAppointmentDto,
+  ) {
+    await this.ensureContractMember(user.id, contractId);
+
+    const startAt = new Date(dto.startAt);
+    const endAt = new Date(dto.endAt);
+    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
+      throw new BadRequestException('Invalid startAt/endAt');
+    }
+    if (endAt <= startAt) {
+      throw new BadRequestException('endAt must be after startAt');
+    }
+
+    return await this.prisma.appointment.create({
+      data: {
+        contractId,
+        createdByUserId: user.id,
+        title: dto.title,
+        notes: dto.notes ?? null,
+        startAt,
+        endAt,
+        locationText: dto.locationText ?? null,
+        locationLat: dto.locationLat ?? null,
+        locationLng: dto.locationLng ?? null,
+      },
+    });
+  }
+
+  async cancelAppointment(
+    user: { id: string; role: UserRole },
+    contractId: string,
+    appointmentId: string,
+  ) {
+    // Membership check first to avoid leaking existence across contracts.
+    await this.ensureContractMember(user.id, contractId);
+
+    const existing = await this.prisma.appointment.findUnique({
+      where: { id: appointmentId },
+    });
+
+    if (!existing || existing.contractId !== contractId) {
+      throw new NotFoundException('Appointment not found');
+    }
+
+    if (existing.cancelledAt) {
+      return existing;
+    }
+
+    return await this.prisma.appointment.update({
+      where: { id: appointmentId },
+      data: { cancelledAt: new Date() },
+    });
   }
 
   async createFromProposal(
@@ -101,6 +190,16 @@ export class ContractsService {
       await tx.proposal.update({
         where: { id: proposal.id },
         data: { status: ProposalStatus.ACCEPTED },
+      });
+
+      await tx.jobPost.update({
+        where: { id: proposal.jobPostId },
+        data: {
+          status: JobPostStatus.CLOSED,
+          closedAt: new Date(),
+          hiredTutorId: proposal.tutorId,
+          hiredAt: new Date(),
+        },
       });
 
       const created = await tx.contract.create({

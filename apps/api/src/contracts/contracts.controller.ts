@@ -21,6 +21,7 @@ import { ContractMilestoneDto } from './dto/contract-milestone.dto';
 import { CreateContractMilestoneDto } from './dto/create-contract-milestone.dto';
 import { ReleaseContractMilestoneDto } from './dto/release-contract-milestone.dto';
 import { PayoutContractMilestoneDto } from './dto/payout-contract-milestone.dto';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
 
 @Controller({ path: 'contracts', version: '1' })
 export class ContractsController {
@@ -89,6 +90,49 @@ export class ContractsController {
       id,
     );
     return items.map((m) => ContractMilestoneDto.fromEntity(m));
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PARENT, UserRole.STUDENT, UserRole.TUTOR, UserRole.ADMIN)
+  @Get(':id/appointments')
+  async listAppointments(
+    @CurrentUser() user: JwtPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    return await this.service.listAppointments(
+      { id: user.sub, role: user.role },
+      id,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PARENT, UserRole.STUDENT, UserRole.TUTOR)
+  @Post(':id/appointments')
+  async createAppointment(
+    @CurrentUser() user: JwtPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: CreateAppointmentDto,
+  ) {
+    return await this.service.createAppointment(
+      { id: user.sub, role: user.role },
+      id,
+      dto,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PARENT, UserRole.STUDENT, UserRole.TUTOR, UserRole.ADMIN)
+  @Post(':id/appointments/:appointmentId/cancel')
+  async cancelAppointment(
+    @CurrentUser() user: JwtPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('appointmentId', new ParseUUIDPipe()) appointmentId: string,
+  ) {
+    return await this.service.cancelAppointment(
+      { id: user.sub, role: user.role },
+      id,
+      appointmentId,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

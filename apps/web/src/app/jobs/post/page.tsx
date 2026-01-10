@@ -104,6 +104,7 @@ export default function PostJobPage() {
 
       await createJob(token, {
         ...payload,
+        status: "OPEN",
       });
       setStatus("Job posted.");
       setForm({
@@ -126,6 +127,74 @@ export default function PostJobPage() {
         fixedAmount: "",
         currency: "ETB",
       });
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onSaveDraft = async () => {
+    if (!token) return;
+    if (
+      form.title.trim().length === 0 ||
+      form.description.trim().length === 0
+    ) {
+      setStatus("Title and description are required.");
+      return;
+    }
+
+    setBusy(true);
+    setStatus(null);
+    try {
+      const payType = form.payType;
+      const currency = form.currency.trim().toUpperCase() || "ETB";
+      const sessionMinutesRaw = Number(form.sessionMinutes);
+      const daysPerWeekRaw = Number(form.daysPerWeek);
+      const gradeRaw = form.grade.trim().length > 0 ? Number(form.grade) : null;
+
+      const payload = {
+        title: form.title,
+        description: form.description,
+        subjects: parseCsv(form.subjects),
+        location: form.location || undefined,
+        budget: form.budget.trim().length > 0 ? Number(form.budget) : undefined,
+
+        grade:
+          gradeRaw != null && Number.isFinite(gradeRaw) ? gradeRaw : undefined,
+        sessionMinutes:
+          Number.isFinite(sessionMinutesRaw) && sessionMinutesRaw > 0
+            ? sessionMinutesRaw
+            : undefined,
+        daysPerWeek:
+          Number.isFinite(daysPerWeekRaw) && daysPerWeekRaw > 0
+            ? daysPerWeekRaw
+            : undefined,
+        startTime: form.startTime.trim() || undefined,
+        endTime: form.endTime.trim() || undefined,
+        preferredDays: parseCsv(form.preferredDays),
+        genderPreference: form.genderPreference,
+        payType,
+        currency,
+        hourlyAmount:
+          payType === "HOURLY" && form.hourlyAmount.trim().length > 0
+            ? Number(form.hourlyAmount)
+            : undefined,
+        monthlyAmount:
+          payType === "MONTHLY" && form.monthlyAmount.trim().length > 0
+            ? Number(form.monthlyAmount)
+            : undefined,
+        fixedAmount:
+          payType === "FIXED" && form.fixedAmount.trim().length > 0
+            ? Number(form.fixedAmount)
+            : undefined,
+      };
+
+      await createJob(token, {
+        ...payload,
+        status: "DRAFT",
+      });
+      setStatus("Draft saved.");
     } catch (e) {
       setStatus((e as Error).message);
     } finally {
@@ -391,6 +460,14 @@ export default function PostJobPage() {
               </div>
 
               <div className="surface-card surface-card--quiet p-6">
+                <button
+                  type="button"
+                  className="ui-btn"
+                  disabled={busy}
+                  onClick={onSaveDraft}
+                >
+                  {busy ? "Saving…" : "Save draft"}
+                </button>
                 <p className="text-sm font-semibold">
                   Preview (what tutors see)
                 </p>

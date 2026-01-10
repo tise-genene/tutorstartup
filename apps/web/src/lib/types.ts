@@ -61,7 +61,7 @@ export interface CreateLessonRequestPayload {
   message: string;
 }
 
-export type JobPostStatus = "OPEN" | "CLOSED";
+export type JobPostStatus = "DRAFT" | "OPEN" | "CLOSED";
 
 export type JobPayType = "HOURLY" | "MONTHLY" | "FIXED";
 export type GenderPreference = "ANY" | "MALE" | "FEMALE";
@@ -73,6 +73,8 @@ export interface JobPost {
   description: string;
   subjects: string[];
   location?: string | null;
+  locationLat?: number | null;
+  locationLng?: number | null;
   budget?: number | null;
 
   grade?: number | null;
@@ -89,15 +91,22 @@ export interface JobPost {
   currency?: string | null;
 
   status: JobPostStatus;
+  publishedAt?: string | null;
+  closedAt?: string | null;
+  hiredTutorId?: string | null;
+  hiredAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateJobPayload {
+  status?: JobPostStatus;
   title: string;
   description: string;
   subjects?: string[];
   location?: string;
+  locationLat?: number;
+  locationLng?: number;
   budget?: number;
 
   grade?: number;
@@ -209,6 +218,32 @@ export interface ContractMessage {
   attachmentUrl?: string | null;
   createdAt: string;
   sender?: PersonSummary;
+}
+
+export interface Appointment {
+  id: string;
+  contractId: string;
+  createdByUserId: string;
+  title: string;
+  notes?: string | null;
+  startAt: string;
+  endAt: string;
+  locationText?: string | null;
+  locationLat?: number | null;
+  locationLng?: number | null;
+  cancelledAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateAppointmentPayload {
+  title: string;
+  notes?: string;
+  startAt: string;
+  endAt: string;
+  locationText?: string;
+  locationLat?: number;
+  locationLng?: number;
 }
 
 export interface CreateProposalPayload {

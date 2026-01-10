@@ -18,6 +18,7 @@ export type LessonRequestStatus =
   (typeof LessonRequestStatus)[keyof typeof LessonRequestStatus];
 
 export const JobPostStatus = {
+  DRAFT: 'DRAFT',
   OPEN: 'OPEN',
   CLOSED: 'CLOSED',
 } as const;
@@ -46,6 +47,7 @@ export type ContractStatus =
 
 export const PaymentProvider = {
   CHAPA: 'CHAPA',
+  TELEBIRR: 'TELEBIRR',
 } as const;
 
 export type PaymentProvider =

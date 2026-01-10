@@ -138,6 +138,19 @@ Set:
 - `NODE_ENV=production`
 - `NEXT_PUBLIC_API_URL=https://<your-api-service>.onrender.com/api`
 
+If you want appointment scheduling with map + search (Google Maps):
+
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=<browser key>`
+
+Google Cloud Console checklist (production-safe):
+
+- Enable APIs: **Maps JavaScript API** and **Places API**
+- Create a **Browser key** restricted by HTTP referrers:
+  - `https://<your-web-service>.onrender.com/*`
+  - (optional) `https://<your-custom-domain>/*`
+- Restrict the key to only the enabled APIs (don’t leave “All APIs”)
+- Set quotas / usage caps and billing alerts to prevent surprise spend
+
 ---
 
 ## Step 4 — Sanity test the deployed beta

@@ -8,6 +8,8 @@ export class JobDto {
   description!: string;
   subjects!: string[];
   location?: string | null;
+  locationLat?: number | null;
+  locationLng?: number | null;
   budget?: number | null;
 
   grade?: number | null;
@@ -24,6 +26,10 @@ export class JobDto {
   currency?: string | null;
 
   status!: JobPostStatus;
+  publishedAt?: Date | null;
+  closedAt?: Date | null;
+  hiredTutorId?: string | null;
+  hiredAt?: Date | null;
   createdAt!: Date;
   updatedAt!: Date;
 
@@ -35,6 +41,8 @@ export class JobDto {
       description: entity.description,
       subjects: entity.subjects,
       location: entity.location,
+      locationLat: entity.locationLat,
+      locationLng: entity.locationLng,
       budget: entity.budget,
       grade: entity.grade,
       sessionMinutes: entity.sessionMinutes,
@@ -49,6 +57,10 @@ export class JobDto {
       genderPreference: entity.genderPreference as unknown as string | null,
       currency: entity.currency,
       status: entity.status,
+      publishedAt: entity.publishedAt,
+      closedAt: entity.closedAt,
+      hiredTutorId: entity.hiredTutorId,
+      hiredAt: entity.hiredAt,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };

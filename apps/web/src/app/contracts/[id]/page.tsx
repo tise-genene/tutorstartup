@@ -7,6 +7,7 @@ import { PageShell } from "../../_components/PageShell";
 import {
   fetchContractById,
   fetchContractMessages,
+  fetchContractAppointments,
   fetchContractPayments,
   fetchContractMilestones,
   createContractMilestone,
@@ -14,15 +15,19 @@ import {
   releaseContractMilestone,
   payoutContractMilestone,
   createContractPaymentIntent,
+  createContractAppointment,
+  cancelContractAppointment,
   sendContractMessage,
 } from "../../../lib/api";
 import type {
+  Appointment,
   Contract,
   ContractMessage,
   ContractMilestone,
   Payment,
 } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
+import { GoogleMapPicker } from "../../../components/maps/GoogleMapPicker";
 
 export default function ContractDetailPage() {
   const { t } = useI18n();
@@ -40,11 +45,16 @@ export default function ContractDetailPage() {
 
   const [contract, setContract] = useState<Contract | null>(null);
   const [messages, setMessages] = useState<ContractMessage[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [milestones, setMilestones] = useState<ContractMilestone[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [creatingAppointment, setCreatingAppointment] = useState(false);
+  const [cancellingAppointmentId, setCancellingAppointmentId] = useState<
+    string | null
+  >(null);
   const [milestoneBusyId, setMilestoneBusyId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
 
@@ -52,6 +62,16 @@ export default function ContractDetailPage() {
   const [milestoneForm, setMilestoneForm] = useState({
     title: "",
     amount: "",
+  });
+
+  const [appointmentForm, setAppointmentForm] = useState({
+    title: "",
+    notes: "",
+    startAt: "",
+    endAt: "",
+    locationText: "",
+    locationLat: null as number | null,
+    locationLng: null as number | null,
   });
 
   const helper = useMemo(() => {
@@ -90,6 +110,16 @@ export default function ContractDetailPage() {
         setMilestones(loadedMilestones);
       } catch {
         setMilestones([]);
+      }
+
+      try {
+        const loadedAppointments = await fetchContractAppointments(
+          token,
+          contractId
+        );
+        setAppointments(loadedAppointments);
+      } catch {
+        setAppointments([]);
       }
     } catch (e) {
       setStatus((e as Error).message);
@@ -237,6 +267,97 @@ export default function ContractDetailPage() {
       setStatus((e as Error).message);
     } finally {
       setMilestoneBusyId(null);
+    }
+  };
+
+  const onCreateAppointment = async () => {
+    if (!token || !contractId) return;
+    if (auth?.user.role !== "PARENT" && auth?.user.role !== "TUTOR") {
+      setStatus("Only parents and tutors can schedule appointments.");
+      return;
+    }
+
+    const title = appointmentForm.title.trim();
+    if (title.length === 0) {
+      setStatus("Title is required.");
+      return;
+    }
+    if (!appointmentForm.startAt || !appointmentForm.endAt) {
+      setStatus("Start and end time are required.");
+      return;
+    }
+
+    const startAt = new Date(appointmentForm.startAt);
+    const endAt = new Date(appointmentForm.endAt);
+    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
+      setStatus("Invalid start/end time.");
+      return;
+    }
+    if (endAt <= startAt) {
+      setStatus("End time must be after start time.");
+      return;
+    }
+
+    setCreatingAppointment(true);
+    setStatus(null);
+    try {
+      await createContractAppointment(token, contractId, {
+        title,
+        notes: appointmentForm.notes.trim().length
+          ? appointmentForm.notes
+          : undefined,
+        startAt: startAt.toISOString(),
+        endAt: endAt.toISOString(),
+        locationText: appointmentForm.locationText.trim().length
+          ? appointmentForm.locationText
+          : undefined,
+        locationLat:
+          typeof appointmentForm.locationLat === "number"
+            ? appointmentForm.locationLat
+            : undefined,
+        locationLng:
+          typeof appointmentForm.locationLng === "number"
+            ? appointmentForm.locationLng
+            : undefined,
+      });
+      setAppointmentForm({
+        title: "",
+        notes: "",
+        startAt: "",
+        endAt: "",
+        locationText: "",
+        locationLat: null,
+        locationLng: null,
+      });
+      await reload();
+      setStatus("Appointment scheduled.");
+      window.setTimeout(() => setStatus(null), 2500);
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setCreatingAppointment(false);
+    }
+  };
+
+  const onCancelAppointment = async (appointmentId: string) => {
+    if (!token || !contractId) return;
+    if (auth?.user.role !== "PARENT" && auth?.user.role !== "TUTOR") {
+      setStatus("Only parents and tutors can cancel appointments.");
+      return;
+    }
+    if (!window.confirm("Cancel this appointment?")) return;
+
+    setCancellingAppointmentId(appointmentId);
+    setStatus(null);
+    try {
+      await cancelContractAppointment(token, contractId, appointmentId);
+      await reload();
+      setStatus("Appointment cancelled.");
+      window.setTimeout(() => setStatus(null), 2500);
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setCancellingAppointmentId(null);
     }
   };
 
@@ -432,6 +553,195 @@ export default function ContractDetailPage() {
                       {milestoneBusyId === "__create__"
                         ? "Creating…"
                         : "Add milestone"}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="surface-card surface-card--quiet p-5">
+                <h2
+                  className="text-lg font-semibold"
+                  style={{ color: "var(--foreground)" }}
+                >
+                  Appointments
+                </h2>
+
+                {appointments.length === 0 ? (
+                  <p className="mt-3 text-sm ui-muted">
+                    No appointments scheduled yet.
+                  </p>
+                ) : (
+                  <div className="mt-4 space-y-2">
+                    {appointments.map((a) => {
+                      const hasCoords =
+                        typeof a.locationLat === "number" &&
+                        typeof a.locationLng === "number";
+                      const mapUrl = hasCoords
+                        ? `https://www.google.com/maps?q=${a.locationLat},${a.locationLng}`
+                        : null;
+                      return (
+                        <div
+                          key={a.id}
+                          className="rounded-xl border px-4 py-3"
+                          style={{ borderColor: "var(--divider)" }}
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm ui-muted">{a.title}</p>
+                              <p className="mt-1 text-xs ui-muted">
+                                {new Date(a.startAt).toLocaleString()} –{" "}
+                                {new Date(a.endAt).toLocaleString()}
+                              </p>
+                              {(a.locationText || mapUrl) && (
+                                <div className="mt-1 text-xs ui-muted">
+                                  {a.locationText ? (
+                                    <span>{a.locationText}</span>
+                                  ) : null}
+                                  {mapUrl ? (
+                                    <a
+                                      className="ml-2 underline opacity-85 hover:opacity-100"
+                                      href={mapUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      Open map
+                                    </a>
+                                  ) : null}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {(auth?.user.role === "PARENT" ||
+                                auth?.user.role === "TUTOR") && (
+                                <button
+                                  type="button"
+                                  className="ui-btn"
+                                  disabled={cancellingAppointmentId === a.id}
+                                  onClick={() => onCancelAppointment(a.id)}
+                                >
+                                  {cancellingAppointmentId === a.id
+                                    ? "Cancelling…"
+                                    : "Cancel"}
+                                </button>
+                              )}
+                              <p className="text-xs ui-muted">
+                                {new Date(a.createdAt).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+
+                          {a.notes && (
+                            <p
+                              className="mt-2 text-sm ui-muted"
+                              style={{ whiteSpace: "pre-wrap" }}
+                            >
+                              {a.notes}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {(auth?.user.role === "PARENT" ||
+                  auth?.user.role === "TUTOR") && (
+                  <div className="mt-6 space-y-3">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <input
+                        className="ui-field"
+                        placeholder="Title"
+                        value={appointmentForm.title}
+                        onChange={(e) =>
+                          setAppointmentForm((p) => ({
+                            ...p,
+                            title: e.target.value,
+                          }))
+                        }
+                      />
+                      <input
+                        className="ui-field"
+                        placeholder="Location text (optional)"
+                        value={appointmentForm.locationText}
+                        onChange={(e) =>
+                          setAppointmentForm((p) => ({
+                            ...p,
+                            locationText: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+
+                    <textarea
+                      className="ui-field"
+                      rows={3}
+                      placeholder="Notes (optional)"
+                      value={appointmentForm.notes}
+                      onChange={(e) =>
+                        setAppointmentForm((p) => ({
+                          ...p,
+                          notes: e.target.value,
+                        }))
+                      }
+                    />
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="text-xs ui-muted">
+                        Start
+                        <input
+                          className="ui-field mt-2"
+                          type="datetime-local"
+                          value={appointmentForm.startAt}
+                          onChange={(e) =>
+                            setAppointmentForm((p) => ({
+                              ...p,
+                              startAt: e.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+                      <label className="text-xs ui-muted">
+                        End
+                        <input
+                          className="ui-field mt-2"
+                          type="datetime-local"
+                          value={appointmentForm.endAt}
+                          onChange={(e) =>
+                            setAppointmentForm((p) => ({
+                              ...p,
+                              endAt: e.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    <GoogleMapPicker
+                      enableSearch
+                      value={{
+                        lat: appointmentForm.locationLat,
+                        lng: appointmentForm.locationLng,
+                        locationText: appointmentForm.locationText,
+                      }}
+                      onChange={(v) =>
+                        setAppointmentForm((p) => ({
+                          ...p,
+                          locationLat: v.lat,
+                          locationLng: v.lng,
+                          locationText: v.locationText ?? p.locationText,
+                        }))
+                      }
+                    />
+
+                    <button
+                      type="button"
+                      className="ui-btn ui-btn-primary"
+                      disabled={creatingAppointment}
+                      onClick={onCreateAppointment}
+                    >
+                      {creatingAppointment
+                        ? "Scheduling…"
+                        : "Schedule appointment"}
                     </button>
                   </div>
                 )}

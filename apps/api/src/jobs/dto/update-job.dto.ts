@@ -11,21 +11,20 @@ import {
 
 const JOB_PAY_TYPES = ['HOURLY', 'MONTHLY', 'FIXED'] as const;
 const GENDER_PREFERENCES = ['ANY', 'MALE', 'FEMALE'] as const;
-const JOB_STATUSES = ['DRAFT', 'OPEN'] as const;
 
-export class CreateJobDto {
+type PayType = (typeof JOB_PAY_TYPES)[number];
+type GenderPreference = (typeof GENDER_PREFERENCES)[number];
+
+export class UpdateJobDto {
   @IsOptional()
   @IsString()
-  @IsIn(JOB_STATUSES as unknown as string[])
-  status?: (typeof JOB_STATUSES)[number];
-
-  @IsString()
   @MaxLength(200)
-  title!: string;
+  title?: string;
 
+  @IsOptional()
   @IsString()
   @MaxLength(8000)
-  description!: string;
+  description?: string;
 
   @IsOptional()
   @IsArray()
@@ -83,7 +82,7 @@ export class CreateJobDto {
   @IsOptional()
   @IsString()
   @IsIn(JOB_PAY_TYPES as unknown as string[])
-  payType?: (typeof JOB_PAY_TYPES)[number];
+  payType?: PayType;
 
   @IsOptional()
   @IsInt()
@@ -103,7 +102,7 @@ export class CreateJobDto {
   @IsOptional()
   @IsString()
   @IsIn(GENDER_PREFERENCES as unknown as string[])
-  genderPreference?: (typeof GENDER_PREFERENCES)[number];
+  genderPreference?: GenderPreference;
 
   @IsOptional()
   @IsString()

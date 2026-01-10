@@ -17,6 +17,8 @@ import type {
   TutorProfileInput,
   TutorSearchParams,
   TutorSearchResult,
+  Appointment,
+  CreateAppointmentPayload,
 } from "./types";
 
 const API_BASE_URL = (
@@ -243,6 +245,26 @@ export async function createJob(
   });
 }
 
+export async function publishJob(token: string, id: string): Promise<JobPost> {
+  return request<JobPost>(`/v1/jobs/${id}/publish`, {
+    method: "POST",
+    token,
+    body: JSON.stringify({}),
+  });
+}
+
+export async function updateJob(
+  token: string,
+  id: string,
+  payload: Partial<CreateJobPayload>
+): Promise<JobPost> {
+  return request<JobPost>(`/v1/jobs/${id}`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function fetchOpenJobs(token: string): Promise<JobPost[]> {
   return request<JobPost[]>("/v1/jobs/open", {
     method: "GET",
@@ -370,6 +392,43 @@ export async function fetchContractMessages(
     method: "GET",
     token,
   });
+}
+
+export async function fetchContractAppointments(
+  token: string,
+  contractId: string
+): Promise<Appointment[]> {
+  return request<Appointment[]>(`/v1/contracts/${contractId}/appointments`, {
+    method: "GET",
+    token,
+  });
+}
+
+export async function createContractAppointment(
+  token: string,
+  contractId: string,
+  payload: CreateAppointmentPayload
+): Promise<Appointment> {
+  return request<Appointment>(`/v1/contracts/${contractId}/appointments`, {
+    method: "POST",
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function cancelContractAppointment(
+  token: string,
+  contractId: string,
+  appointmentId: string
+): Promise<Appointment> {
+  return request<Appointment>(
+    `/v1/contracts/${contractId}/appointments/${appointmentId}/cancel`,
+    {
+      method: "POST",
+      token,
+      body: JSON.stringify({}),
+    }
+  );
 }
 
 export async function sendContractMessage(

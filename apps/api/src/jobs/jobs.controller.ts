@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { UserRole } from '../prisma/prisma.enums';
 import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
+import { UpdateJobDto } from './dto/update-job.dto';
 import { JobDto } from './dto/job.dto';
 import { CreateProposalDto } from './dto/create-proposal.dto';
 import { ProposalDto } from './dto/proposal.dto';
@@ -64,6 +66,36 @@ export class JobsController {
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
     const updated = await this.service.closeJob(
+      { id: user.sub, role: user.role },
+      id,
+    );
+    return JobDto.fromEntity(updated);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PARENT, UserRole.STUDENT)
+  @Patch(':id')
+  async update(
+    @CurrentUser() user: JwtPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateJobDto,
+  ) {
+    const updated = await this.service.updateJob(
+      { id: user.sub, role: user.role },
+      id,
+      dto,
+    );
+    return JobDto.fromEntity(updated);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PARENT, UserRole.STUDENT)
+  @Post(':id/publish')
+  async publish(
+    @CurrentUser() user: JwtPayload,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    const updated = await this.service.publishJob(
       { id: user.sub, role: user.role },
       id,
     );

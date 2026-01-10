@@ -24,6 +24,7 @@ enum LessonRequestStatus {
 }
 
 enum JobPostStatus {
+  DRAFT
   OPEN
   CLOSED
 }
@@ -56,6 +57,7 @@ enum ContractStatus {
 
 enum PaymentProvider {
   CHAPA
+  TELEBIRR
 }
 
 enum PaymentStatus {
@@ -106,12 +108,16 @@ model User {
   jobPosts JobPost[] @relation("JobPostsByParent")
   proposals Proposal[] @relation("ProposalsByTutor")
 
+  hiredJobs JobPost[] @relation("JobPostHiredTutor")
+
   contractsAsParent Contract[] @relation("ContractsByParent")
   contractsAsTutor  Contract[] @relation("ContractsByTutor")
 
   contractMessages ContractMessage[]
 
   payments Payment[] @relation("PaymentsByUser")
+
+  appointmentsCreated Appointment[]
 
   sessions Session[]
 
@@ -197,6 +203,8 @@ model JobPost {
   description String
   subjects    String[]     @default([])
   location    String?
+  locationLat Float?
+  locationLng Float?
   budget      Int?
 
   grade              Int?
@@ -212,15 +220,43 @@ model JobPost {
   genderPreference   GenderPreference? @default(ANY)
   currency           String?           @default("ETB")
   status      JobPostStatus @default(OPEN)
+  publishedAt DateTime?
+  closedAt    DateTime?
+  hiredTutorId String?
+  hiredAt     DateTime?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
   parent      User         @relation("JobPostsByParent", fields: [parentId], references: [id], onDelete: Cascade)
+  hiredTutor  User?        @relation("JobPostHiredTutor", fields: [hiredTutorId], references: [id], onDelete: SetNull)
   proposals   Proposal[]
   contracts   Contract[]
 
   @@index([parentId, createdAt])
+  @@index([hiredTutorId, createdAt])
   @@index([status, createdAt])
+}
+
+model Appointment {
+  id           String   @id @default(uuid())
+  contractId   String
+  createdByUserId String
+  title        String
+  notes        String?
+  startAt      DateTime
+  endAt        DateTime
+  locationText String?
+  locationLat  Float?
+  locationLng  Float?
+  cancelledAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  createdBy  User     @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, startAt])
+  @@index([createdByUserId, createdAt])
 }
 
 model Proposal {
@@ -266,6 +302,8 @@ model Contract {
   ledgerEntries LedgerEntry[]
 
   milestones ContractMilestone[]
+
+  appointments Appointment[]
 
   @@index([parentId, createdAt])
   @@index([tutorId, createdAt])
