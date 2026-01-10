@@ -28,6 +28,18 @@ enum JobPostStatus {
   CLOSED
 }
 
+enum JobPayType {
+  HOURLY
+  MONTHLY
+  FIXED
+}
+
+enum GenderPreference {
+  ANY
+  MALE
+  FEMALE
+}
+
 enum ProposalStatus {
   SUBMITTED
   WITHDRAWN
@@ -186,6 +198,19 @@ model JobPost {
   subjects    String[]     @default([])
   location    String?
   budget      Int?
+
+  grade              Int?
+  sessionMinutes     Int?
+  daysPerWeek        Int?
+  startTime          String?
+  endTime            String?
+  preferredDays      String[]          @default([])
+  payType            JobPayType?
+  hourlyAmount       Int?
+  monthlyAmount      Int?
+  fixedAmount        Int?
+  genderPreference   GenderPreference? @default(ANY)
+  currency           String?           @default("ETB")
   status      JobPostStatus @default(OPEN)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt

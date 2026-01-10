@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PageShell } from "../../_components/PageShell";
 import { fetchJobById, submitProposal } from "../../../lib/api";
+import { formatJobPostPreview } from "../../../lib/jobPreview";
 import type { JobPost } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
 
@@ -25,6 +26,11 @@ export default function WorkJobDetailPage() {
   const [busy, setBusy] = useState(false);
 
   const [form, setForm] = useState({ message: "", fileUrl: "", videoUrl: "" });
+
+  const preview = useMemo(() => {
+    if (!job) return "";
+    return formatJobPostPreview(job);
+  }, [job]);
 
   const helper = useMemo(() => {
     if (!auth) return t("state.loginRequired");
@@ -122,6 +128,15 @@ export default function WorkJobDetailPage() {
                 {job.subjects.length > 0 && (
                   <p className="mt-3 text-sm ui-muted">
                     Subjects: {job.subjects.join(", ")}
+                  </p>
+                )}
+
+                {preview && (
+                  <p
+                    className="mt-3 text-sm ui-muted"
+                    style={{ whiteSpace: "pre-wrap" }}
+                  >
+                    {preview}
                   </p>
                 )}
 

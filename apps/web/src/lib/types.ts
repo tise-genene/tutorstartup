@@ -63,6 +63,9 @@ export interface CreateLessonRequestPayload {
 
 export type JobPostStatus = "OPEN" | "CLOSED";
 
+export type JobPayType = "HOURLY" | "MONTHLY" | "FIXED";
+export type GenderPreference = "ANY" | "MALE" | "FEMALE";
+
 export interface JobPost {
   id: string;
   parentId: string;
@@ -71,6 +74,20 @@ export interface JobPost {
   subjects: string[];
   location?: string | null;
   budget?: number | null;
+
+  grade?: number | null;
+  sessionMinutes?: number | null;
+  daysPerWeek?: number | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  preferredDays?: string[];
+  payType?: JobPayType | null;
+  hourlyAmount?: number | null;
+  monthlyAmount?: number | null;
+  fixedAmount?: number | null;
+  genderPreference?: GenderPreference | null;
+  currency?: string | null;
+
   status: JobPostStatus;
   createdAt: string;
   updatedAt: string;
@@ -82,6 +99,19 @@ export interface CreateJobPayload {
   subjects?: string[];
   location?: string;
   budget?: number;
+
+  grade?: number;
+  sessionMinutes?: number;
+  daysPerWeek?: number;
+  startTime?: string;
+  endTime?: string;
+  preferredDays?: string[];
+  payType?: JobPayType;
+  hourlyAmount?: number;
+  monthlyAmount?: number;
+  fixedAmount?: number;
+  genderPreference?: GenderPreference;
+  currency?: string;
 }
 
 export type ProposalStatus =

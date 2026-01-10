@@ -55,7 +55,8 @@ export default function DashboardPage() {
 
   const helper = useMemo(() => {
     if (!auth) return "Please log in to continue.";
-    if (!isClient && !isTutor) return "Dashboard is not available for this role.";
+    if (!isClient && !isTutor)
+      return "Dashboard is not available for this role.";
     return null;
   }, [auth, isClient, isTutor]);
 
@@ -125,9 +126,7 @@ export default function DashboardPage() {
                   </div>
 
                   {jobs.length === 0 ? (
-                    <p className="mt-4 text-sm ui-muted">
-                      No job posts yet.
-                    </p>
+                    <p className="mt-4 text-sm ui-muted">No job posts yet.</p>
                   ) : (
                     <div className="mt-4 space-y-3">
                       {jobs.slice(0, 3).map((job) => (
@@ -142,7 +141,9 @@ export default function DashboardPage() {
                               <p className="font-semibold">{job.title}</p>
                               <p className="mt-1 text-xs ui-muted">
                                 {(job.location ?? "") || "Remote/unspecified"}
-                                {job.budget != null ? ` • Budget: ${job.budget}` : ""}
+                                {job.budget != null
+                                  ? ` • Budget: ${job.budget}`
+                                  : ""}
                               </p>
                             </div>
                             <span className="pill text-xs">{job.status}</span>
@@ -162,9 +163,7 @@ export default function DashboardPage() {
                   </div>
 
                   {contracts.length === 0 ? (
-                    <p className="mt-4 text-sm ui-muted">
-                      No contracts yet.
-                    </p>
+                    <p className="mt-4 text-sm ui-muted">No contracts yet.</p>
                   ) : (
                     <div className="mt-4 space-y-3">
                       {contracts.slice(0, 3).map((c) => (
@@ -180,7 +179,9 @@ export default function DashboardPage() {
                                 {c.jobPost?.title ?? "Contract"}
                               </p>
                               <p className="mt-1 text-xs ui-muted">
-                                {c.amount != null ? `${c.amount} ${c.currency ?? ""}` : ""}
+                                {c.amount != null
+                                  ? `${c.amount} ${c.currency ?? ""}`
+                                  : ""}
                               </p>
                             </div>
                             <span className="pill text-xs">{c.status}</span>

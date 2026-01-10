@@ -23,6 +23,22 @@ export class JobsService {
       throw new ForbiddenException('Only clients can post tutor jobs');
     }
 
+    const client = await this.prisma.user.findUnique({
+      where: { id: parent.id },
+      select: { id: true, role: true, isVerified: true },
+    });
+
+    if (
+      !client ||
+      (client.role !== UserRole.PARENT && client.role !== UserRole.STUDENT)
+    ) {
+      throw new ForbiddenException('Only clients can post tutor jobs');
+    }
+
+    if (!client.isVerified) {
+      throw new ForbiddenException('Verify your email to post a job');
+    }
+
     return await this.prisma.jobPost.create({
       data: {
         parentId: parent.id,
@@ -31,6 +47,20 @@ export class JobsService {
         subjects: (dto.subjects ?? []).map((s) => s.trim()).filter(Boolean),
         location: dto.location?.trim() || null,
         budget: dto.budget ?? null,
+        grade: dto.grade ?? null,
+        sessionMinutes: dto.sessionMinutes ?? null,
+        daysPerWeek: dto.daysPerWeek ?? null,
+        startTime: dto.startTime?.trim() || null,
+        endTime: dto.endTime?.trim() || null,
+        preferredDays: (dto.preferredDays ?? [])
+          .map((d) => d.trim())
+          .filter(Boolean),
+        payType: (dto.payType as unknown as any) ?? null,
+        hourlyAmount: dto.hourlyAmount ?? null,
+        monthlyAmount: dto.monthlyAmount ?? null,
+        fixedAmount: dto.fixedAmount ?? null,
+        genderPreference: (dto.genderPreference as unknown as any) ?? undefined,
+        currency: dto.currency?.trim().toUpperCase() || undefined,
         status: JobPostStatus.OPEN,
       },
     });

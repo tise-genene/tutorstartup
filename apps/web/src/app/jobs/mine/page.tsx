@@ -12,7 +12,8 @@ export default function MyJobsPage() {
   const { auth } = useAuth();
 
   const token = auth?.accessToken ?? null;
-  const isClient = auth?.user.role === "PARENT" || auth?.user.role === "STUDENT";
+  const isClient =
+    auth?.user.role === "PARENT" || auth?.user.role === "STUDENT";
 
   const [items, setItems] = useState<JobPost[]>([]);
   const [loading, setLoading] = useState(true);

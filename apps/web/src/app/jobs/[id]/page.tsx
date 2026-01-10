@@ -11,6 +11,7 @@ import {
   fetchJobById,
   fetchJobProposals,
 } from "../../../lib/api";
+import { formatJobPostPreview } from "../../../lib/jobPreview";
 import type { JobPost, Proposal } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
 
@@ -27,7 +28,8 @@ export default function JobDetailForParentPage() {
   const jobId = Array.isArray(idParam) ? idParam[0] : idParam;
 
   const token = auth?.accessToken ?? null;
-  const isParent = auth?.user.role === "PARENT";
+  const isClient =
+    auth?.user.role === "PARENT" || auth?.user.role === "STUDENT";
 
   const [job, setJob] = useState<JobPost | null>(null);
   const [proposals, setProposals] = useState<ProposalWithTutor[]>([]);
@@ -38,14 +40,19 @@ export default function JobDetailForParentPage() {
 
   const helper = useMemo(() => {
     if (!auth) return t("state.loginRequired");
-    if (!isParent) return "This page is for parents only.";
+    if (!isClient) return "This page is for clients only.";
     if (!jobId) return "Invalid job id";
     return null;
-  }, [auth, isParent, jobId, t]);
+  }, [auth, isClient, jobId, t]);
+
+  const preview = useMemo(() => {
+    if (!job) return "";
+    return formatJobPostPreview(job);
+  }, [job]);
 
   useEffect(() => {
     const run = async () => {
-      if (!token || !isParent || !jobId) {
+      if (!token || !isClient || !jobId) {
         setLoading(false);
         return;
       }
@@ -67,7 +74,7 @@ export default function JobDetailForParentPage() {
     };
 
     void run();
-  }, [token, isParent, jobId]);
+  }, [token, isClient, jobId]);
 
   const onDecline = async (proposalId: string) => {
     if (!token) return;
@@ -176,6 +183,15 @@ export default function JobDetailForParentPage() {
                 {job.subjects.length > 0 && (
                   <p className="mt-3 text-sm ui-muted">
                     Subjects: {job.subjects.join(", ")}
+                  </p>
+                )}
+
+                {preview && (
+                  <p
+                    className="mt-3 text-sm ui-muted"
+                    style={{ whiteSpace: "pre-wrap" }}
+                  >
+                    {preview}
                   </p>
                 )}
                 <p
