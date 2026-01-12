@@ -147,10 +147,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    if (!user.isVerified) {
-      throw new UnauthorizedException('Please verify your email before login');
-    }
-
     if (!user.passwordHash) {
       throw new UnauthorizedException('Invalid credentials');
     }
