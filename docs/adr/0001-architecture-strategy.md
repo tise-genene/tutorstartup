@@ -8,7 +8,7 @@ Accepted (proposed as default until revisited)
 
 ## Context
 
-We are building a tutor marketplace with Next.js (`apps/web`) and NestJS (`apps/api`).
+We are building a general jobs marketplace with Next.js (`apps/web`) and NestJS (`apps/api`).
 We want a **production-ready** system that can scale to **1M+ users**, but the current code is early-stage scaffolding.
 
 At this stage, correctness, speed of iteration, and operational clarity matter more than splitting into many services.

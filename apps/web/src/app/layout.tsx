@@ -7,14 +7,16 @@ import {
 import "./globals.css";
 import { Providers } from "./providers";
 
+import { APP_DESCRIPTION, BRAND_NAME, STORAGE_PREFIX } from "../lib/brand";
+
 const preHydrationInitScript = `(() => {
   try {
-    const theme = localStorage.getItem('tutorstartup.theme');
+    const theme = localStorage.getItem('${STORAGE_PREFIX}.theme');
     if (theme === 'dark' || theme === 'light') {
       document.documentElement.dataset.theme = theme;
       document.documentElement.style.colorScheme = theme;
     }
-    const locale = localStorage.getItem('tutorstartup.locale');
+    const locale = localStorage.getItem('${STORAGE_PREFIX}.locale');
     if (locale === 'en' || locale === 'am') {
       document.documentElement.lang = locale;
     }
@@ -39,8 +41,8 @@ const ethiopic = Noto_Sans_Ethiopic({
 });
 
 export const metadata: Metadata = {
-  title: "Tutorstartup",
-  description: "Tutor marketplace playground",
+  title: BRAND_NAME,
+  description: APP_DESCRIPTION,
 };
 
 export default function RootLayout({

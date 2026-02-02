@@ -4,6 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { fetchPendingLessonRequestCount } from "../../lib/api";
 import { useAuth, useI18n, useTheme } from "../providers";
+import { BRAND_NAME } from "../../lib/brand";
 
 function SunIcon() {
   return (
@@ -199,7 +200,7 @@ export function AppHeader() {
                 href={homeHref}
                 className="flex flex-1 items-center justify-center gap-3 md:flex-auto md:justify-start"
               >
-                <span className="pill font-extrabold">Tutorstartup</span>
+                <span className="pill font-extrabold">{BRAND_NAME}</span>
               </Link>
             </div>
 

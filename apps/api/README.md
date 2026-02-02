@@ -1,15 +1,15 @@
 # API (apps/api)
 
-NestJS 11 modular monolith powering authentication, tutor workflows, search, and async jobs for Tutorstartup.
+NestJS 11 modular monolith powering authentication, marketplace workflows, search, and async jobs.
 
 ## Modules
 
 - **Auth**: JWT auth, refresh tokens, /v1/auth/\* endpoints.
 - **Notifications**: BullMQ queue (with in-memory fallback) that currently logs welcome emails.
-- **Tutors**: CRUD helpers for tutor profiles plus DTO validation.
-- **Search**: Redis cache + Meilisearch client, queue factory for sync jobs, /v1/tutors/search endpoint.
+- **Profiles (Tutors module)**: CRUD helpers for service provider profiles plus DTO validation.
+- **Search**: Redis cache + Meilisearch client, queue factory for sync jobs, /v1/tutors/search endpoint (kept for compatibility).
 - **Health**: /health/live and /health/ready monitor DB, Redis, and queue connectivity.
-- **Jobs**: Parent job posts + tutor proposals (marketplace).
+- **Jobs**: Client job posts + professional proposals (marketplace).
 
 ## Environment
 

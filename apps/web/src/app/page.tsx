@@ -1,5 +1,7 @@
 "use client";
 
+import { BRAND_NAME, SUPPORT_EMAIL } from "../lib/brand";
+
 import Link from "next/link";
 import { PageShell } from "./_components/PageShell";
 import { useI18n } from "./providers";
@@ -602,7 +604,7 @@ export default function HomePage() {
                 className="text-lg font-semibold"
                 style={{ color: "var(--foreground)" }}
               >
-                Tutorstartup
+                {BRAND_NAME}
               </p>
               <p className="mt-2 text-sm ui-muted">{t("home.footer.copy")}</p>
             </div>
@@ -612,7 +614,7 @@ export default function HomePage() {
               </p>
               <div className="mt-3 space-y-1">
                 <a
-                  href="mailto:hello@tutorstartup.com"
+                  href={`mailto:${SUPPORT_EMAIL}`}
                   className="block underline-offset-4 hover:underline"
                 >
                   {t("home.footer.email")}
@@ -665,7 +667,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="mt-6 pt-4 text-xs ui-muted" style={borderTopStyle}>
-            © {new Date().getFullYear()} Tutorstartup. All rights reserved.
+            © {new Date().getFullYear()} {BRAND_NAME}. All rights reserved.
           </div>
         </footer>
       </div>

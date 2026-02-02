@@ -18,12 +18,13 @@ import {
   registerUser,
 } from "../lib/api";
 import type { LoginPayload, RegisterPayload } from "../lib/types";
+import { BRAND_NAME, STORAGE_PREFIX, SUPPORT_EMAIL } from "../lib/brand";
 
 type Theme = "dark" | "light";
 type Locale = "en" | "am";
 
-const THEME_KEY = "tutorstartup.theme";
-const LOCALE_KEY = "tutorstartup.locale";
+const THEME_KEY = `${STORAGE_PREFIX}.theme`;
+const LOCALE_KEY = `${STORAGE_PREFIX}.locale`;
 
 // Note: auth tokens are intentionally NOT persisted in localStorage.
 
@@ -32,7 +33,7 @@ type Dictionary = Record<string, string>;
 const DICTS: Record<Locale, Dictionary> = {
   en: {
     "nav.home": "Home",
-    "nav.search": "Find tutors",
+    "nav.search": "Find talent",
     "nav.findWork": "Find work",
     "nav.savedJobs": "Saved jobs",
     "nav.proposals": "Proposals",
@@ -40,32 +41,32 @@ const DICTS: Record<Locale, Dictionary> = {
     "nav.postJob": "Post a job",
     "nav.myJobs": "My jobs",
     "nav.jobs": "Jobs",
-    "nav.profile": "Tutor profile",
+    "nav.profile": "Professional profile",
     "nav.account": "My profile",
     "nav.requests": "Requests",
     "nav.login": "Login",
     "nav.register": "Register",
     "nav.logout": "Log out",
 
-    "home.title": "Find the right tutor, fast.",
+    "home.title": "Hire the right person, fast.",
     "home.subtitle":
-      "Search tutors, review profiles, and message to start a lesson.",
-    "home.cta.search": "Search tutors",
-    "home.cta.tutor": "I’m a tutor",
+      "Post a job, review profiles, and start working with confidence.",
+    "home.cta.search": "Browse talent",
+    "home.cta.tutor": "I’m looking for work",
 
     "home.hero.preview.title": "Popular right now",
     "home.hero.preview.tags.1": "IB Physics HL",
     "home.hero.preview.tags.2": "SAT Critical Reading",
     "home.hero.preview.tags.3": "Grade 5 Literacy",
     "home.hero.preview.tags.4": "University Calculus",
-    "home.hero.preview.card.title": "Live tutor requests",
+    "home.hero.preview.card.title": "Live job activity",
     "home.hero.preview.card.body":
-      "Families near Bole are booking math and science blocks right now.",
+      "New roles are being posted and filled across Addis and beyond.",
     "home.hero.preview.card.status": "Updated moments ago",
 
     "home.value.title": "Why it works",
     "home.value.1.title": "Fast search",
-    "home.value.1.body": "Find tutors by subject and location.",
+    "home.value.1.body": "Find professionals by skill and location.",
     "home.value.2.title": "Real profiles",
     "home.value.2.body": "Clear bios, rates, and skills at a glance.",
     "home.value.3.title": "Built for scale",
@@ -79,26 +80,26 @@ const DICTS: Record<Locale, Dictionary> = {
     "home.partners.4": "Future Minds",
 
     "home.stats.1.value": "2.1K+",
-    "home.stats.1.label": "Active students",
+    "home.stats.1.label": "Active clients",
     "home.stats.2.value": "840+",
-    "home.stats.2.label": "Verified tutors",
+    "home.stats.2.label": "Verified professionals",
     "home.stats.3.value": "4.9/5",
     "home.stats.3.label": "Avg. satisfaction",
 
-    "home.paths.student.kicker": "FOR STUDENTS",
-    "home.paths.student.title": "Find a tutor",
-    "home.paths.student.body": "Browse tutors and filter by what you need.",
-    "home.paths.student.cta": "Search tutors",
+    "home.paths.student.kicker": "FOR CLIENTS",
+    "home.paths.student.title": "Hire a professional",
+    "home.paths.student.body": "Browse talent and filter by what you need.",
+    "home.paths.student.cta": "Browse talent",
     "home.paths.student.ctaSecondary": "Log in",
 
-    "home.paths.tutor.kicker": "FOR TUTORS",
+    "home.paths.tutor.kicker": "FOR PROFESSIONALS",
     "home.paths.tutor.title": "Create your profile",
-    "home.paths.tutor.body": "Add subjects, languages, rate, and location.",
+    "home.paths.tutor.body": "Add skills, languages, rate, and location.",
     "home.paths.tutor.ctaPrimary": "Register",
     "home.paths.tutor.ctaSecondary": "Go to profile",
 
     "home.how.title": "How it works",
-    "home.how.subtitle": "A simple flow from search to lesson.",
+    "home.how.subtitle": "A simple flow from posting to hiring.",
     "home.how.1.kicker": "STEP 1",
     "home.how.1.title": "Search",
     "home.how.1.body": "Filter by keyword, subjects, and location.",
@@ -107,7 +108,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "home.how.2.body": "Compare profiles, subjects, and rates.",
     "home.how.3.kicker": "STEP 3",
     "home.how.3.title": "Start",
-    "home.how.3.body": "Pick a tutor and begin your learning journey.",
+    "home.how.3.body": "Choose a candidate and start the engagement.",
 
     "home.reasons.students.title": "Why students love us",
     "home.reasons.students.body":
@@ -141,7 +142,7 @@ const DICTS: Record<Locale, Dictionary> = {
       "We combine curated talent with transparent data so decisions feel confident.",
 
     "home.testimonials.1.quote":
-      "Every tutor we hired through Tutorstartup had lesson plans ready by day one.",
+      "Every professional we hired through {brand} delivered fast and clearly. ",
     "home.testimonials.1.author": "Miskaye H.",
     "home.testimonials.1.role": "Academic Director, Addis Academy",
     "home.testimonials.2.quote":
@@ -150,23 +151,23 @@ const DICTS: Record<Locale, Dictionary> = {
     "home.testimonials.2.role": "STEM Tutor",
 
     "home.cta.banner.kicker": "NEXT COHORT",
-    "home.cta.banner.title": "Launch your tutoring journey this week",
+    "home.cta.banner.title": "Launch your next job this week",
     "home.cta.banner.body":
-      "Create a profile, get discovered, and start teaching within days.",
-    "home.cta.banner.primary": "Join as tutor",
-    "home.cta.banner.secondary": "Find tutors",
+      "Create a profile, get discovered, and start earning within days.",
+    "home.cta.banner.primary": "Join as professional",
+    "home.cta.banner.secondary": "Browse talent",
 
     "home.cta.schools.kicker": "FOR SCHOOLS",
-    "home.cta.schools.title": "Need a vetted tutor bench for the new term?",
+    "home.cta.schools.title": "Need a vetted talent bench for your team?",
     "home.cta.schools.body":
       "Our partnerships team curates subject-specific pods for schools and learning pods across Addis.",
     "home.cta.schools.primary": "Talk to partnerships",
     "home.cta.schools.secondary": "Download overview",
 
     "home.curriculum.kicker": "CURRICULUM PATHWAYS",
-    "home.curriculum.title": "Honors-level expertise, local context",
+    "home.curriculum.title": "Expertise, local context",
     "home.curriculum.body":
-      "From national exams to IB diplomas, tutors bring classroom experience plus culturally-aware coaching.",
+      "From short gigs to long-term roles, professionals bring real-world experience plus strong communication.",
     "home.curriculum.1.title": "National Exams",
     "home.curriculum.1.body":
       "Grade 8 & 12 prep with timed drills and rubric-based feedback.",
@@ -182,22 +183,22 @@ const DICTS: Record<Locale, Dictionary> = {
     "home.faq.title": "Questions, answered",
     "home.faq.subtitle":
       "Still unsure? Here’s what families and tutors ask first.",
-    "home.faq.1.q": "How fast can we match with a tutor?",
+    "home.faq.1.q": "How fast can we match with candidates?",
     "home.faq.1.a":
       "Most families receive curated matches within 24 hours once goals and schedule are submitted.",
-    "home.faq.2.q": "What vetting do tutors go through?",
+    "home.faq.2.q": "What vetting do professionals go through?",
     "home.faq.2.a":
       "Identity, credentials, reference checks, and a recorded demo lesson before profiles go live.",
     "home.faq.3.q": "Do you support in-person and remote lessons?",
     "home.faq.3.a":
-      "Yes. Tutors set travel zones and virtual availability so you can choose what works best.",
+      "Yes. Professionals set travel zones and virtual availability so you can choose what works best.",
 
-    "home.footer.copy": "Built in Addis · Tutorstartup",
-    "home.footer.links.search": "Search tutors",
-    "home.footer.links.profile": "Tutor profile",
+    "home.footer.copy": "Built in Addis · {brand}",
+    "home.footer.links.search": "Browse talent",
+    "home.footer.links.profile": "Professional profile",
     "home.footer.links.login": "Login",
     "home.footer.contact": "Contact",
-    "home.footer.email": "hello@tutorstartup.com",
+    "home.footer.email": "{supportEmail}",
     "home.footer.phone": "+251 11 000 0000",
     "home.footer.support": "Support center",
     "home.footer.privacy": "Privacy",
@@ -208,7 +209,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "auth.login.footer": "No account?",
     "auth.login.footer.link": "Register",
     "auth.register.title": "Create your account",
-    "auth.register.subtitle": "Join as a student or a tutor.",
+    "auth.register.subtitle": "Join as a client or a professional.",
     "auth.register.footer": "Already have an account?",
     "auth.register.footer.link": "Login",
     "auth.email": "Email",
@@ -217,7 +218,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "auth.role": "Role",
     "auth.role.student": "Student",
     "auth.role.parent": "Parent",
-    "auth.role.tutor": "Tutor",
+    "auth.role.tutor": "Professional",
     "auth.submit.login": "Sign in",
     "auth.submit.register": "Create account",
     "auth.login.submit": "Sign in",
@@ -225,7 +226,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "auth.logout.title": "Signing you out",
     "auth.logout.subtitle": "Ending your session…",
 
-    "tutor.profile.title": "Tutor profile",
+    "tutor.profile.title": "Professional profile",
     "tutor.profile.subtitle":
       "Update your profile — changes will be indexed for search.",
     "tutor.profile.bio": "Bio",
@@ -235,7 +236,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "tutor.profile.location": "Location",
     "tutor.profile.save": "Save profile",
 
-    "profile.title": "Tutor profile",
+    "profile.title": "Professional profile",
     "profile.subtitle":
       "Update your profile — changes will be indexed for search.",
     "profile.bio": "Bio",
@@ -249,7 +250,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "profile.guard.login": "Please log in to edit your tutor profile.",
     "profile.guard.tutorOnly": "This page is for tutors only.",
     "profile.guard.cta.login": "Login",
-    "profile.guard.cta.search": "Search tutors",
+    "profile.guard.cta.search": "Browse talent",
 
     "search.title": "Tutor search",
     "search.subtitle": "Filter by keyword, subject, and location.",
@@ -299,16 +300,16 @@ const DICTS: Record<Locale, Dictionary> = {
     "requests.accept": "Accept",
     "requests.decline": "Decline",
     "requests.guard.login": "Please log in to view lesson requests.",
-    "requests.guard.tutorOnly": "This page is for tutors only.",
+    "requests.guard.tutorOnly": "This page is for professionals only.",
 
     "state.loading": "Loading…",
     "common.loading": "Loading…",
     "state.loginRequired": "Login required",
-    "state.tutorOnly": "This page is for tutors.",
+    "state.tutorOnly": "This page is for professionals.",
   },
   am: {
     "nav.home": "መነሻ",
-    "nav.search": "አስተማሪ ፈልግ",
+    "nav.search": "ባለሙያ ፈልግ",
     "nav.findWork": "ስራ ፈልግ",
     "nav.savedJobs": "የተቀመጡ ስራዎች",
     "nav.proposals": "ማመልከቻዎች",
@@ -316,7 +317,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "nav.postJob": "ስራ ለጥፍ",
     "nav.myJobs": "የእኔ ስራዎች",
     "nav.jobs": "ስራዎች",
-    "nav.profile": "የአስተማሪ ፕሮፋይል",
+    "nav.profile": "የባለሙያ ፕሮፋይል",
     "nav.account": "ፕሮፋይሌ",
     "nav.requests": "ጥያቄዎች",
     "nav.login": "ግባ",
@@ -409,7 +410,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "home.metrics.subtitle": "ተዘጋጀ ችሎታ እና ግልጽ ውሂብ በስራ ላይ ነው።",
 
     "home.testimonials.1.quote":
-      "በTutorstartup ያገኘናቸው አስተማሪዎች በመጀመሪያ ቀን ትምህርት ዝግጅት ነበራቸው።",
+      "በ{brand} ያገኘናቸው ባለሙያዎች በፍጥነት እና በግልጽ ሁኔታ አቅርበዋል።",
     "home.testimonials.1.author": "ሚስቃዬ ሀ.",
     "home.testimonials.1.role": "የስልጠና ዳይሬክተር",
     "home.testimonials.2.quote": "ክህሎቴን ማሳየት እና ተገቢ ቤተሰቦችን ማግኘት ቀላል ሆኗል።",
@@ -451,12 +452,12 @@ const DICTS: Record<Locale, Dictionary> = {
     "home.faq.3.q": "በቀጥታ እና ከርቀት ትምህርት ትደግፋላችሁ?",
     "home.faq.3.a": "አዎን። አስተማሪዎች የጉዞ እና የመስመር ሰዓት ይዘረጋሉ ስለዚህ ምርጫ ይቀርባል።",
 
-    "home.footer.copy": "በአዲስ የተገነባ · Tutorstartup",
+    "home.footer.copy": "በአዲስ የተገነባ · {brand}",
     "home.footer.links.search": "አስተማሪ ፈልግ",
     "home.footer.links.profile": "የአስተማሪ ፕሮፋይል",
     "home.footer.links.login": "ግባ",
     "home.footer.contact": "እውቂያ",
-    "home.footer.email": "hello@tutorstartup.com",
+    "home.footer.email": "{supportEmail}",
     "home.footer.phone": "+251 11 000 0000",
     "home.footer.support": "የድጋፍ ማዕከል",
     "home.footer.privacy": "ግላዊነት",
@@ -505,7 +506,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "profile.guard.login": "የአስተማሪ ፕሮፋይልዎን ለማስተካከል መጀመሪያ ይግቡ።",
     "profile.guard.tutorOnly": "ይህ ገጽ ለአስተማሪዎች ብቻ ነው።",
     "profile.guard.cta.login": "ግባ",
-    "profile.guard.cta.search": "አስተማሪ ፈልግ",
+    "profile.guard.cta.search": "ባለሙያ ፈልግ",
 
     "search.title": "የአስተማሪ ፍለጋ",
     "search.subtitle": "በቁልፍ ቃላት፣ ርዕሶች እና አካባቢ ያጣሩ።",
@@ -639,7 +640,10 @@ export function Providers({ children }: { children: ReactNode }) {
 
   const t = useCallback(
     (key: string) => {
-      return DICTS[locale][key] ?? DICTS.en[key] ?? key;
+      const raw = DICTS[locale][key] ?? DICTS.en[key] ?? key;
+      return raw
+        .replaceAll("{brand}", BRAND_NAME)
+        .replaceAll("{supportEmail}", SUPPORT_EMAIL);
     },
     [locale]
   );

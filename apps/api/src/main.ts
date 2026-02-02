@@ -84,9 +84,10 @@ async function bootstrap() {
   });
 
   if (swaggerEnabled) {
+    const brandName = config.get<string>('BRAND_NAME', 'TutorStartup');
     const swaggerConfig = new DocumentBuilder()
-      .setTitle('TutorStartup API')
-      .setDescription('API documentation for TutorStartup')
+      .setTitle(`${brandName} API`)
+      .setDescription(`API documentation for ${brandName}`)
       .setVersion(String(defaultVersion))
       .addBearerAuth(
         {

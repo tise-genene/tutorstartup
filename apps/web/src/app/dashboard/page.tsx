@@ -68,11 +68,11 @@ export default function DashboardPage() {
             <div>
               <h1 className="text-2xl font-semibold">Dashboard</h1>
               <p className="mt-1 text-sm ui-muted">
-                Post a request, review proposals, and manage contracts.
+                Post a job, review proposals, and manage contracts.
               </p>
             </div>
             <Link href="/tutors/search" className="ui-btn">
-              Find tutors
+              Browse talent
             </Link>
           </div>
 
@@ -89,7 +89,7 @@ export default function DashboardPage() {
                   href="/jobs/post"
                   className="surface-card surface-card--quiet block p-6"
                 >
-                  <p className="text-lg font-semibold">Post request</p>
+                  <p className="text-lg font-semibold">Post a job</p>
                   <p className="mt-1 text-sm ui-muted">
                     Describe what you need and receive proposals.
                   </p>
@@ -99,9 +99,9 @@ export default function DashboardPage() {
                   href="/tutors/search"
                   className="surface-card surface-card--quiet block p-6"
                 >
-                  <p className="text-lg font-semibold">Find tutors</p>
+                  <p className="text-lg font-semibold">Browse talent</p>
                   <p className="mt-1 text-sm ui-muted">
-                    Browse verified tutors and send lesson requests.
+                    Review profiles and send a request to get started.
                   </p>
                 </Link>
 
@@ -109,7 +109,7 @@ export default function DashboardPage() {
                   href="/jobs/mine"
                   className="surface-card surface-card--quiet block p-6"
                 >
-                  <p className="text-lg font-semibold">My requests</p>
+                  <p className="text-lg font-semibold">My jobs</p>
                   <p className="mt-1 text-sm ui-muted">
                     Track your posts, proposals, and status.
                   </p>

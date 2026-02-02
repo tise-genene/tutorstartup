@@ -1,14 +1,14 @@
-# Tutorstartup — Minimum Upwork-like Launch Checklist (Phased)
+# Marketplace — Minimum Upwork-like Launch Checklist (Phased)
 
-This is a concrete, **minimum** checklist to reach an Upwork-like marketplace experience for tutoring with local payments (Chapa). It’s intentionally scoped to the smallest shippable set that is still coherent and safe.
+This is a concrete, **minimum** checklist to reach an Upwork-like marketplace experience for hiring with local payments (Chapa). It’s intentionally scoped to the smallest shippable set that is still coherent and safe.
 
 ## Definitions (shared across phases)
 
 - **Client** = Parent/Student who pays.
-- **Tutor** = Service provider.
+- **Professional** = Service provider.
 - **Job** = A public request posted by a client.
-- **Proposal** = A tutor’s application to a job.
-- **Contract** = A private agreement between client + tutor.
+- **Proposal** = A professional’s application to a job.
+- **Contract** = A private agreement between client + professional.
 - **Ledger** = Immutable record of money movements and balances.
 - **Dispute** = A workflow to pause/resolve/refund a payment.
 

@@ -147,7 +147,7 @@ export class EmailService {
     const { Resend } = await import('resend');
     const resend = new Resend(params.apiKey);
 
-    const placeholderFrom = 'no-reply@tutorstartup.local';
+    const placeholderFrom = 'no-reply@marketplace.local';
     const resolvedFrom =
       params.from.length === 0 || params.from.toLowerCase() === placeholderFrom
         ? 'onboarding@resend.dev'

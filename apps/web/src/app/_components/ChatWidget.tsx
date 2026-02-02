@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BRAND_NAME, STORAGE_PREFIX, SUPPORT_EMAIL } from "../../lib/brand";
 
 type ChatRole = "user" | "bot";
 
@@ -10,7 +11,7 @@ type ChatMessage = {
   text: string;
 };
 
-const STORAGE_SEEN_KEY = "tutorstartup.chat.seen";
+const STORAGE_SEEN_KEY = `${STORAGE_PREFIX}.chat.seen`;
 
 function ChatIcon() {
   return (
@@ -61,14 +62,11 @@ function getBotReply(message: string): string {
   }
 
   if (text.includes("login") || text.includes("log in")) {
-    return "If login fails, make sure your email is verified first. If you forgot your password, use ‘Forgot password’ to reset it.";
+    return "If login fails, double-check your email/password. If you forgot your password, use ‘Forgot password’ to reset it.";
   }
 
-  if (
-    text.includes("tutor") &&
-    (text.includes("profile") || text.includes("bio"))
-  ) {
-    return "To get discovered faster: add a clear bio, subjects, and your hourly rate in Tutor profile.";
+  if (text.includes("profile") || text.includes("bio")) {
+    return "To get discovered faster: add a clear bio, key skills, and your rate in your profile.";
   }
 
   if (text.includes("payment") || text.includes("pay")) {
@@ -87,7 +85,7 @@ export function ChatWidget() {
     {
       id: nextId(),
       role: "bot",
-      text: "Hi — need help? Ask me anything about using Tutorstartup.",
+      text: `Hi — need help? Ask me anything about using ${BRAND_NAME}.`,
     },
   ]);
 
@@ -187,7 +185,7 @@ export function ChatWidget() {
             style={{ borderColor: "var(--divider)" }}
           >
             <div className="min-w-0">
-              <p className="text-sm font-semibold">Tutorstartup chat</p>
+              <p className="text-sm font-semibold">{BRAND_NAME} chat</p>
               <p className="text-xs ui-muted">Quick help and troubleshooting</p>
             </div>
 
@@ -270,7 +268,7 @@ export function ChatWidget() {
               </button>
             </div>
             <p className="mt-2 text-xs ui-muted">
-              For account issues, email hello@tutorstartup.com.
+              For account issues, email {SUPPORT_EMAIL}.
             </p>
           </div>
         </div>

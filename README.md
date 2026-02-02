@@ -1,13 +1,13 @@
 # tutorstartup
 
-Modern tutor marketplace playground powered by a NestJS API (`apps/api`) and a Next.js App Router web client (`apps/web`). The monorepo is managed with Turborepo + pnpm and leans on Redis, BullMQ, and Meilisearch to prove out production-ready workflows.
+Modern jobs marketplace playground powered by a NestJS API (`apps/api`) and a Next.js App Router web client (`apps/web`). The monorepo is managed with Turborepo + pnpm and leans on Redis, BullMQ, and Meilisearch to prove out production-ready workflows.
 
 ## Highlights
 
 - **Auth & notifications** – Sign-up/login endpoints with JWTs plus a welcome-email BullMQ queue (notifications execute inline when the queue driver is disabled).
-- **Tutor module** – Tutors can upsert profiles (bio, subjects, rate, etc.) that automatically enqueue Meilisearch sync jobs.
-- **Search pipeline** – Redis-backed cache in front of Meilisearch (`/v1/tutors/search`) including health hooks and queue coverage tests.
-- **Frontend wiring** – The landing page in `apps/web` now talks directly to the API for auth, tutor CRUD, and search so the entire slice can be demoed without Postman.
+- **Profiles module** – Service providers can upsert profiles (bio, skills, rate, etc.) that automatically enqueue Meilisearch sync jobs.
+- **Search pipeline** – Redis-backed cache in front of Meilisearch (API currently exposes a `/v1/tutors/search` route for compatibility) including health hooks and queue coverage tests.
+- **Frontend wiring** – The landing page in `apps/web` now talks directly to the API for auth, profile CRUD, and search so the entire slice can be demoed without Postman.
 
 ## Repo layout
 

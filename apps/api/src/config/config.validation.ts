@@ -14,6 +14,8 @@ const defaultSessionCleanupEnabled =
   (process.env.NODE_ENV ?? 'development') === 'production' ? 'true' : 'false';
 
 export const configValidationSchema = Joi.object({
+  BRAND_NAME: Joi.string().allow('', null).default('TutorStartup'),
+  SUPPORT_EMAIL: Joi.string().email().allow('', null).default(''),
   NODE_ENV: Joi.string()
     .valid('development', 'test', 'production')
     .default('development'),

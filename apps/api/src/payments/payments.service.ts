@@ -362,6 +362,7 @@ export class PaymentsService {
     if (!apiPublicUrl) {
       throw new BadRequestException('API_PUBLIC_URL is not configured');
     }
+    const brandName = (process.env.BRAND_NAME ?? 'Tutorstartup').trim();
 
     const chapaSecret = this.getChapaSecret();
 
@@ -375,7 +376,7 @@ export class PaymentsService {
       callback_url: `${apiPublicUrl}/v1/payments/chapa/callback`,
       return_url: successUrl,
       customization: {
-        title: 'Tutorstartup Contract Payment',
+        title: `${brandName} Contract Payment`,
         description: contract.jobPost?.title ?? 'Contract payment',
       },
     };
@@ -504,6 +505,8 @@ export class PaymentsService {
       throw new BadRequestException('API_PUBLIC_URL is not configured');
     }
 
+    const brandName = (process.env.BRAND_NAME ?? 'Tutorstartup').trim();
+
     const chapaSecret = this.getChapaSecret();
 
     const payload = {
@@ -515,7 +518,7 @@ export class PaymentsService {
       callback_url: `${apiPublicUrl}/v1/payments/chapa/callback`,
       return_url: successUrl,
       customization: {
-        title: 'Tutorstartup Milestone Funding',
+        title: `${brandName} Milestone Funding`,
         description: milestone.title,
       },
     };
