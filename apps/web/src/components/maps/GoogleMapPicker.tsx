@@ -57,8 +57,7 @@ export function GoogleMapPicker(props: {
         if (cancelled) return;
         if (!mapRef.current) return;
 
-        const google = (window as any).google as any;
-
+        const google = window.google;
         const map = new google.maps.Map(mapRef.current, {
           center: initialCenter,
           zoom: 13,
@@ -80,7 +79,7 @@ export function GoogleMapPicker(props: {
           props.onChange({ lat: pos.lat, lng: pos.lng, locationText });
         };
 
-        map.addListener("click", (e: any) => {
+        map.addListener("click", (e: google.maps.MapMouseEvent) => {
           if (!e.latLng) return;
           const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
           marker.setPosition(pos);
