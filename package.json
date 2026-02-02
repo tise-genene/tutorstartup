@@ -12,8 +12,8 @@
     "format": "prettier --write ."
   },
   "devDependencies": {
+    "@types/google.maps": "^3.58.1",
     "prettier": "^3.3.3",
     "turbo": "^2.1.2"
   }
 }
-
