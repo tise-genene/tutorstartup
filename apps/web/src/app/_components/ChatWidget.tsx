@@ -91,15 +91,23 @@ export function ChatWidget() {
 
   const listRef = useRef<HTMLDivElement | null>(null);
 
+  // ✅ Fixed effect (no synchronous cascading state updates)
   useEffect(() => {
     try {
       const value = localStorage.getItem(STORAGE_SEEN_KEY);
       const hasSeen = value === "1";
+
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSeen(hasSeen);
+
       if (!hasSeen) {
-        setNudge(true);
+        const start = window.setTimeout(() => setNudge(true), 0);
         const timeout = window.setTimeout(() => setNudge(false), 20_000);
-        return () => window.clearTimeout(timeout);
+
+        return () => {
+          window.clearTimeout(start);
+          window.clearTimeout(timeout);
+        };
       }
     } catch {
       // ignore
@@ -108,7 +116,6 @@ export function ChatWidget() {
 
   useEffect(() => {
     if (!open) return;
-    // Auto-scroll when opening / new messages.
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [open, messages.length]);
 
@@ -129,9 +136,7 @@ export function ChatWidget() {
   const onToggle = () => {
     setOpen((prev) => {
       const next = !prev;
-      if (next) {
-        markSeen();
-      }
+      if (next) markSeen();
       return next;
     });
   };
@@ -150,6 +155,7 @@ export function ChatWidget() {
     setMessages((prev) => [...prev, userMessage]);
 
     const reply = getBotReply(trimmed);
+
     window.setTimeout(() => {
       setMessages((prev) => [
         ...prev,
@@ -159,14 +165,7 @@ export function ChatWidget() {
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        right: 18,
-        bottom: 18,
-        zIndex: 70,
-      }}
-    >
+    <div style={{ position: "fixed", right: 18, bottom: 18, zIndex: 70 }}>
       {open && (
         <div
           className="glass-panel"
@@ -186,7 +185,9 @@ export function ChatWidget() {
           >
             <div className="min-w-0">
               <p className="text-sm font-semibold">{BRAND_NAME} chat</p>
-              <p className="text-xs ui-muted">Quick help and troubleshooting</p>
+              <p className="text-xs ui-muted">
+                Quick help and troubleshooting
+              </p>
             </div>
 
             <button
@@ -310,7 +311,10 @@ export function ChatWidget() {
             >
               <span
                 className="absolute inset-0 animate-ping rounded-full"
-                style={{ background: "var(--accent-glow)", opacity: 0.65 }}
+                style={{
+                  background: "var(--accent-glow)",
+                  opacity: 0.65,
+                }}
               />
               <span
                 className="absolute inset-0 rounded-full"
