@@ -111,7 +111,7 @@ function CloseIcon() {
 }
 
 export function AppHeader() {
-  const { auth } = useAuth();
+  const { auth, sessionExpired } = useAuth();
   const { locale, setLocale, t } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -168,6 +168,27 @@ export function AppHeader() {
       >
         Skip to content
       </a>
+      {sessionExpired && !auth && (
+        <div className="mx-auto mb-2 mt-2 max-w-6xl">
+          <div
+            className="flex items-center justify-between gap-3 rounded-xl border px-4 py-2 text-xs font-medium md:text-sm"
+            style={{
+              borderColor: "rgba(245, 158, 11, 0.6)",
+              background:
+                "color-mix(in srgb, rgba(245, 158, 11, 0.14), transparent)",
+              color: "var(--foreground)",
+            }}
+          >
+            <span>Your session has expired. Please log in again.</span>
+            <Link
+              href="/auth/login"
+              className="ui-btn ui-btn-primary ui-btn-sm whitespace-nowrap"
+            >
+              Log in
+            </Link>
+          </div>
+        </div>
+      )}
       <div className="mx-auto max-w-6xl">
         <div
           className="relative overflow-visible rounded-2xl border px-4 py-3 backdrop-blur-xl md:px-6"

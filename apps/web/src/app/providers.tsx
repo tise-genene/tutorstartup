@@ -25,6 +25,7 @@ type Locale = "en" | "am";
 
 const THEME_KEY = `${STORAGE_PREFIX}.theme`;
 const LOCALE_KEY = `${STORAGE_PREFIX}.locale`;
+const WAS_LOGGED_KEY = `${STORAGE_PREFIX}.wasLoggedIn`;
 
 // Note: auth tokens are intentionally NOT persisted in localStorage.
 
@@ -572,6 +573,7 @@ type AuthContextValue = {
   register: (payload: RegisterPayload) => Promise<{ ok: true }>;
   logout: () => Promise<void>;
   consumeAccessToken: (accessToken: string) => Promise<AuthResponse>;
+  sessionExpired: boolean;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -600,14 +602,26 @@ export function Providers({ children }: { children: ReactNode }) {
     return stored === "en" || stored === "am" ? stored : "en";
   });
   const [auth, setAuth] = useState<AuthResponse | null>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   useEffect(() => {
     const run = async () => {
+      const wasLoggedInBefore =
+        typeof window !== "undefined" &&
+        window.localStorage.getItem(WAS_LOGGED_KEY) === "1";
+
       try {
         const refreshed = await refreshSession();
         setAuth(refreshed);
+        setSessionExpired(false);
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(WAS_LOGGED_KEY, "1");
+        }
       } catch {
-        // No active session yet.
+        // Only show "session expired" if the user had logged in before.
+        if (wasLoggedInBefore) {
+          setSessionExpired(true);
+        }
       }
     };
 
@@ -651,17 +665,29 @@ export function Providers({ children }: { children: ReactNode }) {
   const login = useCallback(async (payload: LoginPayload) => {
     const response = await loginUser(payload);
     setAuth(response);
+    setSessionExpired(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(WAS_LOGGED_KEY, "1");
+    }
     return response;
   }, []);
 
   const register = useCallback(async (payload: RegisterPayload) => {
-    return await registerUser(payload);
+    const result = await registerUser(payload);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(WAS_LOGGED_KEY, "1");
+    }
+    return result;
   }, []);
 
   const consumeAccessToken = useCallback(async (accessToken: string) => {
     const user = await fetchMe(accessToken);
     const response: AuthResponse = { accessToken, user };
     setAuth(response);
+    setSessionExpired(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(WAS_LOGGED_KEY, "1");
+    }
     return response;
   }, []);
 
@@ -672,6 +698,10 @@ export function Providers({ children }: { children: ReactNode }) {
       // If the API is unreachable, we still clear local auth state.
     } finally {
       setAuth(null);
+      setSessionExpired(false);
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem(WAS_LOGGED_KEY);
+      }
     }
   }, []);
 
@@ -686,8 +716,8 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   const authValue = useMemo<AuthContextValue>(
-    () => ({ auth, login, register, logout, consumeAccessToken }),
-    [auth, login, register, logout, consumeAccessToken]
+    () => ({ auth, login, register, logout, consumeAccessToken, sessionExpired }),
+    [auth, login, register, logout, consumeAccessToken, sessionExpired]
   );
 
   return (
