@@ -38,7 +38,13 @@ import { AppService } from './app.service';
       validationSchema: configValidationSchema,
       cache: true,
       expandVariables: true,
-      load: [cacheConfig, queueConfig, searchConfig, redisConfig, paymentsConfig],
+      load: [
+        cacheConfig,
+        queueConfig,
+        searchConfig,
+        redisConfig,
+        paymentsConfig,
+      ],
     }),
     LoggerModule.forRootAsync({
       inject: [ConfigService],
