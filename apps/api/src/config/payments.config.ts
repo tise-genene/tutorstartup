@@ -9,7 +9,10 @@ export interface PaymentsConfig {
   brandName: string;
 }
 
-const trimOrDefault = (value: string | undefined | null, fallback: string): string => {
+const trimOrDefault = (
+  value: string | undefined | null,
+  fallback: string,
+): string => {
   const trimmed = (value ?? '').trim();
   return trimmed.length > 0 ? trimmed : fallback;
 };
@@ -20,7 +23,7 @@ const normalizeUrl = (value: string, fallback: string): string => {
 };
 
 export const paymentsConfig = registerAs<PaymentsConfig>('payments', () => {
-  const nodeEnv = process.env.NODE_ENV ?? 'development';
+  //const nodeEnv = process.env.NODE_ENV ?? 'development';
 
   const defaultChapaBaseUrl = 'https://api.chapa.co/v1';
   const defaultFrontendUrl = 'http://localhost:3000';
@@ -29,7 +32,8 @@ export const paymentsConfig = registerAs<PaymentsConfig>('payments', () => {
 
   // FRONTEND_URL can be a comma-separated list; pick the primary.
   const rawFrontend = process.env.FRONTEND_URL ?? defaultFrontendUrl;
-  const primaryFrontend = rawFrontend.split(',')[0]?.trim() || defaultFrontendUrl;
+  const primaryFrontend =
+    rawFrontend.split(',')[0]?.trim() || defaultFrontendUrl;
 
   const chapaBaseUrlEnv = process.env.CHAPA_BASE_URL;
   const apiPublicUrlEnv = process.env.API_PUBLIC_URL;
@@ -51,4 +55,3 @@ export const paymentsConfig = registerAs<PaymentsConfig>('payments', () => {
 });
 
 export default paymentsConfig;
-
