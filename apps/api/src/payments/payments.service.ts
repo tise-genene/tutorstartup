@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { createHmac } from 'node:crypto';
+import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -15,6 +16,7 @@ import {
   PaymentStatus,
   UserRole,
 } from '../prisma/prisma.enums';
+import type { PaymentsConfig } from '../config/payments.config';
 
 const DEFAULT_CURRENCY = 'ETB';
 
@@ -114,17 +116,25 @@ type VerifyResult = {
 
 @Injectable()
 export class PaymentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  private get paymentsConfig(): PaymentsConfig {
+    const cfg = this.configService.get<PaymentsConfig>('payments');
+    if (!cfg) {
+      throw new Error('Payments configuration not loaded');
+    }
+    return cfg;
+  }
 
   private getChapaBaseUrl(): string {
-    const raw = (
-      process.env.CHAPA_BASE_URL ?? 'https://api.chapa.co/v1'
-    ).trim();
-    return raw.replace(/\/$/, '');
+    return this.paymentsConfig.chapaBaseUrl;
   }
 
   private getChapaSecret(): string {
-    const secret = (process.env.CHAPA_SECRET_KEY ?? '').trim();
+    const secret = this.paymentsConfig.chapaSecretKey;
     if (!secret) {
       throw new BadRequestException('CHAPA_SECRET_KEY is not configured');
     }
@@ -135,8 +145,10 @@ export class PaymentsService {
     body: unknown,
     headers: Record<string, unknown>,
   ): void {
-    const secret = (process.env.CHAPA_WEBHOOK_SECRET ?? '').trim();
-    const nodeEnv = (process.env.NODE_ENV ?? 'development').toLowerCase();
+    const secret = this.paymentsConfig.chapaWebhookSecret;
+    const nodeEnv = (
+      this.configService.get<string>('NODE_ENV') ?? 'development'
+    ).toLowerCase();
 
     if (!secret) {
       if (nodeEnv === 'production') {
@@ -351,18 +363,15 @@ export class PaymentsService {
 
     const txRef = `ctr_${updatedContract.id}_${Date.now()}`;
 
-    const frontendUrl = (process.env.FRONTEND_URL ?? '').split(',')[0].trim();
+    const { frontendUrl, apiPublicUrl, brandName } = this.paymentsConfig;
     if (!frontendUrl) {
       throw new BadRequestException('FRONTEND_URL is not configured');
     }
-
-    const successUrl = `${frontendUrl}/payments/success?tx_ref=${encodeURIComponent(txRef)}`;
-
-    const apiPublicUrl = (process.env.API_PUBLIC_URL ?? '').trim();
     if (!apiPublicUrl) {
       throw new BadRequestException('API_PUBLIC_URL is not configured');
     }
-    const brandName = (process.env.BRAND_NAME ?? 'Tutorstartup').trim();
+
+    const successUrl = `${frontendUrl}/payments/success?tx_ref=${encodeURIComponent(txRef)}`;
 
     const chapaSecret = this.getChapaSecret();
 
@@ -372,7 +381,6 @@ export class PaymentsService {
       email: user.email,
       first_name: user.name,
       tx_ref: txRef,
-      // Chapa calls this URL (GET) after payment completes; handler must verify.
       callback_url: `${apiPublicUrl}/v1/payments/chapa/callback`,
       return_url: successUrl,
       customization: {
@@ -381,8 +389,8 @@ export class PaymentsService {
       },
     };
 
-    // Chapa initialize
-    const resp = await fetch('https://api.chapa.co/v1/transaction/initialize', {
+    const baseUrl = this.getChapaBaseUrl();
+    const resp = await fetch(`${baseUrl}/transaction/initialize`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${chapaSecret}`,
@@ -492,20 +500,15 @@ export class PaymentsService {
     );
 
     const txRef = `ms_${milestone.id}_${Date.now()}`;
-
-    const frontendUrl = (process.env.FRONTEND_URL ?? '').split(',')[0].trim();
+    const { frontendUrl, apiPublicUrl, brandName } = this.paymentsConfig;
     if (!frontendUrl) {
       throw new BadRequestException('FRONTEND_URL is not configured');
     }
-
-    const successUrl = `${frontendUrl}/payments/success?tx_ref=${encodeURIComponent(txRef)}`;
-
-    const apiPublicUrl = (process.env.API_PUBLIC_URL ?? '').trim();
     if (!apiPublicUrl) {
       throw new BadRequestException('API_PUBLIC_URL is not configured');
     }
 
-    const brandName = (process.env.BRAND_NAME ?? 'Tutorstartup').trim();
+    const successUrl = `${frontendUrl}/payments/success?tx_ref=${encodeURIComponent(txRef)}`;
 
     const chapaSecret = this.getChapaSecret();
 
@@ -523,7 +526,8 @@ export class PaymentsService {
       },
     };
 
-    const resp = await fetch('https://api.chapa.co/v1/transaction/initialize', {
+    const baseUrl = this.getChapaBaseUrl();
+    const resp = await fetch(`${baseUrl}/transaction/initialize`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${chapaSecret}`,

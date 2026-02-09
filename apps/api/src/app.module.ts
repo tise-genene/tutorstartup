@@ -12,6 +12,7 @@ import { configValidationSchema } from './config/config.validation';
 import queueConfig from './config/queue.config';
 import redisConfig from './config/redis.config';
 import searchConfig from './config/search.config';
+import paymentsConfig from './config/payments.config';
 import { PrismaModule } from './prisma/prisma.module';
 import { PrismaClientExceptionFilter } from './prisma/prisma-client-exception.filter';
 import { AuthModule } from './auth/auth.module';
@@ -37,7 +38,7 @@ import { AppService } from './app.service';
       validationSchema: configValidationSchema,
       cache: true,
       expandVariables: true,
-      load: [cacheConfig, queueConfig, searchConfig, redisConfig],
+      load: [cacheConfig, queueConfig, searchConfig, redisConfig, paymentsConfig],
     }),
     LoggerModule.forRootAsync({
       inject: [ConfigService],

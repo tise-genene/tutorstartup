@@ -196,9 +196,11 @@ export interface ContractMilestone {
 
 export type PaymentStatus = "PENDING" | "SUCCEEDED" | "FAILED";
 
+export type PaymentProvider = "CHAPA" | "TELEBIRR";
+
 export interface Payment {
   id: string;
-  provider: "CHAPA";
+  provider: PaymentProvider;
   status: PaymentStatus;
   contractId: string;
   createdByUserId: string;
