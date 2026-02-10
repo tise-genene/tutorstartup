@@ -282,6 +282,16 @@ const DICTS: Record<Locale, Dictionary> = {
         "requests.guard.login": "Please log in to view lesson requests.",
         "requests.guard.tutorOnly": "This page is for professionals only.",
 
+        "privacy.title": "Privacy Policy",
+        "privacy.subtitle": "How we handle your data.",
+        "privacy.body": "This is a placeholder for the Privacy Policy. We take your privacy seriously and will update this with full legal terms soon.",
+        "terms.title": "Terms of Service",
+        "terms.subtitle": "The rules of our platform.",
+        "terms.body": "This is a placeholder for the Terms of Service. By using our platform, you agree to follow our community standards and payment terms.",
+        "support.title": "Help Center",
+        "support.subtitle": "We're here to help you succeed.",
+        "support.body": "For any questions or technical issues, please contact us at {supportEmail}.",
+
         "state.loading": "Loading…",
         "common.loading": "Loading…",
         "state.loginRequired": "Login required",
@@ -511,6 +521,16 @@ const DICTS: Record<Locale, Dictionary> = {
         "common.loading": "በመጫን ላይ…",
         "state.loginRequired": "መጀመሪያ ግባ",
         "state.tutorOnly": "ይህ ገጽ ለአስተማሪዎች ብቻ ነው።",
+
+        "privacy.title": "ግላዊነት ፖሊሲ",
+        "privacy.subtitle": "ውሂብዎን እንዴት እንደምንይዘው።",
+        "privacy.body": "ይህ የግላዊነት ፖሊሲ ቦታ ያዢ ነው። የእርስዎን ግላዊነት በቁም ነገር እንወስደዋለን እና ይህንን በቅርቡ በህጋዊ ውሎች እናዘምነዋለን።",
+        "terms.title": "የአገልግሎት ውሎች",
+        "terms.subtitle": "የእኛ መድረክ ደንቦች።",
+        "terms.body": "ይህ የአገልግሎት ውሎች ቦታ ያዢ ነው። የእኛን መድረክ በመጠቀም የእኛን የማህበረሰብ ደረጃዎች እና የክፍያ ውሎች ለመከተል ተስማምተዋል።",
+        "support.title": "የድጋፍ ማዕከል",
+        "support.subtitle": "ለስኬትዎ እዚህ ነን።",
+        "support.body": "ለማንኛውም ጥያቄዎች ወይም ቴክኒካዊ ጉዳዮች፣ እባክዎን በ {supportEmail} ያግኙን።",
     },
 };
 
