@@ -32,7 +32,7 @@ class ApiError extends Error {
   constructor(
     message: string,
     readonly status: number,
-    readonly details?: unknown
+    readonly details?: unknown,
   ) {
     super(message);
     this.name = "ApiError";
@@ -70,7 +70,7 @@ async function request<T>(path: string, options: ApiOptions = {}): Promise<T> {
 }
 
 export async function registerUser(
-  payload: RegisterPayload
+  payload: RegisterPayload,
 ): Promise<{ ok: true }> {
   return request<{ ok: true }>("/v1/auth/register", {
     method: "POST",
@@ -108,7 +108,7 @@ export async function fetchMe(token: string): Promise<AuthResponse["user"]> {
 
 export async function updateMe(
   token: string,
-  payload: { avatarUrl?: string }
+  payload: { avatarUrl?: string },
 ): Promise<AuthResponse["user"]> {
   return request<AuthResponse["user"]>("/v1/users/me", {
     method: "PATCH",
@@ -147,7 +147,7 @@ export async function fetchTutorProfile(token: string): Promise<TutorProfile> {
 
 export async function upsertTutorProfile(
   token: string,
-  payload: TutorProfileInput
+  payload: TutorProfileInput,
 ): Promise<TutorProfile> {
   return request<TutorProfile>("/v1/tutors/me", {
     method: "PUT",
@@ -157,7 +157,7 @@ export async function upsertTutorProfile(
 }
 
 export async function fetchTutorByUserId(
-  userId: string
+  userId: string,
 ): Promise<TutorProfile> {
   return request<TutorProfile>(`/v1/tutors/${userId}`, {
     method: "GET",
@@ -165,7 +165,7 @@ export async function fetchTutorByUserId(
 }
 
 export async function searchTutors(
-  params: TutorSearchParams
+  params: TutorSearchParams,
 ): Promise<TutorSearchResult> {
   const query = new URLSearchParams();
   if (params.query) {
@@ -191,7 +191,7 @@ export async function searchTutors(
 
 export async function createLessonRequest(
   token: string,
-  payload: CreateLessonRequestPayload
+  payload: CreateLessonRequestPayload,
 ): Promise<LessonRequest> {
   return request<LessonRequest>("/v1/lesson-requests", {
     method: "POST",
@@ -202,16 +202,19 @@ export async function createLessonRequest(
 
 export async function fetchLessonRequestInbox(
   token: string,
-  params?: PaginationParams
+  params?: PaginationParams,
 ): Promise<LessonRequest[]> {
   const query = new URLSearchParams();
   if (params?.page) query.set("page", String(params.page));
   if (params?.limit) query.set("limit", String(params.limit));
 
-  return request<LessonRequest[]>(`/v1/lesson-requests/inbox?${query.toString()}`, {
-    method: "GET",
-    token,
-  });
+  return request<LessonRequest[]>(
+    `/v1/lesson-requests/inbox?${query.toString()}`,
+    {
+      method: "GET",
+      token,
+    },
+  );
 }
 
 export async function updateLessonRequestStatus(
@@ -222,7 +225,7 @@ export async function updateLessonRequestStatus(
     tutorResponseMessage?: string;
     tutorResponseFileUrl?: string;
     tutorResponseVideoUrl?: string;
-  }
+  },
 ): Promise<LessonRequest> {
   return request<LessonRequest>(`/v1/lesson-requests/${id}`, {
     method: "PATCH",
@@ -232,7 +235,7 @@ export async function updateLessonRequestStatus(
 }
 
 export async function fetchPendingLessonRequestCount(
-  token: string
+  token: string,
 ): Promise<{ pending: number }> {
   return request<{ pending: number }>("/v1/lesson-requests/inbox/count", {
     method: "GET",
@@ -242,7 +245,7 @@ export async function fetchPendingLessonRequestCount(
 
 export async function createJob(
   token: string,
-  payload: CreateJobPayload
+  payload: CreateJobPayload,
 ): Promise<JobPost> {
   return request<JobPost>("/v1/jobs", {
     method: "POST",
@@ -262,7 +265,7 @@ export async function publishJob(token: string, id: string): Promise<JobPost> {
 export async function updateJob(
   token: string,
   id: string,
-  payload: Partial<CreateJobPayload>
+  payload: Partial<CreateJobPayload>,
 ): Promise<JobPost> {
   return request<JobPost>(`/v1/jobs/${id}`, {
     method: "PATCH",
@@ -273,7 +276,7 @@ export async function updateJob(
 
 export async function fetchOpenJobs(
   token: string,
-  params?: PaginationParams
+  params?: PaginationParams,
 ): Promise<JobPost[]> {
   const query = new URLSearchParams();
   if (params?.page) query.set("page", String(params.page));
@@ -287,7 +290,7 @@ export async function fetchOpenJobs(
 
 export async function fetchMyJobs(
   token: string,
-  params?: PaginationParams
+  params?: PaginationParams,
 ): Promise<JobPost[]> {
   const query = new URLSearchParams();
   if (params?.page) query.set("page", String(params.page));
@@ -301,7 +304,7 @@ export async function fetchMyJobs(
 
 export async function fetchJobById(
   token: string,
-  id: string
+  id: string,
 ): Promise<JobPost> {
   return request<JobPost>(`/v1/jobs/${id}`, {
     method: "GET",
@@ -312,7 +315,7 @@ export async function fetchJobById(
 export async function submitProposal(
   token: string,
   jobId: string,
-  payload: CreateProposalPayload
+  payload: CreateProposalPayload,
 ): Promise<Proposal> {
   return request<Proposal>(`/v1/jobs/${jobId}/proposals`, {
     method: "POST",
@@ -324,7 +327,7 @@ export async function submitProposal(
 export async function fetchJobProposals(
   token: string,
   jobId: string,
-  params?: PaginationParams
+  params?: PaginationParams,
 ): Promise<
   (Proposal & {
     tutor?: { id: string; name: string; email: string; role: string };
@@ -346,7 +349,7 @@ export async function fetchJobProposals(
 
 export async function fetchMyProposals(
   token: string,
-  params?: PaginationParams
+  params?: PaginationParams,
 ): Promise<Proposal[]> {
   const query = new URLSearchParams();
   if (params?.page) query.set("page", String(params.page));
@@ -360,7 +363,7 @@ export async function fetchMyProposals(
 
 export async function withdrawProposal(
   token: string,
-  proposalId: string
+  proposalId: string,
 ): Promise<Proposal> {
   return request<Proposal>(`/v1/proposals/${proposalId}/withdraw`, {
     method: "POST",
@@ -371,7 +374,7 @@ export async function withdrawProposal(
 
 export async function declineProposal(
   token: string,
-  proposalId: string
+  proposalId: string,
 ): Promise<Proposal> {
   return request<Proposal>(`/v1/proposals/${proposalId}/decline`, {
     method: "POST",
@@ -382,7 +385,7 @@ export async function declineProposal(
 
 export async function acceptProposal(
   token: string,
-  proposalId: string
+  proposalId: string,
 ): Promise<Contract> {
   return request<Contract>(`/v1/proposals/${proposalId}/accept`, {
     method: "POST",
@@ -401,7 +404,7 @@ export async function closeJob(token: string, jobId: string): Promise<JobPost> {
 
 export async function fetchMyContracts(
   token: string,
-  params?: PaginationParams
+  params?: PaginationParams,
 ): Promise<Contract[]> {
   const query = new URLSearchParams();
   if (params?.page) query.set("page", String(params.page));
@@ -415,7 +418,7 @@ export async function fetchMyContracts(
 
 export async function fetchContractById(
   token: string,
-  id: string
+  id: string,
 ): Promise<Contract> {
   return request<Contract>(`/v1/contracts/${id}`, {
     method: "GET",
@@ -426,7 +429,7 @@ export async function fetchContractById(
 export async function fetchContractMessages(
   token: string,
   contractId: string,
-  params?: PaginationParams
+  params?: PaginationParams,
 ): Promise<ContractMessage[]> {
   const query = new URLSearchParams();
   if (params?.page) query.set("page", String(params.page));
@@ -437,14 +440,14 @@ export async function fetchContractMessages(
     {
       method: "GET",
       token,
-    }
+    },
   );
 }
 
 export async function fetchContractAppointments(
   token: string,
   contractId: string,
-  params?: PaginationParams
+  params?: PaginationParams,
 ): Promise<Appointment[]> {
   const query = new URLSearchParams();
   if (params?.page) query.set("page", String(params.page));
@@ -455,14 +458,14 @@ export async function fetchContractAppointments(
     {
       method: "GET",
       token,
-    }
+    },
   );
 }
 
 export async function createContractAppointment(
   token: string,
   contractId: string,
-  payload: CreateAppointmentPayload
+  payload: CreateAppointmentPayload,
 ): Promise<Appointment> {
   return request<Appointment>(`/v1/contracts/${contractId}/appointments`, {
     method: "POST",
@@ -474,7 +477,7 @@ export async function createContractAppointment(
 export async function cancelContractAppointment(
   token: string,
   contractId: string,
-  appointmentId: string
+  appointmentId: string,
 ): Promise<Appointment> {
   return request<Appointment>(
     `/v1/contracts/${contractId}/appointments/${appointmentId}/cancel`,
@@ -482,14 +485,14 @@ export async function cancelContractAppointment(
       method: "POST",
       token,
       body: JSON.stringify({}),
-    }
+    },
   );
 }
 
 export async function sendContractMessage(
   token: string,
   contractId: string,
-  payload: { body: string; attachmentUrl?: string }
+  payload: { body: string; attachmentUrl?: string },
 ): Promise<ContractMessage> {
   return request<ContractMessage>(`/v1/contracts/${contractId}/messages`, {
     method: "POST",
@@ -501,7 +504,7 @@ export async function sendContractMessage(
 export async function createContractPaymentIntent(
   token: string,
   contractId: string,
-  payload?: { amount?: number; currency?: string }
+  payload?: { amount?: number; currency?: string },
 ): Promise<{
   paymentId: string;
   providerReference?: string | null;
@@ -518,7 +521,7 @@ export async function createContractPaymentIntent(
 export async function fetchContractPayments(
   token: string,
   contractId: string,
-  params?: PaginationParams
+  params?: PaginationParams,
 ): Promise<Payment[]> {
   const query = new URLSearchParams();
   if (params?.page) query.set("page", String(params.page));
@@ -529,14 +532,14 @@ export async function fetchContractPayments(
     {
       method: "GET",
       token,
-    }
+    },
   );
 }
 
 export async function fetchContractMilestones(
   token: string,
   contractId: string,
-  params?: PaginationParams
+  params?: PaginationParams,
 ): Promise<ContractMilestone[]> {
   const query = new URLSearchParams();
   if (params?.page) query.set("page", String(params.page));
@@ -547,14 +550,14 @@ export async function fetchContractMilestones(
     {
       method: "GET",
       token,
-    }
+    },
   );
 }
 
 export async function createContractMilestone(
   token: string,
   contractId: string,
-  payload: { title: string; amount: number; currency?: string }
+  payload: { title: string; amount: number; currency?: string },
 ): Promise<ContractMilestone> {
   return request<ContractMilestone>(`/v1/contracts/${contractId}/milestones`, {
     method: "POST",
@@ -566,7 +569,7 @@ export async function createContractMilestone(
 export async function createMilestonePaymentIntent(
   token: string,
   contractId: string,
-  milestoneId: string
+  milestoneId: string,
 ): Promise<{
   paymentId: string;
   providerReference?: string | null;
@@ -579,14 +582,14 @@ export async function createMilestonePaymentIntent(
       method: "POST",
       token,
       body: JSON.stringify({}),
-    }
+    },
   );
 }
 
 export async function releaseContractMilestone(
   token: string,
   contractId: string,
-  milestoneId: string
+  milestoneId: string,
 ): Promise<ContractMilestone> {
   return request<ContractMilestone>(
     `/v1/contracts/${contractId}/milestones/${milestoneId}/release`,
@@ -594,14 +597,14 @@ export async function releaseContractMilestone(
       method: "POST",
       token,
       body: JSON.stringify({}),
-    }
+    },
   );
 }
 
 export async function payoutContractMilestone(
   token: string,
   contractId: string,
-  milestoneId: string
+  milestoneId: string,
 ): Promise<unknown> {
   return request(
     `/v1/contracts/${contractId}/milestones/${milestoneId}/payout`,
@@ -609,6 +612,6 @@ export async function payoutContractMilestone(
       method: "POST",
       token,
       body: JSON.stringify({}),
-    }
+    },
   );
 }

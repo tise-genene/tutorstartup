@@ -185,9 +185,7 @@ export function ChatWidget() {
           >
             <div className="min-w-0">
               <p className="text-sm font-semibold">{BRAND_NAME} chat</p>
-              <p className="text-xs ui-muted">
-                Quick help and troubleshooting
-              </p>
+              <p className="text-xs ui-muted">Quick help and troubleshooting</p>
             </div>
 
             <button

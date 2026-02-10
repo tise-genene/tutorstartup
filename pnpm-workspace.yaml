@@ -3,8 +3,8 @@ packages:
   - packages/*
 
 ignoredBuiltDependencies:
-  - '@nestjs/core'
-  - '@prisma/client'
-  - '@prisma/engines'
+  - "@nestjs/core"
+  - "@prisma/client"
+  - "@prisma/engines"
   - argon2
   - prisma

@@ -86,7 +86,7 @@ export default function JobDetailForParentPage() {
     try {
       const updated = await declineProposal(token, proposalId);
       setProposals((prev) =>
-        prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
+        prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)),
       );
     } catch (e) {
       setStatus((e as Error).message);
@@ -105,8 +105,8 @@ export default function JobDetailForParentPage() {
         prev.map((p) =>
           p.id === proposalId
             ? { ...p, status: "ACCEPTED", contractId: contract.id }
-            : p
-        )
+            : p,
+        ),
       );
       window.location.href = `/contracts/${contract.id}`;
     } catch (e) {

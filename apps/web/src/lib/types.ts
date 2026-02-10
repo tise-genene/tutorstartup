@@ -136,7 +136,6 @@ export interface CreateJobPayload {
   currency?: string;
 }
 
-
 export interface Proposal {
   id: string;
   jobPostId: string;

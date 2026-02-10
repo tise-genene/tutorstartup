@@ -276,7 +276,7 @@ export default function ContractDetailPage() {
       const intent = await createMilestonePaymentIntent(
         token,
         contractId,
-        milestoneId
+        milestoneId,
       );
       window.location.href = intent.checkoutUrl;
     } catch (e) {
@@ -684,17 +684,17 @@ export default function ContractDetailPage() {
                             <div className="flex items-center gap-2">
                               {(auth?.user.role === "PARENT" ||
                                 auth?.user.role === "TUTOR") && (
-                                  <button
-                                    type="button"
-                                    className="ui-btn"
-                                    disabled={cancellingAppointmentId === a.id}
-                                    onClick={() => onCancelAppointment(a.id)}
-                                  >
-                                    {cancellingAppointmentId === a.id
-                                      ? "Cancelling…"
-                                      : "Cancel"}
-                                  </button>
-                                )}
+                                <button
+                                  type="button"
+                                  className="ui-btn"
+                                  disabled={cancellingAppointmentId === a.id}
+                                  onClick={() => onCancelAppointment(a.id)}
+                                >
+                                  {cancellingAppointmentId === a.id
+                                    ? "Cancelling…"
+                                    : "Cancel"}
+                                </button>
+                              )}
                               <p className="text-xs ui-muted">
                                 {new Date(a.createdAt).toLocaleString()}
                               </p>
@@ -725,105 +725,105 @@ export default function ContractDetailPage() {
 
                 {(auth?.user.role === "PARENT" ||
                   auth?.user.role === "TUTOR") && (
-                    <div className="mt-6 space-y-3">
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <input
-                          className="ui-field"
-                          placeholder="Title"
-                          value={appointmentForm.title}
-                          onChange={(e) =>
-                            setAppointmentForm((p) => ({
-                              ...p,
-                              title: e.target.value,
-                            }))
-                          }
-                        />
-                        <input
-                          className="ui-field"
-                          placeholder="Location text (optional)"
-                          value={appointmentForm.locationText}
-                          onChange={(e) =>
-                            setAppointmentForm((p) => ({
-                              ...p,
-                              locationText: e.target.value,
-                            }))
-                          }
-                        />
-                      </div>
-
-                      <textarea
+                  <div className="mt-6 space-y-3">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <input
                         className="ui-field"
-                        rows={3}
-                        placeholder="Notes (optional)"
-                        value={appointmentForm.notes}
+                        placeholder="Title"
+                        value={appointmentForm.title}
                         onChange={(e) =>
                           setAppointmentForm((p) => ({
                             ...p,
-                            notes: e.target.value,
+                            title: e.target.value,
                           }))
                         }
                       />
-
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <label className="text-xs ui-muted">
-                          Start
-                          <input
-                            className="ui-field mt-2"
-                            type="datetime-local"
-                            value={appointmentForm.startAt}
-                            onChange={(e) =>
-                              setAppointmentForm((p) => ({
-                                ...p,
-                                startAt: e.target.value,
-                              }))
-                            }
-                          />
-                        </label>
-                        <label className="text-xs ui-muted">
-                          End
-                          <input
-                            className="ui-field mt-2"
-                            type="datetime-local"
-                            value={appointmentForm.endAt}
-                            onChange={(e) =>
-                              setAppointmentForm((p) => ({
-                                ...p,
-                                endAt: e.target.value,
-                              }))
-                            }
-                          />
-                        </label>
-                      </div>
-
-                      <GoogleMapPicker
-                        enableSearch
-                        value={{
-                          lat: appointmentForm.locationLat,
-                          lng: appointmentForm.locationLng,
-                          locationText: appointmentForm.locationText,
-                        }}
-                        onChange={(v) =>
+                      <input
+                        className="ui-field"
+                        placeholder="Location text (optional)"
+                        value={appointmentForm.locationText}
+                        onChange={(e) =>
                           setAppointmentForm((p) => ({
                             ...p,
-                            locationLat: v.lat,
-                            locationLng: v.lng,
-                            locationText: v.locationText ?? p.locationText,
+                            locationText: e.target.value,
                           }))
                         }
                       />
-
-                      <button
-                        type="button"
-                        className="ui-btn ui-btn-primary"
-                        disabled={creatingAppointment}
-                        onClick={onCreateAppointment}
-                      >
-                        {creatingAppointment
-                          ? "Scheduling…"
-                          : "Schedule appointment"}
-                      </button>
                     </div>
-                  )}
+
+                    <textarea
+                      className="ui-field"
+                      rows={3}
+                      placeholder="Notes (optional)"
+                      value={appointmentForm.notes}
+                      onChange={(e) =>
+                        setAppointmentForm((p) => ({
+                          ...p,
+                          notes: e.target.value,
+                        }))
+                      }
+                    />
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="text-xs ui-muted">
+                        Start
+                        <input
+                          className="ui-field mt-2"
+                          type="datetime-local"
+                          value={appointmentForm.startAt}
+                          onChange={(e) =>
+                            setAppointmentForm((p) => ({
+                              ...p,
+                              startAt: e.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+                      <label className="text-xs ui-muted">
+                        End
+                        <input
+                          className="ui-field mt-2"
+                          type="datetime-local"
+                          value={appointmentForm.endAt}
+                          onChange={(e) =>
+                            setAppointmentForm((p) => ({
+                              ...p,
+                              endAt: e.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    <GoogleMapPicker
+                      enableSearch
+                      value={{
+                        lat: appointmentForm.locationLat,
+                        lng: appointmentForm.locationLng,
+                        locationText: appointmentForm.locationText,
+                      }}
+                      onChange={(v) =>
+                        setAppointmentForm((p) => ({
+                          ...p,
+                          locationLat: v.lat,
+                          locationLng: v.lng,
+                          locationText: v.locationText ?? p.locationText,
+                        }))
+                      }
+                    />
+
+                    <button
+                      type="button"
+                      className="ui-btn ui-btn-primary"
+                      disabled={creatingAppointment}
+                      onClick={onCreateAppointment}
+                    >
+                      {creatingAppointment
+                        ? "Scheduling…"
+                        : "Schedule appointment"}
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="surface-card surface-card--quiet p-5">

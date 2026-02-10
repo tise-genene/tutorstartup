@@ -39,7 +39,7 @@ export default function TutorSearchPage() {
       limit: number;
       page: number;
     },
-    options?: { showMetaStatus?: boolean }
+    options?: { showMetaStatus?: boolean },
   ) => {
     const showMetaStatus = options?.showMetaStatus ?? true;
     setStatus(null);
@@ -55,7 +55,7 @@ export default function TutorSearchPage() {
           setStatus(
             response.meta.cacheHit
               ? t("search.meta.cache")
-              : t("search.meta.live")
+              : t("search.meta.live"),
           );
         }
       }
@@ -75,7 +75,7 @@ export default function TutorSearchPage() {
         limit: 20,
         page: 1,
       },
-      { showMetaStatus: false }
+      { showMetaStatus: false },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

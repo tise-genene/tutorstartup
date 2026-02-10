@@ -22,7 +22,7 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class ContractsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   private normalizeCurrency(value?: string | null): string {
     const raw = (value ?? '').trim().toUpperCase();
@@ -231,7 +231,10 @@ export class ContractsService {
     });
   }
 
-  async listMine(user: { id: string; role: UserRole }, pagination?: PaginationDto) {
+  async listMine(
+    user: { id: string; role: UserRole },
+    pagination?: PaginationDto,
+  ) {
     if (
       user.role !== UserRole.PARENT &&
       user.role !== UserRole.STUDENT &&
@@ -284,7 +287,11 @@ export class ContractsService {
     return contract;
   }
 
-  async listMessages(user: { id: string; role: UserRole }, contractId: string, pagination?: PaginationDto) {
+  async listMessages(
+    user: { id: string; role: UserRole },
+    contractId: string,
+    pagination?: PaginationDto,
+  ) {
     const contract = await this.prisma.contract.findUnique({
       where: { id: contractId },
       select: { id: true, parentId: true, tutorId: true },
@@ -580,9 +587,15 @@ export class ContractsService {
         }),
       ]);
 
-      const escrowAmount = escrowDeposited._sum.amount ? Number(escrowDeposited._sum.amount) : 0;
-      const payableAmount = payableSum._sum.amount ? Number(payableSum._sum.amount) : 0;
-      const alreadyPaid = payoutSum._sum.amount ? Number(payoutSum._sum.amount) : 0;
+      const escrowAmount = escrowDeposited._sum.amount
+        ? Number(escrowDeposited._sum.amount)
+        : 0;
+      const payableAmount = payableSum._sum.amount
+        ? Number(payableSum._sum.amount)
+        : 0;
+      const alreadyPaid = payoutSum._sum.amount
+        ? Number(payoutSum._sum.amount)
+        : 0;
       const remainingPayable = payableAmount - alreadyPaid;
 
       if (remainingPayable <= 0) {

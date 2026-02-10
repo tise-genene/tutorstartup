@@ -35,7 +35,7 @@ export default function RegisterPage() {
     try {
       await register(form);
       setStatus(
-        "Account created. Please check your email and verify before logging in."
+        "Account created. Please check your email and verify before logging in.",
       );
       router.push("/auth/login?registered=1");
     } catch (error) {

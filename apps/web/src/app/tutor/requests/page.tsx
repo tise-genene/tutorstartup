@@ -44,7 +44,10 @@ export default function TutorRequestsPage() {
       setLoading(true);
       setStatus(null);
       try {
-        const response = await fetchLessonRequestInbox(token, { page, limit: LIMIT });
+        const response = await fetchLessonRequestInbox(token, {
+          page,
+          limit: LIMIT,
+        });
         setItems(response);
       } catch (error) {
         setStatus((error as Error).message);
@@ -65,10 +68,10 @@ export default function TutorRequestsPage() {
     const payload =
       draft && (draft.message || draft.fileUrl || draft.videoUrl)
         ? {
-          tutorResponseMessage: draft.message || undefined,
-          tutorResponseFileUrl: draft.fileUrl || undefined,
-          tutorResponseVideoUrl: draft.videoUrl || undefined,
-        }
+            tutorResponseMessage: draft.message || undefined,
+            tutorResponseFileUrl: draft.fileUrl || undefined,
+            tutorResponseVideoUrl: draft.videoUrl || undefined,
+          }
         : undefined;
 
     try {
@@ -84,7 +87,7 @@ export default function TutorRequestsPage() {
   const updateDraft = (
     id: string,
     key: "message" | "fileUrl" | "videoUrl",
-    value: string
+    value: string,
   ) => {
     setResponseDrafts((prev) => ({
       ...prev,
@@ -175,29 +178,29 @@ export default function TutorRequestsPage() {
                       </p>
                       {(item.tutorResponseFileUrl ||
                         item.tutorResponseVideoUrl) && (
-                          <div className="mt-2 flex flex-col gap-1 text-sm">
-                            {item.tutorResponseFileUrl && (
-                              <a
-                                className="text-sm underline opacity-85 hover:opacity-100"
-                                href={item.tutorResponseFileUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                File link
-                              </a>
-                            )}
-                            {item.tutorResponseVideoUrl && (
-                              <a
-                                className="text-sm underline opacity-85 hover:opacity-100"
-                                href={item.tutorResponseVideoUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                Video link
-                              </a>
-                            )}
-                          </div>
-                        )}
+                        <div className="mt-2 flex flex-col gap-1 text-sm">
+                          {item.tutorResponseFileUrl && (
+                            <a
+                              className="text-sm underline opacity-85 hover:opacity-100"
+                              href={item.tutorResponseFileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              File link
+                            </a>
+                          )}
+                          {item.tutorResponseVideoUrl && (
+                            <a
+                              className="text-sm underline opacity-85 hover:opacity-100"
+                              href={item.tutorResponseVideoUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Video link
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 

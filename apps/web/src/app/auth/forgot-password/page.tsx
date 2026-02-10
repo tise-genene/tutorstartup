@@ -18,7 +18,7 @@ export default function ForgotPasswordPage() {
     try {
       await forgotPassword(email);
       setStatus(
-        "If an account exists for that email, a reset link has been sent."
+        "If an account exists for that email, a reset link has been sent.",
       );
     } catch (e) {
       setStatus((e as Error).message);

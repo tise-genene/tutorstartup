@@ -11,7 +11,7 @@ export class SearchIndexerService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly searchService: SearchService,
-  ) { }
+  ) {}
 
   async syncTutorProfile(userId: string): Promise<void> {
     if (!this.searchService.isEnabled()) {

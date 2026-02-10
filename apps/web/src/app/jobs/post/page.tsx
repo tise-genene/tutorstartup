@@ -421,7 +421,7 @@ export default function PostJobPage() {
                           ? { ...p, hourlyAmount: e.target.value }
                           : p.payType === "MONTHLY"
                             ? { ...p, monthlyAmount: e.target.value }
-                            : { ...p, fixedAmount: e.target.value }
+                            : { ...p, fixedAmount: e.target.value },
                       )
                     }
                   />

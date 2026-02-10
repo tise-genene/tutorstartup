@@ -57,7 +57,7 @@ export default function WorkProposalsPage() {
     try {
       const updated = await withdrawProposal(token, proposalId);
       setItems((prev) =>
-        prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
+        prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)),
       );
     } catch (e) {
       setStatus((e as Error).message);

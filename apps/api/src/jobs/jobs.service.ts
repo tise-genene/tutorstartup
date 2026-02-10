@@ -18,7 +18,7 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class JobsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   private normalizeCurrency(value?: string | null): string | undefined {
     const raw = (value ?? '').trim().toUpperCase();
@@ -60,12 +60,12 @@ export class JobsService {
         location: dto.location?.trim() || null,
         locationLat:
           typeof dto.locationLat === 'number' &&
-            Number.isFinite(dto.locationLat)
+          Number.isFinite(dto.locationLat)
             ? dto.locationLat
             : null,
         locationLng:
           typeof dto.locationLng === 'number' &&
-            Number.isFinite(dto.locationLng)
+          Number.isFinite(dto.locationLng)
             ? dto.locationLng
             : null,
         budget: dto.budget ?? null,
@@ -89,7 +89,10 @@ export class JobsService {
     });
   }
 
-  async listOpenJobs(user: { id: string; role: UserRole }, pagination?: PaginationDto) {
+  async listOpenJobs(
+    user: { id: string; role: UserRole },
+    pagination?: PaginationDto,
+  ) {
     if (user.role !== UserRole.TUTOR) {
       throw new ForbiddenException('Only tutors can browse job posts');
     }
@@ -126,7 +129,10 @@ export class JobsService {
     });
   }
 
-  async listMyJobs(parent: { id: string; role: UserRole }, pagination?: PaginationDto) {
+  async listMyJobs(
+    parent: { id: string; role: UserRole },
+    pagination?: PaginationDto,
+  ) {
     if (parent.role !== UserRole.PARENT && parent.role !== UserRole.STUDENT) {
       throw new ForbiddenException('Only clients can view their job posts');
     }
@@ -277,14 +283,14 @@ export class JobsService {
           dto.location != null ? dto.location.trim() || null : undefined,
         locationLat:
           typeof dto.locationLat === 'number' &&
-            Number.isFinite(dto.locationLat)
+          Number.isFinite(dto.locationLat)
             ? dto.locationLat
             : dto.locationLat === null
               ? null
               : undefined,
         locationLng:
           typeof dto.locationLng === 'number' &&
-            Number.isFinite(dto.locationLng)
+          Number.isFinite(dto.locationLng)
             ? dto.locationLng
             : dto.locationLng === null
               ? null
@@ -492,7 +498,10 @@ export class JobsService {
     });
   }
 
-  async listMyProposals(tutor: { id: string; role: UserRole }, pagination?: PaginationDto) {
+  async listMyProposals(
+    tutor: { id: string; role: UserRole },
+    pagination?: PaginationDto,
+  ) {
     if (tutor.role !== UserRole.TUTOR) {
       throw new ForbiddenException('Only tutors can view their proposals');
     }

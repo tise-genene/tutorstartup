@@ -1,6 +1,6 @@
 # tutorstartup
 
-Modern jobs marketplace playground powered by a NestJS API (`apps/api`) and a Next.js App Router web client (`apps/web`). The monorepo is managed with Turborepo + pnpm and leans on Redis, BullMQ, and Meilisearch to prove out production-ready workflows.                           |
+Modern jobs marketplace playground powered by a NestJS API (`apps/api`) and a Next.js App Router web client (`apps/web`). The monorepo is managed with Turborepo + pnpm and leans on Redis, BullMQ, and Meilisearch to prove out production-ready workflows. |
 
 ## Prerequisites
 
@@ -27,7 +27,6 @@ pnpm --filter api start:dev
 # Web (http://localhost:3000)
 pnpm --filter web dev
 ```
-
 
 See `docs/DEPLOYMENT.md` for a staging/prod runbook.
 

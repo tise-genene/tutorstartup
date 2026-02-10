@@ -4,7 +4,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { createHmac } from 'node:crypto';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -439,7 +438,8 @@ export class PaymentsService {
       );
     }
 
-    const amount = input?.amount ?? (milestone.amount ? Number(milestone.amount) : null);
+    const amount =
+      input?.amount ?? (milestone.amount ? Number(milestone.amount) : null);
     if (!amount || amount <= 0) {
       throw new BadRequestException('Milestone amount is invalid');
     }
@@ -541,12 +541,17 @@ export class PaymentsService {
     this.verifyWebhookSignature(body, headers);
 
     // Validate webhook timestamp to mitigate replay attacks
-    const createdAtRaw = getNested(body, ['created_at']) ?? getNested(body, ['data', 'created_at']);
+    const createdAtRaw =
+      getNested(body, ['created_at']) ??
+      getNested(body, ['data', 'created_at']);
     if (typeof createdAtRaw === 'string') {
       const eventTime = new Date(createdAtRaw).getTime();
       const now = Date.now();
       const MAX_WEBHOOK_AGE_MS = 10 * 60 * 1000; // 10 minutes
-      if (!Number.isNaN(eventTime) && Math.abs(now - eventTime) > MAX_WEBHOOK_AGE_MS) {
+      if (
+        !Number.isNaN(eventTime) &&
+        Math.abs(now - eventTime) > MAX_WEBHOOK_AGE_MS
+      ) {
         throw new BadRequestException('Webhook event too old or in the future');
       }
     }

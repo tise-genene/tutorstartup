@@ -123,7 +123,7 @@ export function AppHeader() {
       // no-op
     },
     () => true,
-    () => false
+    () => false,
   );
 
   const effectiveTheme = hasHydrated ? theme : "dark";

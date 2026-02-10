@@ -33,7 +33,7 @@ export default function OAuthConsumePage() {
       try {
         const auth = await consumeAccessToken(accessToken);
         router.replace(
-          auth.user.role === "TUTOR" ? "/tutor/profile" : "/tutors/search"
+          auth.user.role === "TUTOR" ? "/tutor/profile" : "/tutors/search",
         );
       } catch (e) {
         setStatus((e as Error).message);

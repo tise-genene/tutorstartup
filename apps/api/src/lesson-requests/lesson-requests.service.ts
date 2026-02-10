@@ -12,7 +12,7 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class LessonRequestsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(
     requester: { id: string; role: UserRole },
@@ -52,7 +52,10 @@ export class LessonRequestsService {
     });
   }
 
-  async listInbox(tutor: { id: string; role: UserRole }, pagination?: PaginationDto) {
+  async listInbox(
+    tutor: { id: string; role: UserRole },
+    pagination?: PaginationDto,
+  ) {
     if (tutor.role !== UserRole.TUTOR) {
       throw new ForbiddenException('Only tutors can view lesson requests');
     }

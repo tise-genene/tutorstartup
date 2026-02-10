@@ -15,7 +15,8 @@ import { NOTIFICATIONS_QUEUE, NotificationJob } from './notifications.types';
 
 @Injectable()
 export class NotificationsProcessorService
-  implements OnModuleInit, OnModuleDestroy {
+  implements OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(NotificationsProcessorService.name);
   private readonly queueEnabled: boolean;
   private readonly consumersEnabled: boolean;

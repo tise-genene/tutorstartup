@@ -39,24 +39,24 @@ export class ContractDto {
       updatedAt: entity.updatedAt,
       jobPost: entity.jobPost
         ? {
-          id: entity.jobPost.id,
-          title: entity.jobPost.title,
-          status: entity.jobPost.status,
-        }
+            id: entity.jobPost.id,
+            title: entity.jobPost.title,
+            status: entity.jobPost.status,
+          }
         : undefined,
       parent: entity.parent
         ? {
-          id: entity.parent.id,
-          name: entity.parent.name,
-          role: entity.parent.role,
-        }
+            id: entity.parent.id,
+            name: entity.parent.name,
+            role: entity.parent.role,
+          }
         : undefined,
       tutor: entity.tutor
         ? {
-          id: entity.tutor.id,
-          name: entity.tutor.name,
-          role: entity.tutor.role,
-        }
+            id: entity.tutor.id,
+            name: entity.tutor.name,
+            role: entity.tutor.role,
+          }
         : undefined,
     };
   }

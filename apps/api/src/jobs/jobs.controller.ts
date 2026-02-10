@@ -25,7 +25,7 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller({ path: 'jobs', version: '1' })
 export class JobsController {
-  constructor(private readonly service: JobsService) { }
+  constructor(private readonly service: JobsService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.PARENT, UserRole.STUDENT)
@@ -41,22 +41,34 @@ export class JobsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.TUTOR)
   @Get('open')
-  async listOpen(@CurrentUser() user: JwtPayload, @Query() pagination: PaginationDto) {
-    const items = await this.service.listOpenJobs({
-      id: user.sub,
-      role: user.role,
-    }, pagination);
+  async listOpen(
+    @CurrentUser() user: JwtPayload,
+    @Query() pagination: PaginationDto,
+  ) {
+    const items = await this.service.listOpenJobs(
+      {
+        id: user.sub,
+        role: user.role,
+      },
+      pagination,
+    );
     return items.map((job) => JobDto.fromEntity(job));
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.PARENT, UserRole.STUDENT)
   @Get('mine')
-  async listMine(@CurrentUser() user: JwtPayload, @Query() pagination: PaginationDto) {
-    const items = await this.service.listMyJobs({
-      id: user.sub,
-      role: user.role,
-    }, pagination);
+  async listMine(
+    @CurrentUser() user: JwtPayload,
+    @Query() pagination: PaginationDto,
+  ) {
+    const items = await this.service.listMyJobs(
+      {
+        id: user.sub,
+        role: user.role,
+      },
+      pagination,
+    );
     return items.map((job) => JobDto.fromEntity(job));
   }
 

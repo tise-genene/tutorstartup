@@ -62,7 +62,7 @@ export function formatJobPostPreview(job: JobPreviewInput): string {
     const end = job.endTime?.trim();
     if (start && end) {
       lines.push(
-        `✅ Schedule: ${job.daysPerWeek} days/week Between ${start}-${end} local time`
+        `✅ Schedule: ${job.daysPerWeek} days/week Between ${start}-${end} local time`,
       );
     } else {
       lines.push(`✅ Schedule: ${job.daysPerWeek} days/week`);
@@ -92,16 +92,16 @@ export function formatJobPostPreview(job: JobPreviewInput): string {
 
   if (job.genderPreference) {
     lines.push(
-      `✅ Gender preference: ${formatGenderPreference(job.genderPreference)}`
+      `✅ Gender preference: ${formatGenderPreference(job.genderPreference)}`,
     );
   }
 
   const preferredDays = (job.preferredDays ?? []).filter(
-    (d) => d.trim().length > 0
+    (d) => d.trim().length > 0,
   );
   if (preferredDays.length > 0) {
     lines.push(
-      `✅ Preferred days: ${preferredDays.map((d) => titleCase(d)).join(", ")}`
+      `✅ Preferred days: ${preferredDays.map((d) => titleCase(d)).join(", ")}`,
     );
   }
 

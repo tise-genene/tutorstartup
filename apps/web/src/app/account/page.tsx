@@ -11,7 +11,7 @@ export default function AccountPage() {
   const { auth, consumeAccessToken } = useAuth();
 
   const [avatarUrl, setAvatarUrl] = useState<string>(
-    auth?.user.avatarUrl ?? ""
+    auth?.user.avatarUrl ?? "",
   );
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);

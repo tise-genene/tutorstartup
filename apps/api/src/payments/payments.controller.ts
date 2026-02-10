@@ -28,7 +28,7 @@ type CurrentUserPayload = {
 
 @Controller({ path: 'contracts', version: '1' })
 export class PaymentsController {
-  constructor(private readonly payments: PaymentsService) { }
+  constructor(private readonly payments: PaymentsService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post(':id/payments/intent')
@@ -90,7 +90,7 @@ export class PaymentsController {
 
 @Controller({ path: 'payments', version: '1' })
 export class PaymentsWebhookController {
-  constructor(private readonly payments: PaymentsService) { }
+  constructor(private readonly payments: PaymentsService) {}
 
   // Chapa calls callback_url with a GET after payment completion.
   @Get('chapa/callback')

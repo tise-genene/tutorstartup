@@ -27,16 +27,22 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller({ path: 'contracts', version: '1' })
 export class ContractsController {
-  constructor(private readonly service: ContractsService) { }
+  constructor(private readonly service: ContractsService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.PARENT, UserRole.STUDENT, UserRole.TUTOR)
   @Get('mine')
-  async mine(@CurrentUser() user: JwtPayload, @Query() pagination: PaginationDto) {
-    const items = await this.service.listMine({
-      id: user.sub,
-      role: user.role,
-    }, pagination);
+  async mine(
+    @CurrentUser() user: JwtPayload,
+    @Query() pagination: PaginationDto,
+  ) {
+    const items = await this.service.listMine(
+      {
+        id: user.sub,
+        role: user.role,
+      },
+      pagination,
+    );
     return items.map((c) => ContractDto.fromEntity(c));
   }
 

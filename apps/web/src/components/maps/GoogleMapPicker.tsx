@@ -74,7 +74,7 @@ export function GoogleMapPicker(props: {
 
         const emit = (
           pos: { lat: number; lng: number },
-          locationText?: string
+          locationText?: string,
         ) => {
           props.onChange({ lat: pos.lat, lng: pos.lng, locationText });
         };
@@ -97,7 +97,7 @@ export function GoogleMapPicker(props: {
             inputRef.current,
             {
               fields: ["geometry", "formatted_address", "name"],
-            }
+            },
           );
 
           autocomplete.addListener("place_changed", () => {
