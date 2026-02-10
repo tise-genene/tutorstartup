@@ -18,102 +18,19 @@ import {
 } from '../prisma/prisma.enums';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import type { PaymentsConfig } from '../config/payments.config';
-
-const DEFAULT_CURRENCY = 'ETB';
-
-type UnknownRecord = Record<string, unknown>;
-
-function toInputJsonValue(value: unknown): Prisma.InputJsonValue | undefined {
-  if (value === null || value === undefined) return undefined;
-  try {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-  } catch {
-    return undefined;
-  }
-}
-
-function toNullableJsonField(
-  value: unknown,
-): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput {
-  return toInputJsonValue(value) ?? Prisma.JsonNull;
-}
-
-function normalizeCurrency(value?: string | null): string {
-  const c = (value ?? '').trim().toUpperCase();
-  return c.length ? c : DEFAULT_CURRENCY;
-}
-
-function safeLower(value: unknown): string {
-  if (typeof value === 'string') return value.toLowerCase();
-  if (typeof value === 'number' || typeof value === 'boolean') {
-    return String(value).toLowerCase();
-  }
-  return '';
-}
-
-function isRecord(value: unknown): value is UnknownRecord {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function getRecord(value: unknown): UnknownRecord | null {
-  return isRecord(value) ? value : null;
-}
-
-function getStringField(obj: unknown, key: string): string | undefined {
-  const rec = getRecord(obj);
-  const value = rec ? rec[key] : undefined;
-  return typeof value === 'string' && value.trim().length > 0
-    ? value
-    : undefined;
-}
-
-function getNested(obj: unknown, path: string[]): unknown {
-  let cur: unknown = obj;
-  for (const p of path) {
-    const rec = getRecord(cur);
-    if (!rec) return undefined;
-    cur = rec[p];
-  }
-  return cur;
-}
-
-function extractTxRef(payload: unknown): string | undefined {
-  const direct =
-    getStringField(payload, 'tx_ref') ?? getStringField(payload, 'trx_ref');
-  if (direct) return direct;
-
-  const nested = getNested(payload, ['data', 'tx_ref']);
-  return typeof nested === 'string' && nested.trim().length > 0
-    ? nested.trim()
-    : undefined;
-}
-
-function getChapaSignature(headers: Record<string, unknown>): string | null {
-  const candidates = [
-    headers['x-chapa-signature'],
-    headers['X-Chapa-Signature'],
-    headers['chapa-signature'],
-    headers['Chapa-Signature'],
-  ];
-  for (const c of candidates) {
-    if (typeof c === 'string' && c.trim().length > 0) return c.trim();
-    if (Array.isArray(c) && typeof c[0] === 'string' && c[0].trim().length > 0)
-      return c[0].trim();
-  }
-  return null;
-}
-
-function computeHmacSha256Hex(secret: string, payload: unknown): string {
-  return createHmac('sha256', secret)
-    .update(JSON.stringify(payload ?? {}))
-    .digest('hex');
-}
-
-type VerifyResult = {
-  ok: boolean;
-  status: PaymentStatus;
-  providerResponse?: unknown;
-};
+import {
+  DEFAULT_CURRENCY,
+  computeHmacSha256Hex,
+  extractTxRef,
+  getChapaSignature,
+  getNested,
+  getStringField,
+  normalizeCurrency,
+  safeLower,
+  toInputJsonValue,
+  toNullableJsonField,
+  VerifyResult,
+} from './payments.utils';
 
 @Injectable()
 export class PaymentsService {
@@ -354,8 +271,11 @@ export class PaymentsService {
       );
     }
 
+    const budget = contract.jobPost?.budget;
     const amount =
-      input?.amount ?? contract.amount ?? contract.jobPost?.budget ?? null;
+      input?.amount ??
+      (contract.amount ? Number(contract.amount) : null) ??
+      (budget ? Number(budget) : null);
 
     if (!amount || amount <= 0) {
       throw new BadRequestException(
@@ -519,7 +439,7 @@ export class PaymentsService {
       );
     }
 
-    const amount = input?.amount ?? milestone.amount;
+    const amount = input?.amount ?? (milestone.amount ? Number(milestone.amount) : null);
     if (!amount || amount <= 0) {
       throw new BadRequestException('Milestone amount is invalid');
     }
