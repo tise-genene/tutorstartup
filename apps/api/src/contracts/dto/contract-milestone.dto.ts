@@ -18,7 +18,7 @@ export class ContractMilestoneDto {
       id: entity.id,
       contractId: entity.contractId,
       title: entity.title,
-      amount: entity.amount,
+      amount: Number(entity.amount),
       currency: entity.currency,
       status: entity.status,
       fundedAt: entity.fundedAt ?? null,

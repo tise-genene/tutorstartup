@@ -163,7 +163,7 @@ model TutorProfile {
   userId     String    @unique
   bio        String?
   subjects   String[]  @default([])
-  hourlyRate Int?
+  hourlyRate Decimal?
   languages  String[]  @default([])
   location   String?
   rating     Float?
@@ -205,7 +205,7 @@ model JobPost {
   location    String?
   locationLat Float?
   locationLng Float?
-  budget      Int?
+  budget      Decimal?
 
   grade              Int?
   sessionMinutes     Int?
@@ -214,9 +214,9 @@ model JobPost {
   endTime            String?
   preferredDays      String[]          @default([])
   payType            JobPayType?
-  hourlyAmount       Int?
-  monthlyAmount      Int?
-  fixedAmount        Int?
+  hourlyAmount       Decimal?
+  monthlyAmount      Decimal?
+  fixedAmount        Decimal?
   genderPreference   GenderPreference? @default(ANY)
   currency           String?           @default("ETB")
   status      JobPostStatus @default(OPEN)
@@ -287,7 +287,7 @@ model Contract {
   parentId  String
   tutorId   String
   status    ContractStatus @default(ACTIVE)
-  amount    Int?
+  amount    Decimal?
   currency  String         @default("ETB")
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
@@ -315,7 +315,7 @@ model ContractMilestone {
   id         String                  @id @default(uuid())
   contractId String
   title      String
-  amount     Int
+  amount     Decimal
   currency   String                  @default("ETB")
   status     ContractMilestoneStatus @default(DRAFT)
   fundedAt   DateTime?
@@ -338,7 +338,7 @@ model Payment {
   contractId        String
   milestoneId       String?
   createdByUserId   String
-  amount            Int
+  amount            Decimal
   currency          String          @default("ETB")
   providerReference String?         @unique
   checkoutUrl       String?
@@ -363,7 +363,7 @@ model LedgerEntry {
   paymentId   String?
   milestoneId String?
   type        LedgerEntryType
-  amount      Int
+  amount      Decimal
   currency    String          @default("ETB")
   // Idempotency guard: for webhooks, set to e.g. "CHAPA:<tx_ref>:CLIENT_CHARGE"
   idempotencyKey String       @unique

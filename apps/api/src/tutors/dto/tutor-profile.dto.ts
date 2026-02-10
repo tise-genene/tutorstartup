@@ -27,7 +27,7 @@ export class TutorProfileDto {
       name,
       bio: profile.bio,
       subjects: profile.subjects ?? [],
-      hourlyRate: profile.hourlyRate,
+      hourlyRate: profile.hourlyRate ? Number(profile.hourlyRate) : null,
       languages: profile.languages ?? [],
       location: profile.location,
       rating: profile.rating,

@@ -216,7 +216,7 @@ export class ContractsService {
           amount: proposal.jobPost?.budget ?? null,
           currency: 'ETB',
           status:
-            proposal.jobPost?.budget && proposal.jobPost.budget > 0
+            proposal.jobPost?.budget && Number(proposal.jobPost.budget) > 0
               ? ContractStatus.PENDING_PAYMENT
               : ContractStatus.ACTIVE,
         },
@@ -580,9 +580,9 @@ export class ContractsService {
         }),
       ]);
 
-      const escrowAmount = escrowDeposited._sum.amount ?? 0;
-      const payableAmount = payableSum._sum.amount ?? 0;
-      const alreadyPaid = payoutSum._sum.amount ?? 0;
+      const escrowAmount = escrowDeposited._sum.amount ? Number(escrowDeposited._sum.amount) : 0;
+      const payableAmount = payableSum._sum.amount ? Number(payableSum._sum.amount) : 0;
+      const alreadyPaid = payoutSum._sum.amount ? Number(payoutSum._sum.amount) : 0;
       const remainingPayable = payableAmount - alreadyPaid;
 
       if (remainingPayable <= 0) {
