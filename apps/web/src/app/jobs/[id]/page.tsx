@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PageShell } from "../../_components/PageShell";
+import { Pagination } from "../../_components/Pagination";
 import {
   acceptProposal,
   closeJob,
@@ -37,6 +38,8 @@ export default function JobDetailForParentPage() {
   const [busyProposalId, setBusyProposalId] = useState<string | null>(null);
   const [closing, setClosing] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const LIMIT = 10;
 
   const helper = useMemo(() => {
     if (!auth) return t("state.loginRequired");
@@ -62,7 +65,7 @@ export default function JobDetailForParentPage() {
       try {
         const [loadedJob, loadedProposals] = await Promise.all([
           fetchJobById(token, jobId),
-          fetchJobProposals(token, jobId),
+          fetchJobProposals(token, jobId, { page, limit: LIMIT }),
         ]);
         setJob(loadedJob);
         setProposals(loadedProposals);
@@ -74,7 +77,7 @@ export default function JobDetailForParentPage() {
     };
 
     void run();
-  }, [token, isClient, jobId]);
+  }, [token, isClient, jobId, page]);
 
   const onDecline = async (proposalId: string) => {
     if (!token) return;
@@ -305,6 +308,14 @@ export default function JobDetailForParentPage() {
                       </div>
                     ))}
                   </div>
+                )}
+
+                {!loading && isClient && proposals.length > 0 && (
+                  <Pagination
+                    page={page}
+                    onPageChange={setPage}
+                    hasMore={proposals.length === LIMIT}
+                  />
                 )}
               </div>
             </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PageShell } from "../_components/PageShell";
+import { Pagination } from "../_components/Pagination";
 import { fetchOpenJobs } from "../../lib/api";
 import type { JobPost } from "../../lib/types";
 import { useAuth, useI18n } from "../providers";
@@ -17,6 +18,8 @@ export default function WorkPage() {
   const [items, setItems] = useState<JobPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const LIMIT = 10;
 
   useEffect(() => {
     const run = async () => {
@@ -28,7 +31,7 @@ export default function WorkPage() {
       setLoading(true);
       setStatus(null);
       try {
-        const jobs = await fetchOpenJobs(token);
+        const jobs = await fetchOpenJobs(token, { page, limit: LIMIT });
         setItems(jobs);
       } catch (e) {
         setStatus((e as Error).message);
@@ -38,7 +41,7 @@ export default function WorkPage() {
     };
 
     void run();
-  }, [token, isTutor]);
+  }, [token, isTutor, page]);
 
   const helper = !auth
     ? t("state.loginRequired")
@@ -115,6 +118,14 @@ export default function WorkPage() {
                 </Link>
               ))}
             </div>
+          )}
+
+          {!loading && isTutor && (
+            <Pagination
+              page={page}
+              onPageChange={setPage}
+              hasMore={items.length === LIMIT}
+            />
           )}
         </div>
       </div>

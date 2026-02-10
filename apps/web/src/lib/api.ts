@@ -19,6 +19,7 @@ import type {
   TutorSearchResult,
   Appointment,
   CreateAppointmentPayload,
+  PaginationParams,
 } from "./types";
 
 const API_BASE_URL = (
@@ -200,9 +201,14 @@ export async function createLessonRequest(
 }
 
 export async function fetchLessonRequestInbox(
-  token: string
+  token: string,
+  params?: PaginationParams
 ): Promise<LessonRequest[]> {
-  return request<LessonRequest[]>("/v1/lesson-requests/inbox", {
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+
+  return request<LessonRequest[]>(`/v1/lesson-requests/inbox?${query.toString()}`, {
     method: "GET",
     token,
   });
@@ -265,15 +271,29 @@ export async function updateJob(
   });
 }
 
-export async function fetchOpenJobs(token: string): Promise<JobPost[]> {
-  return request<JobPost[]>("/v1/jobs/open", {
+export async function fetchOpenJobs(
+  token: string,
+  params?: PaginationParams
+): Promise<JobPost[]> {
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+
+  return request<JobPost[]>(`/v1/jobs/open?${query.toString()}`, {
     method: "GET",
     token,
   });
 }
 
-export async function fetchMyJobs(token: string): Promise<JobPost[]> {
-  return request<JobPost[]>("/v1/jobs/mine", {
+export async function fetchMyJobs(
+  token: string,
+  params?: PaginationParams
+): Promise<JobPost[]> {
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+
+  return request<JobPost[]>(`/v1/jobs/mine?${query.toString()}`, {
     method: "GET",
     token,
   });
@@ -303,24 +323,36 @@ export async function submitProposal(
 
 export async function fetchJobProposals(
   token: string,
-  jobId: string
+  jobId: string,
+  params?: PaginationParams
 ): Promise<
   (Proposal & {
     tutor?: { id: string; name: string; email: string; role: string };
   })[]
 > {
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+
   return request<
     (Proposal & {
       tutor?: { id: string; name: string; email: string; role: string };
     })[]
-  >(`/v1/jobs/${jobId}/proposals`, {
+  >(`/v1/jobs/${jobId}/proposals?${query.toString()}`, {
     method: "GET",
     token,
   });
 }
 
-export async function fetchMyProposals(token: string): Promise<Proposal[]> {
-  return request<Proposal[]>("/v1/proposals/mine", {
+export async function fetchMyProposals(
+  token: string,
+  params?: PaginationParams
+): Promise<Proposal[]> {
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+
+  return request<Proposal[]>(`/v1/proposals/mine?${query.toString()}`, {
     method: "GET",
     token,
   });
@@ -367,8 +399,15 @@ export async function closeJob(token: string, jobId: string): Promise<JobPost> {
   });
 }
 
-export async function fetchMyContracts(token: string): Promise<Contract[]> {
-  return request<Contract[]>("/v1/contracts/mine", {
+export async function fetchMyContracts(
+  token: string,
+  params?: PaginationParams
+): Promise<Contract[]> {
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+
+  return request<Contract[]>(`/v1/contracts/mine?${query.toString()}`, {
     method: "GET",
     token,
   });
@@ -386,22 +425,38 @@ export async function fetchContractById(
 
 export async function fetchContractMessages(
   token: string,
-  contractId: string
+  contractId: string,
+  params?: PaginationParams
 ): Promise<ContractMessage[]> {
-  return request<ContractMessage[]>(`/v1/contracts/${contractId}/messages`, {
-    method: "GET",
-    token,
-  });
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+
+  return request<ContractMessage[]>(
+    `/v1/contracts/${contractId}/messages?${query.toString()}`,
+    {
+      method: "GET",
+      token,
+    }
+  );
 }
 
 export async function fetchContractAppointments(
   token: string,
-  contractId: string
+  contractId: string,
+  params?: PaginationParams
 ): Promise<Appointment[]> {
-  return request<Appointment[]>(`/v1/contracts/${contractId}/appointments`, {
-    method: "GET",
-    token,
-  });
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+
+  return request<Appointment[]>(
+    `/v1/contracts/${contractId}/appointments?${query.toString()}`,
+    {
+      method: "GET",
+      token,
+    }
+  );
 }
 
 export async function createContractAppointment(
@@ -462,20 +517,33 @@ export async function createContractPaymentIntent(
 
 export async function fetchContractPayments(
   token: string,
-  contractId: string
+  contractId: string,
+  params?: PaginationParams
 ): Promise<Payment[]> {
-  return request<Payment[]>(`/v1/contracts/${contractId}/payments`, {
-    method: "GET",
-    token,
-  });
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+
+  return request<Payment[]>(
+    `/v1/contracts/${contractId}/payments?${query.toString()}`,
+    {
+      method: "GET",
+      token,
+    }
+  );
 }
 
 export async function fetchContractMilestones(
   token: string,
-  contractId: string
+  contractId: string,
+  params?: PaginationParams
 ): Promise<ContractMilestone[]> {
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+
   return request<ContractMilestone[]>(
-    `/v1/contracts/${contractId}/milestones`,
+    `/v1/contracts/${contractId}/milestones?${query.toString()}`,
     {
       method: "GET",
       token,

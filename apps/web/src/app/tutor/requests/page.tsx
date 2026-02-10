@@ -7,6 +7,7 @@ import {
   fetchLessonRequestInbox,
   updateLessonRequestStatus,
 } from "../../../lib/api";
+import { Pagination } from "../../_components/Pagination";
 import type { LessonRequest, LessonRequestStatus } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
 
@@ -21,6 +22,8 @@ export default function TutorRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const LIMIT = 10;
   const [responseDrafts, setResponseDrafts] = useState<
     Record<string, { message: string; fileUrl: string; videoUrl: string }>
   >({});
@@ -41,7 +44,7 @@ export default function TutorRequestsPage() {
       setLoading(true);
       setStatus(null);
       try {
-        const response = await fetchLessonRequestInbox(token);
+        const response = await fetchLessonRequestInbox(token, { page, limit: LIMIT });
         setItems(response);
       } catch (error) {
         setStatus((error as Error).message);
@@ -51,7 +54,7 @@ export default function TutorRequestsPage() {
     };
 
     void run();
-  }, [token, isTutor]);
+  }, [token, isTutor, page]);
 
   const onUpdate = async (id: string, next: LessonRequestStatus) => {
     if (!token) return;
@@ -62,10 +65,10 @@ export default function TutorRequestsPage() {
     const payload =
       draft && (draft.message || draft.fileUrl || draft.videoUrl)
         ? {
-            tutorResponseMessage: draft.message || undefined,
-            tutorResponseFileUrl: draft.fileUrl || undefined,
-            tutorResponseVideoUrl: draft.videoUrl || undefined,
-          }
+          tutorResponseMessage: draft.message || undefined,
+          tutorResponseFileUrl: draft.fileUrl || undefined,
+          tutorResponseVideoUrl: draft.videoUrl || undefined,
+        }
         : undefined;
 
     try {
@@ -172,29 +175,29 @@ export default function TutorRequestsPage() {
                       </p>
                       {(item.tutorResponseFileUrl ||
                         item.tutorResponseVideoUrl) && (
-                        <div className="mt-2 flex flex-col gap-1 text-sm">
-                          {item.tutorResponseFileUrl && (
-                            <a
-                              className="text-sm underline opacity-85 hover:opacity-100"
-                              href={item.tutorResponseFileUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              File link
-                            </a>
-                          )}
-                          {item.tutorResponseVideoUrl && (
-                            <a
-                              className="text-sm underline opacity-85 hover:opacity-100"
-                              href={item.tutorResponseVideoUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Video link
-                            </a>
-                          )}
-                        </div>
-                      )}
+                          <div className="mt-2 flex flex-col gap-1 text-sm">
+                            {item.tutorResponseFileUrl && (
+                              <a
+                                className="text-sm underline opacity-85 hover:opacity-100"
+                                href={item.tutorResponseFileUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                File link
+                              </a>
+                            )}
+                            {item.tutorResponseVideoUrl && (
+                              <a
+                                className="text-sm underline opacity-85 hover:opacity-100"
+                                href={item.tutorResponseVideoUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                Video link
+                              </a>
+                            )}
+                          </div>
+                        )}
                     </div>
                   )}
 
@@ -251,6 +254,14 @@ export default function TutorRequestsPage() {
                 </div>
               ))}
             </div>
+          )}
+
+          {!loading && isTutor && (
+            <Pagination
+              page={page}
+              onPageChange={setPage}
+              hasMore={items.length === LIMIT}
+            />
           )}
         </div>
       </div>

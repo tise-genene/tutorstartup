@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { PageShell } from "../../_components/PageShell";
+import { Pagination } from "../../_components/Pagination";
 import { fetchMyProposals, withdrawProposal } from "../../../lib/api";
 import type { Proposal } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
@@ -18,6 +19,8 @@ export default function WorkProposalsPage() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const LIMIT = 10;
 
   const helper = useMemo(() => {
     if (!auth) return t("state.loginRequired");
@@ -35,7 +38,7 @@ export default function WorkProposalsPage() {
       setLoading(true);
       setStatus(null);
       try {
-        const proposals = await fetchMyProposals(token);
+        const proposals = await fetchMyProposals(token, { page, limit: LIMIT });
         setItems(proposals);
       } catch (e) {
         setStatus((e as Error).message);
@@ -45,7 +48,7 @@ export default function WorkProposalsPage() {
     };
 
     void run();
-  }, [token, isTutor]);
+  }, [token, isTutor, page]);
 
   const onWithdraw = async (proposalId: string) => {
     if (!token) return;
@@ -163,6 +166,14 @@ export default function WorkProposalsPage() {
                 </div>
               ))}
             </div>
+          )}
+
+          {!loading && isTutor && (
+            <Pagination
+              page={page}
+              onPageChange={setPage}
+              hasMore={items.length === LIMIT}
+            />
           )}
         </div>
       </div>

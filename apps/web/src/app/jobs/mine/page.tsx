@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { PageShell } from "../../_components/PageShell";
+import { Pagination } from "../../_components/Pagination";
 import { fetchMyJobs, publishJob } from "../../../lib/api";
 import type { JobPost } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
@@ -18,6 +19,8 @@ export default function MyJobsPage() {
   const [items, setItems] = useState<JobPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const LIMIT = 10;
 
   const [publishingId, setPublishingId] = useState<string | null>(null);
 
@@ -37,7 +40,7 @@ export default function MyJobsPage() {
       setLoading(true);
       setStatus(null);
       try {
-        const jobs = await fetchMyJobs(token);
+        const jobs = await fetchMyJobs(token, { page, limit: LIMIT });
         setItems(jobs);
       } catch (e) {
         setStatus((e as Error).message);
@@ -47,7 +50,7 @@ export default function MyJobsPage() {
     };
 
     void run();
-  }, [token, isClient]);
+  }, [token, isClient, page]);
 
   const onPublish = async (jobId: string) => {
     if (!token) return;
@@ -55,7 +58,7 @@ export default function MyJobsPage() {
     setStatus(null);
     try {
       await publishJob(token, jobId);
-      const jobs = await fetchMyJobs(token);
+      const jobs = await fetchMyJobs(token, { page, limit: LIMIT });
       setItems(jobs);
     } catch (e) {
       setStatus((e as Error).message);
@@ -127,6 +130,14 @@ export default function MyJobsPage() {
                 </div>
               ))}
             </div>
+          )}
+
+          {!loading && isClient && (
+            <Pagination
+              page={page}
+              onPageChange={setPage}
+              hasMore={items.length === LIMIT}
+            />
           )}
         </div>
       </div>

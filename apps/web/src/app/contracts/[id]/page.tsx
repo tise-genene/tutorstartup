@@ -19,6 +19,7 @@ import {
   cancelContractAppointment,
   sendContractMessage,
 } from "../../../lib/api";
+import { Pagination } from "../../_components/Pagination";
 import type {
   Appointment,
   Contract,
@@ -64,6 +65,12 @@ export default function ContractDetailPage() {
     amount: "",
   });
 
+  const [msgPage, setMsgPage] = useState(1);
+  const [apptPage, setApptPage] = useState(1);
+  const [payPage, setPayPage] = useState(1);
+  const [msPage, setMsPage] = useState(1);
+  const LIMIT = 10;
+
   const [appointmentForm, setAppointmentForm] = useState({
     title: "",
     notes: "",
@@ -88,39 +95,14 @@ export default function ContractDetailPage() {
     setLoading(true);
     setStatus(null);
     try {
-      const [loadedContract, loadedMessages] = await Promise.all([
-        fetchContractById(token, contractId),
-        fetchContractMessages(token, contractId),
-      ]);
+      const loadedContract = await fetchContractById(token, contractId);
       setContract(loadedContract);
-      setMessages(loadedMessages);
-
-      try {
-        const loadedPayments = await fetchContractPayments(token, contractId);
-        setPayments(loadedPayments);
-      } catch {
-        setPayments([]);
-      }
-
-      try {
-        const loadedMilestones = await fetchContractMilestones(
-          token,
-          contractId
-        );
-        setMilestones(loadedMilestones);
-      } catch {
-        setMilestones([]);
-      }
-
-      try {
-        const loadedAppointments = await fetchContractAppointments(
-          token,
-          contractId
-        );
-        setAppointments(loadedAppointments);
-      } catch {
-        setAppointments([]);
-      }
+      await Promise.all([
+        fetchMessages(),
+        fetchPayments(),
+        fetchMilestones(),
+        fetchAppointments(),
+      ]);
     } catch (e) {
       setStatus((e as Error).message);
     } finally {
@@ -128,10 +110,83 @@ export default function ContractDetailPage() {
     }
   };
 
+  const fetchMessages = async () => {
+    if (!token || !contractId) return;
+    try {
+      const loaded = await fetchContractMessages(token, contractId, {
+        page: msgPage,
+        limit: LIMIT,
+      });
+      setMessages(loaded);
+    } catch (e) {
+      console.error("Failed to load messages:", e);
+    }
+  };
+
+  const fetchPayments = async () => {
+    if (!token || !contractId) return;
+    try {
+      const loaded = await fetchContractPayments(token, contractId, {
+        page: payPage,
+        limit: LIMIT,
+      });
+      setPayments(loaded);
+    } catch (e) {
+      setPayments([]);
+    }
+  };
+
+  const fetchMilestones = async () => {
+    if (!token || !contractId) return;
+    try {
+      const loaded = await fetchContractMilestones(token, contractId, {
+        page: msPage,
+        limit: LIMIT,
+      });
+      setMilestones(loaded);
+    } catch (e) {
+      setMilestones([]);
+    }
+  };
+
+  const fetchAppointments = async () => {
+    if (!token || !contractId) return;
+    try {
+      const loaded = await fetchContractAppointments(token, contractId, {
+        page: apptPage,
+        limit: LIMIT,
+      });
+      setAppointments(loaded);
+    } catch (e) {
+      setAppointments([]);
+    }
+  };
+
   useEffect(() => {
+    if (!token || !isParentTutorOrAdmin || !contractId) return;
     void reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, isParentTutorOrAdmin, contractId]);
+
+  useEffect(() => {
+    void fetchMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [msgPage]);
+
+  useEffect(() => {
+    void fetchPayments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [payPage]);
+
+  useEffect(() => {
+    void fetchMilestones();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [msPage]);
+
+  useEffect(() => {
+    void fetchAppointments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apptPage]);
 
   const onSend = async () => {
     if (!token || !contractId) return;
@@ -438,6 +493,14 @@ export default function ContractDetailPage() {
                         </div>
                       ))}
                     </div>
+
+                    {!loading && (
+                      <Pagination
+                        page={payPage}
+                        onPageChange={setPayPage}
+                        hasMore={payments.length === LIMIT}
+                      />
+                    )}
                   </div>
                 )}
               </div>
@@ -515,6 +578,14 @@ export default function ContractDetailPage() {
                       </div>
                     ))}
                   </div>
+                )}
+
+                {!loading && milestones.length > 0 && (
+                  <Pagination
+                    page={msPage}
+                    onPageChange={setMsPage}
+                    hasMore={milestones.length === LIMIT}
+                  />
                 )}
 
                 {auth?.user.role === "PARENT" && (
@@ -613,17 +684,17 @@ export default function ContractDetailPage() {
                             <div className="flex items-center gap-2">
                               {(auth?.user.role === "PARENT" ||
                                 auth?.user.role === "TUTOR") && (
-                                <button
-                                  type="button"
-                                  className="ui-btn"
-                                  disabled={cancellingAppointmentId === a.id}
-                                  onClick={() => onCancelAppointment(a.id)}
-                                >
-                                  {cancellingAppointmentId === a.id
-                                    ? "Cancelling…"
-                                    : "Cancel"}
-                                </button>
-                              )}
+                                  <button
+                                    type="button"
+                                    className="ui-btn"
+                                    disabled={cancellingAppointmentId === a.id}
+                                    onClick={() => onCancelAppointment(a.id)}
+                                  >
+                                    {cancellingAppointmentId === a.id
+                                      ? "Cancelling…"
+                                      : "Cancel"}
+                                  </button>
+                                )}
                               <p className="text-xs ui-muted">
                                 {new Date(a.createdAt).toLocaleString()}
                               </p>
@@ -644,107 +715,115 @@ export default function ContractDetailPage() {
                   </div>
                 )}
 
+                {!loading && appointments.length > 0 && (
+                  <Pagination
+                    page={apptPage}
+                    onPageChange={setApptPage}
+                    hasMore={appointments.length === LIMIT}
+                  />
+                )}
+
                 {(auth?.user.role === "PARENT" ||
                   auth?.user.role === "TUTOR") && (
-                  <div className="mt-6 space-y-3">
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <input
-                        className="ui-field"
-                        placeholder="Title"
-                        value={appointmentForm.title}
-                        onChange={(e) =>
-                          setAppointmentForm((p) => ({
-                            ...p,
-                            title: e.target.value,
-                          }))
-                        }
-                      />
-                      <input
-                        className="ui-field"
-                        placeholder="Location text (optional)"
-                        value={appointmentForm.locationText}
-                        onChange={(e) =>
-                          setAppointmentForm((p) => ({
-                            ...p,
-                            locationText: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-
-                    <textarea
-                      className="ui-field"
-                      rows={3}
-                      placeholder="Notes (optional)"
-                      value={appointmentForm.notes}
-                      onChange={(e) =>
-                        setAppointmentForm((p) => ({
-                          ...p,
-                          notes: e.target.value,
-                        }))
-                      }
-                    />
-
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <label className="text-xs ui-muted">
-                        Start
+                    <div className="mt-6 space-y-3">
+                      <div className="grid gap-3 sm:grid-cols-2">
                         <input
-                          className="ui-field mt-2"
-                          type="datetime-local"
-                          value={appointmentForm.startAt}
+                          className="ui-field"
+                          placeholder="Title"
+                          value={appointmentForm.title}
                           onChange={(e) =>
                             setAppointmentForm((p) => ({
                               ...p,
-                              startAt: e.target.value,
+                              title: e.target.value,
                             }))
                           }
                         />
-                      </label>
-                      <label className="text-xs ui-muted">
-                        End
                         <input
-                          className="ui-field mt-2"
-                          type="datetime-local"
-                          value={appointmentForm.endAt}
+                          className="ui-field"
+                          placeholder="Location text (optional)"
+                          value={appointmentForm.locationText}
                           onChange={(e) =>
                             setAppointmentForm((p) => ({
                               ...p,
-                              endAt: e.target.value,
+                              locationText: e.target.value,
                             }))
                           }
                         />
-                      </label>
+                      </div>
+
+                      <textarea
+                        className="ui-field"
+                        rows={3}
+                        placeholder="Notes (optional)"
+                        value={appointmentForm.notes}
+                        onChange={(e) =>
+                          setAppointmentForm((p) => ({
+                            ...p,
+                            notes: e.target.value,
+                          }))
+                        }
+                      />
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="text-xs ui-muted">
+                          Start
+                          <input
+                            className="ui-field mt-2"
+                            type="datetime-local"
+                            value={appointmentForm.startAt}
+                            onChange={(e) =>
+                              setAppointmentForm((p) => ({
+                                ...p,
+                                startAt: e.target.value,
+                              }))
+                            }
+                          />
+                        </label>
+                        <label className="text-xs ui-muted">
+                          End
+                          <input
+                            className="ui-field mt-2"
+                            type="datetime-local"
+                            value={appointmentForm.endAt}
+                            onChange={(e) =>
+                              setAppointmentForm((p) => ({
+                                ...p,
+                                endAt: e.target.value,
+                              }))
+                            }
+                          />
+                        </label>
+                      </div>
+
+                      <GoogleMapPicker
+                        enableSearch
+                        value={{
+                          lat: appointmentForm.locationLat,
+                          lng: appointmentForm.locationLng,
+                          locationText: appointmentForm.locationText,
+                        }}
+                        onChange={(v) =>
+                          setAppointmentForm((p) => ({
+                            ...p,
+                            locationLat: v.lat,
+                            locationLng: v.lng,
+                            locationText: v.locationText ?? p.locationText,
+                          }))
+                        }
+                      />
+
+                      <button
+                        type="button"
+                        className="ui-btn ui-btn-primary"
+                        disabled={creatingAppointment}
+                        onClick={onCreateAppointment}
+                      >
+                        {creatingAppointment
+                          ? "Scheduling…"
+                          : "Schedule appointment"}
+                      </button>
                     </div>
-
-                    <GoogleMapPicker
-                      enableSearch
-                      value={{
-                        lat: appointmentForm.locationLat,
-                        lng: appointmentForm.locationLng,
-                        locationText: appointmentForm.locationText,
-                      }}
-                      onChange={(v) =>
-                        setAppointmentForm((p) => ({
-                          ...p,
-                          locationLat: v.lat,
-                          locationLng: v.lng,
-                          locationText: v.locationText ?? p.locationText,
-                        }))
-                      }
-                    />
-
-                    <button
-                      type="button"
-                      className="ui-btn ui-btn-primary"
-                      disabled={creatingAppointment}
-                      onClick={onCreateAppointment}
-                    >
-                      {creatingAppointment
-                        ? "Scheduling…"
-                        : "Schedule appointment"}
-                    </button>
-                  </div>
-                )}
+                  )}
               </div>
 
               <div className="surface-card surface-card--quiet p-5">
@@ -792,6 +871,14 @@ export default function ContractDetailPage() {
                       </div>
                     ))}
                   </div>
+                )}
+
+                {!loading && messages.length > 0 && (
+                  <Pagination
+                    page={msgPage}
+                    onPageChange={setMsgPage}
+                    hasMore={messages.length === LIMIT}
+                  />
                 )}
 
                 <div className="mt-6 space-y-3">

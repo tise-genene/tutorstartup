@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { PageShell } from "../_components/PageShell";
+import { Pagination } from "../_components/Pagination";
 import { fetchMyContracts } from "../../lib/api";
 import type { Contract } from "../../lib/types";
 import { useAuth, useI18n } from "../providers";
@@ -18,6 +19,8 @@ export default function ContractsPage() {
   const [items, setItems] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const LIMIT = 10;
 
   const helper = useMemo(() => {
     if (!auth) return t("state.loginRequired");
@@ -35,7 +38,7 @@ export default function ContractsPage() {
       setLoading(true);
       setStatus(null);
       try {
-        const contracts = await fetchMyContracts(token);
+        const contracts = await fetchMyContracts(token, { page, limit: LIMIT });
         setItems(contracts);
       } catch (e) {
         setStatus((e as Error).message);
@@ -45,7 +48,7 @@ export default function ContractsPage() {
     };
 
     void run();
-  }, [token, isParentOrTutor]);
+  }, [token, isParentOrTutor, page]);
 
   return (
     <PageShell>
@@ -100,6 +103,14 @@ export default function ContractsPage() {
                 </Link>
               ))}
             </div>
+          )}
+
+          {!loading && isParentOrTutor && (
+            <Pagination
+              page={page}
+              onPageChange={setPage}
+              hasMore={items.length === LIMIT}
+            />
           )}
         </div>
       </div>
