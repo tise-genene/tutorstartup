@@ -6,6 +6,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -20,10 +21,11 @@ import { UpdateJobDto } from './dto/update-job.dto';
 import { JobDto } from './dto/job.dto';
 import { CreateProposalDto } from './dto/create-proposal.dto';
 import { ProposalDto } from './dto/proposal.dto';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller({ path: 'jobs', version: '1' })
 export class JobsController {
-  constructor(private readonly service: JobsService) {}
+  constructor(private readonly service: JobsService) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.PARENT, UserRole.STUDENT)
@@ -39,22 +41,22 @@ export class JobsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.TUTOR)
   @Get('open')
-  async listOpen(@CurrentUser() user: JwtPayload) {
+  async listOpen(@CurrentUser() user: JwtPayload, @Query() pagination: PaginationDto) {
     const items = await this.service.listOpenJobs({
       id: user.sub,
       role: user.role,
-    });
+    }, pagination);
     return items.map((job) => JobDto.fromEntity(job));
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.PARENT, UserRole.STUDENT)
   @Get('mine')
-  async listMine(@CurrentUser() user: JwtPayload) {
+  async listMine(@CurrentUser() user: JwtPayload, @Query() pagination: PaginationDto) {
     const items = await this.service.listMyJobs({
       id: user.sub,
       role: user.role,
-    });
+    }, pagination);
     return items.map((job) => JobDto.fromEntity(job));
   }
 
@@ -138,10 +140,12 @@ export class JobsController {
   async proposalsForJob(
     @CurrentUser() user: JwtPayload,
     @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() pagination: PaginationDto,
   ) {
     const items = await this.service.listProposalsForJob(
       { id: user.sub, role: user.role },
       id,
+      pagination,
     );
     return items.map((p) => ({
       ...ProposalDto.fromEntity(p),

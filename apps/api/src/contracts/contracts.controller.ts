@@ -5,6 +5,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -22,19 +23,20 @@ import { CreateContractMilestoneDto } from './dto/create-contract-milestone.dto'
 import { ReleaseContractMilestoneDto } from './dto/release-contract-milestone.dto';
 import { PayoutContractMilestoneDto } from './dto/payout-contract-milestone.dto';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller({ path: 'contracts', version: '1' })
 export class ContractsController {
-  constructor(private readonly service: ContractsService) {}
+  constructor(private readonly service: ContractsService) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.PARENT, UserRole.STUDENT, UserRole.TUTOR)
   @Get('mine')
-  async mine(@CurrentUser() user: JwtPayload) {
+  async mine(@CurrentUser() user: JwtPayload, @Query() pagination: PaginationDto) {
     const items = await this.service.listMine({
       id: user.sub,
       role: user.role,
-    });
+    }, pagination);
     return items.map((c) => ContractDto.fromEntity(c));
   }
 
@@ -58,10 +60,12 @@ export class ContractsController {
   async listMessages(
     @CurrentUser() user: JwtPayload,
     @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() pagination: PaginationDto,
   ) {
     const items = await this.service.listMessages(
       { id: user.sub, role: user.role },
       id,
+      pagination,
     );
     return items.map((m) => ContractMessageDto.fromEntity(m));
   }
@@ -84,10 +88,12 @@ export class ContractsController {
   async listMilestones(
     @CurrentUser() user: JwtPayload,
     @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() pagination: PaginationDto,
   ) {
     const items = await this.service.listMilestones(
       { id: user.sub, role: user.role },
       id,
+      pagination,
     );
     return items.map((m) => ContractMilestoneDto.fromEntity(m));
   }
@@ -98,10 +104,12 @@ export class ContractsController {
   async listAppointments(
     @CurrentUser() user: JwtPayload,
     @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() pagination: PaginationDto,
   ) {
     return await this.service.listAppointments(
       { id: user.sub, role: user.role },
       id,
+      pagination,
     );
   }
 

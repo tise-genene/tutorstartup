@@ -8,10 +8,11 @@ import { LessonRequestStatus, UserRole } from '../prisma/prisma.enums';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLessonRequestDto } from './dto/create-lesson-request.dto';
 import { UpdateLessonRequestDto } from './dto/update-lesson-request.dto';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class LessonRequestsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(
     requester: { id: string; role: UserRole },
@@ -51,11 +52,12 @@ export class LessonRequestsService {
     });
   }
 
-  async listInbox(tutor: { id: string; role: UserRole }) {
+  async listInbox(tutor: { id: string; role: UserRole }, pagination?: PaginationDto) {
     if (tutor.role !== UserRole.TUTOR) {
       throw new ForbiddenException('Only tutors can view lesson requests');
     }
 
+    const pg = pagination ?? new PaginationDto();
     return await this.prisma.lessonRequest.findMany({
       where: { tutorId: tutor.id },
       orderBy: { createdAt: 'desc' },
@@ -64,7 +66,8 @@ export class LessonRequestsService {
           select: { id: true, name: true, email: true, role: true },
         },
       },
-      take: 50,
+      skip: pg.skip,
+      take: pg.take,
     });
   }
 

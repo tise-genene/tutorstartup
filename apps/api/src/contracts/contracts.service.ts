@@ -18,10 +18,11 @@ import { CreateContractMilestoneDto } from './dto/create-contract-milestone.dto'
 import { ReleaseContractMilestoneDto } from './dto/release-contract-milestone.dto';
 import { PayoutContractMilestoneDto } from './dto/payout-contract-milestone.dto';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class ContractsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   private normalizeCurrency(value?: string | null): string {
     const raw = (value ?? '').trim().toUpperCase();
@@ -50,12 +51,16 @@ export class ContractsService {
   async listAppointments(
     user: { id: string; role: UserRole },
     contractId: string,
+    pagination?: PaginationDto,
   ) {
     await this.ensureContractMember(user.id, contractId);
 
+    const pg = pagination ?? new PaginationDto();
     return await this.prisma.appointment.findMany({
       where: { contractId, cancelledAt: null },
       orderBy: { startAt: 'asc' },
+      skip: pg.skip,
+      take: pg.take,
     });
   }
 
@@ -226,7 +231,7 @@ export class ContractsService {
     });
   }
 
-  async listMine(user: { id: string; role: UserRole }) {
+  async listMine(user: { id: string; role: UserRole }, pagination?: PaginationDto) {
     if (
       user.role !== UserRole.PARENT &&
       user.role !== UserRole.STUDENT &&
@@ -240,6 +245,7 @@ export class ContractsService {
         ? { parentId: user.id }
         : { tutorId: user.id };
 
+    const pg = pagination ?? new PaginationDto();
     return await this.prisma.contract.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -248,7 +254,8 @@ export class ContractsService {
         parent: { select: { id: true, name: true, role: true } },
         tutor: { select: { id: true, name: true, role: true } },
       },
-      take: 50,
+      skip: pg.skip,
+      take: pg.take,
     });
   }
 
@@ -277,7 +284,7 @@ export class ContractsService {
     return contract;
   }
 
-  async listMessages(user: { id: string; role: UserRole }, contractId: string) {
+  async listMessages(user: { id: string; role: UserRole }, contractId: string, pagination?: PaginationDto) {
     const contract = await this.prisma.contract.findUnique({
       where: { id: contractId },
       select: { id: true, parentId: true, tutorId: true },
@@ -295,13 +302,15 @@ export class ContractsService {
       throw new ForbiddenException('Cannot view contract messages');
     }
 
+    const pg = pagination ?? new PaginationDto();
     return await this.prisma.contractMessage.findMany({
       where: { contractId },
       orderBy: { createdAt: 'asc' },
       include: {
         sender: { select: { id: true, name: true, role: true } },
       },
-      take: 200,
+      skip: pg.skip,
+      take: pg.take,
     });
   }
 
@@ -343,6 +352,7 @@ export class ContractsService {
   async listMilestones(
     user: { id: string; role: UserRole },
     contractId: string,
+    pagination?: PaginationDto,
   ) {
     const contract = await this.prisma.contract.findUnique({
       where: { id: contractId },
@@ -361,10 +371,12 @@ export class ContractsService {
       throw new ForbiddenException('Cannot view contract milestones');
     }
 
+    const pg = pagination ?? new PaginationDto();
     return await this.prisma.contractMilestone.findMany({
       where: { contractId },
       orderBy: { createdAt: 'asc' },
-      take: 100,
+      skip: pg.skip,
+      take: pg.take,
     });
   }
 

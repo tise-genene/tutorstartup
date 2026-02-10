@@ -14,10 +14,11 @@ import {
   ProposalStatus,
   UserRole,
 } from '../prisma/prisma.enums';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class JobsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   private normalizeCurrency(value?: string | null): string | undefined {
     const raw = (value ?? '').trim().toUpperCase();
@@ -59,12 +60,12 @@ export class JobsService {
         location: dto.location?.trim() || null,
         locationLat:
           typeof dto.locationLat === 'number' &&
-          Number.isFinite(dto.locationLat)
+            Number.isFinite(dto.locationLat)
             ? dto.locationLat
             : null,
         locationLng:
           typeof dto.locationLng === 'number' &&
-          Number.isFinite(dto.locationLng)
+            Number.isFinite(dto.locationLng)
             ? dto.locationLng
             : null,
         budget: dto.budget ?? null,
@@ -88,7 +89,7 @@ export class JobsService {
     });
   }
 
-  async listOpenJobs(user: { id: string; role: UserRole }) {
+  async listOpenJobs(user: { id: string; role: UserRole }, pagination?: PaginationDto) {
     if (user.role !== UserRole.TUTOR) {
       throw new ForbiddenException('Only tutors can browse job posts');
     }
@@ -106,6 +107,7 @@ export class JobsService {
       throw new ForbiddenException('Verify your email to browse job posts');
     }
 
+    const pg = pagination ?? new PaginationDto();
     return await this.prisma.jobPost.findMany({
       where: {
         status: JobPostStatus.OPEN,
@@ -119,19 +121,22 @@ export class JobsService {
         },
       },
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      skip: pg.skip,
+      take: pg.take,
     });
   }
 
-  async listMyJobs(parent: { id: string; role: UserRole }) {
+  async listMyJobs(parent: { id: string; role: UserRole }, pagination?: PaginationDto) {
     if (parent.role !== UserRole.PARENT && parent.role !== UserRole.STUDENT) {
       throw new ForbiddenException('Only clients can view their job posts');
     }
 
+    const pg = pagination ?? new PaginationDto();
     return await this.prisma.jobPost.findMany({
       where: { parentId: parent.id },
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      skip: pg.skip,
+      take: pg.take,
     });
   }
 
@@ -272,14 +277,14 @@ export class JobsService {
           dto.location != null ? dto.location.trim() || null : undefined,
         locationLat:
           typeof dto.locationLat === 'number' &&
-          Number.isFinite(dto.locationLat)
+            Number.isFinite(dto.locationLat)
             ? dto.locationLat
             : dto.locationLat === null
               ? null
               : undefined,
         locationLng:
           typeof dto.locationLng === 'number' &&
-          Number.isFinite(dto.locationLng)
+            Number.isFinite(dto.locationLng)
             ? dto.locationLng
             : dto.locationLng === null
               ? null
@@ -452,6 +457,7 @@ export class JobsService {
   async listProposalsForJob(
     user: { id: string; role: UserRole },
     jobId: string,
+    pagination?: PaginationDto,
   ) {
     const job = await this.prisma.jobPost.findUnique({
       where: { id: jobId },
@@ -473,6 +479,7 @@ export class JobsService {
       throw new ForbiddenException('Only clients can view job proposals');
     }
 
+    const pg = pagination ?? new PaginationDto();
     return await this.prisma.proposal.findMany({
       where: { jobPostId: jobId },
       orderBy: { createdAt: 'desc' },
@@ -480,20 +487,23 @@ export class JobsService {
         tutor: { select: { id: true, name: true, email: true, role: true } },
         contract: { select: { id: true } },
       },
-      take: 50,
+      skip: pg.skip,
+      take: pg.take,
     });
   }
 
-  async listMyProposals(tutor: { id: string; role: UserRole }) {
+  async listMyProposals(tutor: { id: string; role: UserRole }, pagination?: PaginationDto) {
     if (tutor.role !== UserRole.TUTOR) {
       throw new ForbiddenException('Only tutors can view their proposals');
     }
 
+    const pg = pagination ?? new PaginationDto();
     return await this.prisma.proposal.findMany({
       where: { tutorId: tutor.id },
       orderBy: { createdAt: 'desc' },
       include: { jobPost: true, contract: { select: { id: true } } },
-      take: 50,
+      skip: pg.skip,
+      take: pg.take,
     });
   }
 }
