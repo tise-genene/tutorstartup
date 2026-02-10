@@ -36,7 +36,7 @@ export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   private get paymentsConfig(): PaymentsConfig {
     const cfg = this.configService.get<PaymentsConfig>('payments');
@@ -154,8 +154,8 @@ export class PaymentsService {
         ...(verify !== undefined ? { verify } : {}),
         ...(payment.metadata != null
           ? {
-            previous: payment.metadata as unknown as Prisma.InputJsonValue,
-          }
+              previous: payment.metadata as unknown as Prisma.InputJsonValue,
+            }
           : {}),
       } satisfies Prisma.InputJsonObject;
 
@@ -305,11 +305,20 @@ export class PaymentsService {
       throw new BadRequestException('API_PUBLIC_URL is not configured');
     }
 
-    const successUrl = `${frontendUrl}/payments/success?tx_ref=${encodeURIComponent(txRef)}`;
+    const successUrl: string = `${frontendUrl}/payments/success?tx_ref=${encodeURIComponent(txRef)}`;
 
     const chapaSecret = this.getChapaSecret();
 
-    const payload = {
+    const payload: {
+      amount: string;
+      currency: string;
+      email: string;
+      first_name: string;
+      tx_ref: string;
+      callback_url: string;
+      return_url: string;
+      customization: { title: string; description: string };
+    } = {
       amount: String(amount),
       currency,
       email: user.email,
