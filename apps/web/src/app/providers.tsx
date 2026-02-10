@@ -674,9 +674,9 @@ export function Providers({ children }: { children: ReactNode }) {
 
   const register = useCallback(async (payload: RegisterPayload) => {
     const result = await registerUser(payload);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(WAS_LOGGED_KEY, "1");
-    }
+    // Do NOT set WAS_LOGGED_KEY here — registration requires email verification
+    // before the user can log in. Setting this prematurely causes a false
+    // "session expired" banner on next visit.
     return result;
   }, []);
 
