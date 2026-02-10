@@ -180,7 +180,7 @@ export async function searchTutors(
   if (params.page) {
     query.set("page", String(params.page));
   }
-  (params.subjects ?? []).forEach((subject) => {
+  (params.subjects ?? []).forEach((subject: string) => {
     if (subject.trim().length > 0) {
       query.append("subjects", subject.trim());
     }
