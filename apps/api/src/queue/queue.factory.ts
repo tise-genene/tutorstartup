@@ -18,12 +18,18 @@ export class QueueFactoryService {
     this.connection = buildBullConnectionOptions(redisConfig);
     this.prefix = queueConfig?.prefix ?? 'tutorstartup';
     this.baseJobOptions = {
-      removeOnComplete: true,
-      removeOnFail: 1000,
-      attempts: 3,
+      removeOnComplete: {
+        age: 3600, // keep for 1 hour
+        count: 1000,
+      },
+      removeOnFail: {
+        age: 24 * 3600 * 7, // keep for 7 days
+        count: 5000,
+      },
+      attempts: 5,
       backoff: {
         type: 'exponential',
-        delay: 1000,
+        delay: 5000, // Start with 5s
       },
     };
   }

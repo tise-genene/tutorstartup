@@ -9,13 +9,13 @@ import { Worker } from 'bullmq';
 import type { QueueConfig } from '../config/queue.config';
 import type { RedisConfig } from '../config/redis.config';
 import { buildBullConnectionOptions } from '../queue/queue.utils';
+import { setupStandardWorker } from '../queue/worker.utils';
 import { NotificationsHandler } from './notifications.handler';
 import { NOTIFICATIONS_QUEUE, NotificationJob } from './notifications.types';
 
 @Injectable()
 export class NotificationsProcessorService
-  implements OnModuleInit, OnModuleDestroy
-{
+  implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(NotificationsProcessorService.name);
   private readonly queueEnabled: boolean;
   private readonly consumersEnabled: boolean;
@@ -52,16 +52,7 @@ export class NotificationsProcessorService
       },
     );
 
-    this.worker.on('failed', (job, error) => {
-      const jobId = job?.id ?? 'unknown';
-      const err = error instanceof Error ? error : new Error(String(error));
-      this.logger.error(`Notification job ${jobId} failed`, err.stack);
-    });
-
-    this.worker.on('error', (error) => {
-      const err = error instanceof Error ? error : new Error(String(error));
-      this.logger.error('Notifications worker encountered an error', err.stack);
-    });
+    setupStandardWorker(this.worker, this.logger);
   }
 
   async onModuleDestroy(): Promise<void> {

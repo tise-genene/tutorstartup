@@ -10,6 +10,7 @@ import type { QueueConfig } from '../config/queue.config';
 import type { RedisConfig } from '../config/redis.config';
 import type { SearchConfig } from '../config/search.config';
 import { buildBullConnectionOptions } from '../queue/queue.utils';
+import { setupStandardWorker } from '../queue/worker.utils';
 import { SearchIndexerService } from './search-indexer.service';
 import { SearchService } from './search.service';
 import { SEARCH_INDEX_QUEUE, SearchIndexJob } from './search.types';
@@ -65,16 +66,7 @@ export class SearchProcessorService implements OnModuleInit, OnModuleDestroy {
       },
     );
 
-    this.worker.on('failed', (job, error) => {
-      const jobId = job?.id ?? 'unknown';
-      const err = error instanceof Error ? error : new Error(String(error));
-      this.logger.error(`Search job ${jobId} failed`, err.stack);
-    });
-
-    this.worker.on('error', (error) => {
-      const err = error instanceof Error ? error : new Error(String(error));
-      this.logger.error('Search queue worker encountered an error', err.stack);
-    });
+    setupStandardWorker(this.worker, this.logger);
   }
 
   async onModuleDestroy(): Promise<void> {
