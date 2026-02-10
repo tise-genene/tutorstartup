@@ -1,20 +1,38 @@
-export type UserRole = "STUDENT" | "PARENT" | "TUTOR" | "AGENCY" | "ADMIN";
+import type {
+  UserRole,
+  LessonRequestStatus,
+  JobPostStatus,
+  JobPayType,
+  GenderPreference,
+  ProposalStatus,
+  ContractStatus,
+  ContractMilestoneStatus,
+  PaymentStatus,
+  PaymentProvider,
+  AuthenticatedUser,
+  AuthResponse,
+  PaginationParams,
+  TutorSearchParams,
+  PersonSummary,
+} from "@tutorstartup/shared";
 
-export type LessonRequestStatus = "PENDING" | "ACCEPTED" | "DECLINED";
-
-export interface AuthenticatedUser {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
-  isVerified: boolean;
-  avatarUrl?: string | null;
-}
-
-export interface AuthResponse {
-  accessToken: string;
-  user: AuthenticatedUser;
-}
+export type {
+  UserRole,
+  LessonRequestStatus,
+  JobPostStatus,
+  JobPayType,
+  GenderPreference,
+  ProposalStatus,
+  ContractStatus,
+  ContractMilestoneStatus,
+  PaymentStatus,
+  PaymentProvider,
+  AuthenticatedUser,
+  AuthResponse,
+  PaginationParams,
+  TutorSearchParams,
+  PersonSummary,
+};
 
 export interface TutorProfile {
   id: string;
@@ -60,11 +78,6 @@ export interface CreateLessonRequestPayload {
   subject: string;
   message: string;
 }
-
-export type JobPostStatus = "DRAFT" | "OPEN" | "CLOSED";
-
-export type JobPayType = "HOURLY" | "MONTHLY" | "FIXED";
-export type GenderPreference = "ANY" | "MALE" | "FEMALE";
 
 export interface JobPost {
   id: string;
@@ -123,11 +136,6 @@ export interface CreateJobPayload {
   currency?: string;
 }
 
-export type ProposalStatus =
-  | "SUBMITTED"
-  | "WITHDRAWN"
-  | "ACCEPTED"
-  | "DECLINED";
 
 export interface Proposal {
   id: string;
@@ -145,24 +153,6 @@ export interface Proposal {
     title: string;
     status: string;
   };
-}
-
-export type ContractStatus =
-  | "PENDING_PAYMENT"
-  | "ACTIVE"
-  | "COMPLETED"
-  | "CANCELLED";
-
-export type ContractMilestoneStatus =
-  | "DRAFT"
-  | "FUNDED"
-  | "RELEASED"
-  | "CANCELLED";
-
-export interface PersonSummary {
-  id: string;
-  name: string;
-  role: string;
 }
 
 export interface Contract {
@@ -193,10 +183,6 @@ export interface ContractMilestone {
   createdAt: string;
   updatedAt: string;
 }
-
-export type PaymentStatus = "PENDING" | "SUCCEEDED" | "FAILED";
-
-export type PaymentProvider = "CHAPA" | "TELEBIRR";
 
 export interface Payment {
   id: string;
@@ -300,12 +286,4 @@ export interface RegisterPayload {
 export interface LoginPayload {
   email: string;
   password: string;
-}
-
-export interface TutorSearchParams {
-  query?: string;
-  subjects?: string[];
-  location?: string;
-  limit?: number;
-  page?: number;
 }
