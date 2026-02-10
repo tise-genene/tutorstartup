@@ -17,6 +17,7 @@ import { UserRole } from '../prisma/prisma.enums';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
 import { CreateMilestonePaymentIntentDto } from './dto/create-milestone-payment-intent.dto';
 import { PaymentsService } from './payments.service';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 type CurrentUserPayload = {
   id: string;
@@ -27,7 +28,7 @@ type CurrentUserPayload = {
 
 @Controller({ path: 'contracts', version: '1' })
 export class PaymentsController {
-  constructor(private readonly payments: PaymentsService) {}
+  constructor(private readonly payments: PaymentsService) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post(':id/payments/intent')
@@ -77,17 +78,19 @@ export class PaymentsController {
   async listContractPayments(
     @CurrentUser() user: Pick<CurrentUserPayload, 'id' | 'role'>,
     @Param('id') contractId: string,
+    @Query() pagination: PaginationDto,
   ) {
     return await this.payments.listContractPayments(
       { id: user.id, role: user.role },
       contractId,
+      pagination,
     );
   }
 }
 
 @Controller({ path: 'payments', version: '1' })
 export class PaymentsWebhookController {
-  constructor(private readonly payments: PaymentsService) {}
+  constructor(private readonly payments: PaymentsService) { }
 
   // Chapa calls callback_url with a GET after payment completion.
   @Get('chapa/callback')

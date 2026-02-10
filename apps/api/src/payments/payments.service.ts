@@ -16,6 +16,7 @@ import {
   PaymentStatus,
   UserRole,
 } from '../prisma/prisma.enums';
+import { PaginationDto } from '../common/dto/pagination.dto';
 import type { PaymentsConfig } from '../config/payments.config';
 
 const DEFAULT_CURRENCY = 'ETB';
@@ -119,7 +120,7 @@ export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   private get paymentsConfig(): PaymentsConfig {
     const cfg = this.configService.get<PaymentsConfig>('payments');
@@ -237,8 +238,8 @@ export class PaymentsService {
         ...(verify !== undefined ? { verify } : {}),
         ...(payment.metadata != null
           ? {
-              previous: payment.metadata as unknown as Prisma.InputJsonValue,
-            }
+            previous: payment.metadata as unknown as Prisma.InputJsonValue,
+          }
           : {}),
       } satisfies Prisma.InputJsonObject;
 
@@ -337,6 +338,20 @@ export class PaymentsService {
 
     if (contract.status === ContractStatus.ACTIVE) {
       throw new BadRequestException('Contract is already active');
+    }
+
+    // Idempotency: reject if a PENDING payment already exists for this contract
+    const existingPending = await this.prisma.payment.findFirst({
+      where: {
+        contractId: contract.id,
+        milestoneId: null,
+        status: PaymentStatus.PENDING,
+      },
+    });
+    if (existingPending) {
+      throw new BadRequestException(
+        'A pending payment already exists for this contract. Complete or cancel it first.',
+      );
     }
 
     const amount =
@@ -490,6 +505,20 @@ export class PaymentsService {
       throw new BadRequestException('Milestone cancelled');
     }
 
+    // Idempotency: reject if a PENDING payment already exists for this milestone
+    const existingPending = await this.prisma.payment.findFirst({
+      where: {
+        contractId: contract.id,
+        milestoneId: milestone.id,
+        status: PaymentStatus.PENDING,
+      },
+    });
+    if (existingPending) {
+      throw new BadRequestException(
+        'A pending payment already exists for this milestone. Complete or cancel it first.',
+      );
+    }
+
     const amount = input?.amount ?? milestone.amount;
     if (!amount || amount <= 0) {
       throw new BadRequestException('Milestone amount is invalid');
@@ -591,6 +620,17 @@ export class PaymentsService {
   async handleChapaWebhook(body: unknown, headers: Record<string, unknown>) {
     this.verifyWebhookSignature(body, headers);
 
+    // Validate webhook timestamp to mitigate replay attacks
+    const createdAtRaw = getNested(body, ['created_at']) ?? getNested(body, ['data', 'created_at']);
+    if (typeof createdAtRaw === 'string') {
+      const eventTime = new Date(createdAtRaw).getTime();
+      const now = Date.now();
+      const MAX_WEBHOOK_AGE_MS = 10 * 60 * 1000; // 10 minutes
+      if (!Number.isNaN(eventTime) && Math.abs(now - eventTime) > MAX_WEBHOOK_AGE_MS) {
+        throw new BadRequestException('Webhook event too old or in the future');
+      }
+    }
+
     const txRef =
       extractTxRef(body) ??
       getStringField(body, 'reference') ??
@@ -607,6 +647,7 @@ export class PaymentsService {
   async listContractPayments(
     user: { id: string; role: UserRole },
     contractId: string,
+    pagination?: PaginationDto,
   ) {
     const contract = await this.prisma.contract.findUnique({
       where: { id: contractId },
@@ -625,10 +666,12 @@ export class PaymentsService {
       throw new ForbiddenException('Cannot view contract payments');
     }
 
+    const pg = pagination ?? new PaginationDto();
     return await this.prisma.payment.findMany({
       where: { contractId },
       orderBy: { createdAt: 'desc' },
-      take: 20,
+      skip: pg.skip,
+      take: pg.take,
     });
   }
 }
