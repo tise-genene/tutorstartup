@@ -5,7 +5,7 @@ import type { NextConfig } from "next";
 process.env.NEXT_FONT_GOOGLE_DISABLE_DOWNLOAD ??= "1";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  transpilePackages: ["@tutorstartup/shared"],
 };
 
 export default nextConfig;
