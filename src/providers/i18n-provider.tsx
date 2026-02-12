@@ -36,10 +36,9 @@ const DICTS: Record<Locale, Dictionary> = {
     "nav.logout": "Log out",
 
     "home.title": "Hire the right person, fast.",
-    "home.subtitle":
-      "Post a job, review profiles, and start working with confidence.",
+    "home.subtitle": "Post a job, review profiles, and start working with confidence.",
     "home.cta.search": "Browse talent",
-    "home.cta.tutor": "I’m looking for work",
+    "home.cta.tutor": "I'm looking for work",
 
     "home.hero.preview.title": "Popular right now",
     "home.hero.preview.tags.1": "IB Physics HL",
@@ -47,8 +46,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "home.hero.preview.tags.3": "Grade 5 Literacy",
     "home.hero.preview.tags.4": "University Calculus",
     "home.hero.preview.card.title": "Live job activity",
-    "home.hero.preview.card.body":
-      "New roles are being posted and filled across Addis and beyond.",
+    "home.hero.preview.card.body": "New roles are being posted and filled across Addis and beyond.",
     "home.hero.preview.card.status": "Updated moments ago",
 
     "home.value.title": "Why it works",
@@ -98,87 +96,66 @@ const DICTS: Record<Locale, Dictionary> = {
     "home.how.3.body": "Choose a candidate and start the engagement.",
 
     "home.reasons.students.title": "Why students love us",
-    "home.reasons.students.body":
-      "Personalized matching, rapid responses, and measurable progress dashboards.",
+    "home.reasons.students.body": "Personalized matching, rapid responses, and measurable progress dashboards.",
     "home.reasons.students.items.1.title": "Matching intelligence",
-    "home.reasons.students.items.1.body":
-      "Signals from goals, schedule, and learning style inform every suggestion.",
+    "home.reasons.students.items.1.body": "Signals from goals, schedule, and learning style inform every suggestion.",
     "home.reasons.students.items.2.title": "Real-time updates",
-    "home.reasons.students.items.2.body":
-      "Families get weekly milestone summaries that keep everyone aligned.",
+    "home.reasons.students.items.2.body": "Families get weekly milestone summaries that keep everyone aligned.",
     "home.reasons.students.items.3.title": "Safe messaging",
-    "home.reasons.students.items.3.body":
-      "Secure chat with file sharing keeps planning in one place.",
+    "home.reasons.students.items.3.body": "Secure chat with file sharing keeps planning in one place.",
 
     "home.reasons.tutors.title": "Why tutors stay",
-    "home.reasons.tutors.body":
-      "Consistent demand, fast payouts, and tooling built for professional educators.",
+    "home.reasons.tutors.body": "Consistent demand, fast payouts, and tooling built for professional educators.",
     "home.reasons.tutors.items.1.title": "Qualified leads",
-    "home.reasons.tutors.items.1.body":
-      "Requests include subject, budget, and prerequisites so you focus on teaching.",
+    "home.reasons.tutors.items.1.body": "Requests include subject, budget, and prerequisites so you focus on teaching.",
     "home.reasons.tutors.items.2.title": "Smart scheduling",
-    "home.reasons.tutors.items.2.body":
-      "Sync calendars, set travel radius, and auto-block commute buffers.",
+    "home.reasons.tutors.items.2.body": "Sync calendars, set travel radius, and auto-block commute buffers.",
     "home.reasons.tutors.items.3.title": "Performance analytics",
-    "home.reasons.tutors.items.3.body":
-      "Session ratings and retention dashboards help showcase your impact.",
+    "home.reasons.tutors.items.3.body": "Session ratings and retention dashboards help showcase your impact.",
 
     "home.metrics.kicker": "RESULTS",
     "home.metrics.title": "Proven outcomes for every journey",
-    "home.metrics.subtitle":
-      "We combine curated talent with transparent data so decisions feel confident.",
+    "home.metrics.subtitle": "We combine curated talent with transparent data so decisions feel confident.",
 
-    "home.testimonials.1.quote":
-      "Every professional we hired through {brand} delivered fast and clearly. ",
+    "home.testimonials.1.quote": "Every professional we hired through {brand} delivered fast and clearly.",
     "home.testimonials.1.author": "Miskaye H.",
     "home.testimonials.1.role": "Academic Director, Addis Academy",
-    "home.testimonials.2.quote":
-      "It finally feels easy to showcase my expertise and connect with the right families.",
+    "home.testimonials.2.quote": "It finally feels easy to showcase my expertise and connect with the right families.",
     "home.testimonials.2.author": "Samuel G.",
     "home.testimonials.2.role": "STEM Tutor",
 
     "home.cta.banner.kicker": "NEXT COHORT",
     "home.cta.banner.title": "Launch your next job this week",
-    "home.cta.banner.body":
-      "Create a profile, get discovered, and start earning within days.",
+    "home.cta.banner.body": "Create a profile, get discovered, and start earning within days.",
     "home.cta.banner.primary": "Join as professional",
     "home.cta.banner.secondary": "Browse talent",
 
     "home.cta.schools.kicker": "FOR SCHOOLS",
     "home.cta.schools.title": "Need a vetted talent bench for your team?",
-    "home.cta.schools.body":
-      "Our partnerships team curates subject-specific pods for schools and learning pods across Addis.",
+    "home.cta.schools.body": "Our partnerships team curates subject-specific pods for schools and learning pods across Addis.",
     "home.cta.schools.primary": "Talk to partnerships",
     "home.cta.schools.secondary": "Download overview",
 
     "home.curriculum.kicker": "CURRICULUM PATHWAYS",
     "home.curriculum.title": "Expertise, local context",
-    "home.curriculum.body":
-      "From short gigs to long-term roles, professionals bring real-world experience plus strong communication.",
+    "home.curriculum.body": "From short gigs to long-term roles, professionals bring real-world experience plus strong communication.",
     "home.curriculum.1.title": "National Exams",
-    "home.curriculum.1.body":
-      "Grade 8 & 12 prep with timed drills and rubric-based feedback.",
+    "home.curriculum.1.body": "Grade 8 & 12 prep with timed drills and rubric-based feedback.",
     "home.curriculum.2.title": "International Programs",
-    "home.curriculum.2.body":
-      "IB, AP, and SAT specialists simplify complex syllabi.",
+    "home.curriculum.2.body": "IB, AP, and SAT specialists simplify complex syllabi.",
     "home.curriculum.3.title": "STEM Labs",
     "home.curriculum.3.body": "Hands-on math, robotics, and coding intensives.",
     "home.curriculum.4.title": "Languages & Writing",
-    "home.curriculum.4.body":
-      "Academic writing, IELTS, and Amharic literacy mentors.",
+    "home.curriculum.4.body": "Academic writing, IELTS, and Amharic literacy mentors.",
 
     "home.faq.title": "Questions, answered",
-    "home.faq.subtitle":
-      "Still unsure? Here’s what families and tutors ask first.",
+    "home.faq.subtitle": "Still unsure? Here's what families and tutors ask first.",
     "home.faq.1.q": "How fast can we match with candidates?",
-    "home.faq.1.a":
-      "Most families receive curated matches within 24 hours once goals and schedule are submitted.",
+    "home.faq.1.a": "Most families receive curated matches within 24 hours once goals and schedule are submitted.",
     "home.faq.2.q": "What vetting do professionals go through?",
-    "home.faq.2.a":
-      "Identity, credentials, reference checks, and a recorded demo lesson before profiles go live.",
+    "home.faq.2.a": "Identity, credentials, reference checks, and a recorded demo lesson before profiles go live.",
     "home.faq.3.q": "Do you support in-person and remote lessons?",
-    "home.faq.3.a":
-      "Yes. Professionals set travel zones and virtual availability so you can choose what works best.",
+    "home.faq.3.a": "Yes. Professionals set travel zones and virtual availability so you can choose what works best.",
 
     "home.footer.copy": "Built in Addis · {brand}",
     "home.footer.links.search": "Browse talent",
@@ -214,8 +191,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "auth.logout.subtitle": "Ending your session…",
 
     "tutor.profile.title": "Professional profile",
-    "tutor.profile.subtitle":
-      "Update your profile — changes will be indexed for search.",
+    "tutor.profile.subtitle": "Update your profile — changes will be indexed for search.",
     "tutor.profile.bio": "Bio",
     "tutor.profile.subjects": "Subjects (comma separated)",
     "tutor.profile.languages": "Languages (comma separated)",
@@ -224,8 +200,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "tutor.profile.save": "Save profile",
 
     "profile.title": "Professional profile",
-    "profile.subtitle":
-      "Update your profile — changes will be indexed for search.",
+    "profile.subtitle": "Update your profile — changes will be indexed for search.",
     "profile.bio": "Bio",
     "profile.subjects": "Subjects (comma separated)",
     "profile.languages": "Languages (comma separated)",
@@ -274,8 +249,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "lesson.request.submit": "Send request",
     "lesson.sent": "Request sent. The tutor will respond soon.",
     "lesson.guard.login": "Please log in or register to contact this tutor.",
-    "lesson.guard.studentParentOnly":
-      "Only students or parents can request lessons.",
+    "lesson.guard.studentParentOnly": "Only students or parents can request lessons.",
     "lesson.guard.cta.login": "Login",
     "lesson.guard.cta.register": "Register",
 
@@ -291,16 +265,13 @@ const DICTS: Record<Locale, Dictionary> = {
 
     "privacy.title": "Privacy Policy",
     "privacy.subtitle": "How we handle your data.",
-    "privacy.body":
-      "This is a placeholder for the Privacy Policy. We take your privacy seriously and will update this with full legal terms soon.",
+    "privacy.body": "This is a placeholder for the Privacy Policy. We take your privacy seriously and will update this with full legal terms soon.",
     "terms.title": "Terms of Service",
     "terms.subtitle": "The rules of our platform.",
-    "terms.body":
-      "This is a placeholder for the Terms of Service. By using our platform, you agree to follow our community standards and payment terms.",
+    "terms.body": "This is a placeholder for the Terms of Service. By using our platform, you agree to follow our community standards and payment terms.",
     "support.title": "Help Center",
     "support.subtitle": "We're here to help you succeed.",
-    "support.body":
-      "For any questions or technical issues, please contact us at {supportEmail}.",
+    "support.body": "For any questions or technical issues, please contact us at {supportEmail}.",
 
     "state.loading": "Loading…",
     "common.loading": "Loading…",
@@ -335,8 +306,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "home.hero.preview.tags.3": "የ5ኛ ክፍል ንባብ",
     "home.hero.preview.tags.4": "ዩኒቨርሲቲ ካልኩለስ",
     "home.hero.preview.card.title": "በቀጥታ የሚጠየቁ ፍለጋዎች",
-    "home.hero.preview.card.body":
-      "በቦሌ አካባቢ ያሉ ቤተሰቦች ሂሳብ እና ሳይንስ ክፍሎችን በአሁኑ ጊዜ እየተያዙ ነው።",
+    "home.hero.preview.card.body": "በቦሌ አካባቢ ያሉ ቤተሰቦች ሂሳብ እና ሳይንስ ክፍሎችን በአሁኑ ጊዜ እየተያዙ ነው።",
     "home.hero.preview.card.status": "በቅርብ ጊዜ ታድቧል",
 
     "home.value.title": "ለምን ይሰራል",
@@ -388,11 +358,9 @@ const DICTS: Record<Locale, Dictionary> = {
     "home.reasons.students.title": "ተማሪዎች ለምን ይወዳሉ",
     "home.reasons.students.body": "የግል ማስተካከያ፣ ፈጣን ምላሽ እና የስኬት መዝገቦች ያገናኛሉ።",
     "home.reasons.students.items.1.title": "ብልህ ግንኙነት",
-    "home.reasons.students.items.1.body":
-      "ግቦች፣ ሰሌዳ እና የመማር ቅርጸ ተከላይ መረጃ ላይ ይመሠረታል።",
+    "home.reasons.students.items.1.body": "ግቦች፣ ሰሌዳ እና የመማር ቅርጸ ተከላይ መረጃ ላይ ይመሠረታል።",
     "home.reasons.students.items.2.title": "በቀጥታ ሪፖርት",
-    "home.reasons.students.items.2.body":
-      "ቤተሰቦች ሁሉም በአንድ ገጽ ላይ የሳምንት ሪፖርት ይቀበላሉ።",
+    "home.reasons.students.items.2.body": "ቤተሰቦች ሁሉም በአንድ ገጽ ላይ የሳምንት ሪፖርት ይቀበላሉ።",
     "home.reasons.students.items.3.title": "ደህንነታዊ መልዕክት",
     "home.reasons.students.items.3.body": "የፋይል ማካፈል ያለው ደህንነታዊ መልዕክት ማዕከል።",
 
@@ -409,8 +377,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "home.metrics.title": "ለእያንዳንዱ እድገት የተረጋገጠ ውጤት",
     "home.metrics.subtitle": "ተዘጋጀ ችሎታ እና ግልጽ ውሂብ በስራ ላይ ነው።",
 
-    "home.testimonials.1.quote":
-      "በ{brand} ያገኘናቸው ባለሙያዎች በፍጥነት እና በግልጽ ሁኔታ አቅርበዋል።",
+    "home.testimonials.1.quote": "በ{brand} ያገኘናቸው ባለሙያዎች በፍጥነት እና በግልጽ ሁኔታ አቅርበዋል።",
     "home.testimonials.1.author": "ሚስቃዬ ሀ.",
     "home.testimonials.1.role": "የስልጠና ዳይሬክተር",
     "home.testimonials.2.quote": "ክህሎቴን ማሳየት እና ተገቢ ቤተሰቦችን ማግኘት ቀላል ሆኗል።",
@@ -425,15 +392,13 @@ const DICTS: Record<Locale, Dictionary> = {
 
     "home.cta.schools.kicker": "ለትምህርት ቤቶች",
     "home.cta.schools.title": "ለአዲሱ ዓመት የተመረጡ አስተማሪዎች ይፈልጋሉ?",
-    "home.cta.schools.body":
-      "የእኛ ቡድን በአዲስ እና በአካባቢዎ የተለያዩ ርዕሶችን የሚሸፍኑ ሙዚቃዊ ቡድኖችን ያዘጋጃል።",
+    "home.cta.schools.body": "የእኛ ቡድን በአዲስ እና በአካባቢዎ የተለያዩ ርዕሶችን የሚሸፍኑ ሙዚቃዊ ቡድኖችን ያዘጋጃል።",
     "home.cta.schools.primary": "ከቅርብ ቡድን ይነጋገሩ",
     "home.cta.schools.secondary": "መግለጫ ያውርዱ",
 
     "home.curriculum.kicker": "የስርዓተ ትምህርት መንገዶች",
     "home.curriculum.title": "የከፍተኛ ደረጃ ሙያ በአካባቢ እውቀት",
-    "home.curriculum.body":
-      "ከብሔራዊ ፈተና እስከ IB ዲፕሎማ፣ አስተማሪዎች ተሞክሮ እና ባህላዊ ግንዛቤ ይያዙ።",
+    "home.curriculum.body": "ከብሔራዊ ፈተና እስከ IB ዲፕሎማ፣ አስተማሪዎች ተሞክሮ እና ባህላዊ ግንዛቤ ይያዙ።",
     "home.curriculum.1.title": "ብሔራዊ ፈተናዎች",
     "home.curriculum.1.body": "የ8ኛ እና 12ኛ ደረጃ ዝግጅት ከሙከራ የተመሠረተ ግምገማ።",
     "home.curriculum.2.title": "ዓለም አቀፍ ፕሮግራሞች",
@@ -476,6 +441,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "auth.name": "ሙሉ ስም",
     "auth.role": "ሚና",
     "auth.role.student": "ተማሪ",
+    "auth.role.parent": "አባስ",
     "auth.role.tutor": "አስተማሪ",
     "auth.submit.login": "ግባ",
     "auth.submit.register": "መለያ ፍጠር",
@@ -534,12 +500,10 @@ const DICTS: Record<Locale, Dictionary> = {
 
     "privacy.title": "ግላዊነት ፖሊሲ",
     "privacy.subtitle": "ውሂብዎን እንዴት እንደምንይዘው።",
-    "privacy.body":
-      "ይህ የግላዊነት ፖሊሲ ቦታ ያዢ ነው። የእርስዎን ግላዊነት በቁም ነገር እንወስደዋለን እና ይህንን በቅርቡ በህጋዊ ውሎች እናዘምነዋለን።",
+    "privacy.body": "ይህ የግላዊነት ፖሊሲ ቦታ ያዢ ነው። የእርስዎን ግላዊነት በቁም ነገር እንወስደዋለን እና ይህንን በቅርቡ በህጋዊ ውሎች እናዘምነዋለን።",
     "terms.title": "የአገልግሎት ውሎች",
     "terms.subtitle": "የእኛ መድረክ ደንቦች።",
-    "terms.body":
-      "ይህ የአገልግሎት ውሎች ቦታ ያዢ ነው። የእኛን መድረክ በመጠቀም የእኛን የማህበረሰብ ደረጃዎች እና የክፍያ ውሎች ለመከተል ተስማምተዋል።",
+    "terms.body": "ይህ የአገልግሎት ውሎች ቦታ ያዢ ነው። የእኛን መድረክ በመጠቀም የእኛን የማህበረሰብ ደረጃዎች እና የክፍያ ውሎች ለመከተል ተስማምተዋል።",
     "support.title": "የድጋፍ ማዕከል",
     "support.subtitle": "ለስኬትዎ እዚህ ነን።",
     "support.body": "ለማንኛውም ጥያቄዎች ወይም ቴክኒካዊ ጉዳዮች፣ እባክዎን በ {supportEmail} ያግኙን።",
@@ -550,6 +514,7 @@ type I18nContextValue = {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   t: (key: string) => string;
+  isHydrated: boolean;
 };
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -563,13 +528,20 @@ export function useI18n(): I18nContextValue {
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    if (typeof window === "undefined") {
-      return "en";
-    }
+  // Start with default English to match server render
+  const [locale, setLocaleState] = useState<Locale>("en");
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    // Read locale from localStorage only on client after hydration
     const stored = localStorage.getItem(LOCALE_KEY);
-    return stored === "en" || stored === "am" ? stored : "en";
-  });
+    const newLocale = stored === "en" || stored === "am" ? stored : "en";
+    
+    if (newLocale !== locale) {
+      setLocaleState(newLocale);
+    }
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
     if (typeof document === "undefined") {
@@ -592,8 +564,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   );
 
   const i18nValue = useMemo<I18nContextValue>(
-    () => ({ locale, setLocale, t }),
-    [locale, setLocale, t],
+    () => ({ locale, setLocale, t, isHydrated }),
+    [locale, setLocale, t, isHydrated],
   );
 
   return (

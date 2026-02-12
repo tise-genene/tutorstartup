@@ -11,8 +11,8 @@ function SunIcon() {
     <svg
       aria-hidden="true"
       viewBox="0 0 24 24"
-      width="16"
-      height="16"
+      width="18"
+      height="18"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -37,8 +37,8 @@ function MoonIcon() {
     <svg
       aria-hidden="true"
       viewBox="0 0 24 24"
-      width="16"
-      height="16"
+      width="18"
+      height="18"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -55,8 +55,8 @@ function GlobeIcon() {
     <svg
       aria-hidden="true"
       viewBox="0 0 24 24"
-      width="16"
-      height="16"
+      width="18"
+      height="18"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -65,8 +65,7 @@ function GlobeIcon() {
     >
       <circle cx="12" cy="12" r="10" />
       <path d="M2 12h20" />
-      <path d="M12 2a15 15 0 0 1 0 20" />
-      <path d="M12 2a15 15 0 0 0 0 20" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
     </svg>
   );
 }
@@ -76,8 +75,8 @@ function MenuIcon() {
     <svg
       aria-hidden="true"
       viewBox="0 0 24 24"
-      width="18"
-      height="18"
+      width="20"
+      height="20"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -96,8 +95,8 @@ function CloseIcon() {
     <svg
       aria-hidden="true"
       viewBox="0 0 24 24"
-      width="18"
-      height="18"
+      width="20"
+      height="20"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -106,6 +105,42 @@ function CloseIcon() {
     >
       <path d="M18 6 6 18" />
       <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+function AlertIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
     </svg>
   );
 }
@@ -166,7 +201,7 @@ export function AppHeader() {
   }, [auth?.user.id, isTutor, supabase]);
 
   return (
-    <header className="sticky top-0 z-50 px-4 pt-4 md:px-8">
+    <header className="sticky top-0 z-50 px-4 pt-4 md:px-6">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-6 focus:top-6 focus:z-[60] focus:rounded-md focus:border focus:bg-[var(--card)] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold"
@@ -174,12 +209,15 @@ export function AppHeader() {
         Skip to content
       </a>
       {sessionExpired && !auth && (
-        <div className="mx-auto mb-2 mt-2 max-w-6xl">
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-xs font-medium text-amber-500 md:text-sm">
-            <span>Your session has expired. Please log in again.</span>
+        <div className="mx-auto mb-2 mt-2 max-w-6xl animate-slide-down">
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-2.5 text-xs font-medium text-amber-500 md:text-sm">
+            <span className="flex items-center gap-2">
+              <AlertIcon />
+              Your session has expired. Please log in again.
+            </span>
             <Link
               href="/auth/login"
-              className="ui-btn ui-btn-primary h-8 px-3 text-xs whitespace-nowrap"
+              className="ui-btn ui-btn-primary h-8 px-4 text-xs whitespace-nowrap"
             >
               Log in
             </Link>
@@ -187,12 +225,12 @@ export function AppHeader() {
         </div>
       )}
       <div className="mx-auto max-w-6xl">
-        <div className="relative rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 shadow-sm md:px-6">
-          <div className="relative flex w-full flex-wrap items-center gap-3 md:flex-nowrap md:justify-between">
+        <div className="relative rounded-xl border border-[var(--border)] bg-[var(--card)]/80 backdrop-blur-md shadow-sm">
+          <div className="relative flex w-full flex-wrap items-center gap-3 md:flex-nowrap md:justify-between px-4 py-3 md:px-6">
             <div className="flex w-full items-center justify-between gap-2 md:w-auto md:gap-3">
               <button
                 type="button"
-                className="ui-btn ui-btn-ghost md:hidden px-2"
+                className="ui-btn ui-btn-ghost md:hidden px-2.5"
                 onClick={toggleMobile}
                 aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
                 aria-expanded={mobileOpen}
@@ -204,58 +242,62 @@ export function AppHeader() {
 
               <Link
                 href={homeHref}
-                className="flex flex-1 items-center justify-center gap-2 md:flex-auto md:justify-start"
+                className="flex flex-1 items-center justify-center gap-2 md:flex-auto md:justify-start group"
               >
-                <span className="text-lg font-bold tracking-tight">{BRAND_NAME}</span>
+                <span className="text-xl font-bold tracking-tight group-hover:text-[var(--accent)] transition-colors">
+                  {BRAND_NAME}
+                </span>
               </Link>
             </div>
 
             <nav
-              className="hidden min-w-0 flex-1 items-center justify-end gap-2 md:flex"
+              className="hidden min-w-0 flex-1 items-center justify-end gap-1 md:flex lg:gap-2"
               aria-label="Primary navigation"
             >
               {isTutor ? (
                 <div className="relative">
                   <button
                     type="button"
-                    className="ui-btn ui-btn-ghost"
+                    className="ui-btn ui-btn-ghost h-10"
                     onClick={() => setWorkMenuOpen((prev) => !prev)}
                     aria-expanded={workMenuOpen}
                     aria-haspopup="menu"
                   >
                     {t("nav.findWork")}
+                    <ChevronDownIcon />
                   </button>
 
                   {workMenuOpen && (
                     <div
-                      className="absolute right-0 mt-2 w-56 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-lg"
+                      className="absolute right-0 mt-1 w-56 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-lg animate-scale-in"
                       role="menu"
                     >
-                      <div className="flex flex-col p-1">
+                      <div className="flex flex-col p-1.5">
                         <Link
                           href="/work"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-10"
                           onClick={() => setWorkMenuOpen(false)}
                         >
                           {t("nav.jobs")}
                         </Link>
                         <Link
                           href="/work/saved"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-10"
                           onClick={() => setWorkMenuOpen(false)}
                         >
                           {t("nav.savedJobs")}
                         </Link>
                         <Link
                           href="/work/proposals"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-10"
                           onClick={() => setWorkMenuOpen(false)}
                         >
                           {t("nav.proposals")}
                         </Link>
+                        <div className="h-px bg-[var(--border)] my-1" />
                         <Link
                           href="/contracts"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-10"
                           onClick={() => setWorkMenuOpen(false)}
                         >
                           {t("nav.contracts")}
@@ -265,51 +307,51 @@ export function AppHeader() {
                   )}
                 </div>
               ) : (
-                <Link href="/tutors/search" className="ui-btn ui-btn-ghost">
+                <Link href="/tutors/search" className="ui-btn ui-btn-ghost h-10">
                   {t("nav.search")}
                 </Link>
               )}
 
               {isClient && (
                 <>
-                  <Link href="/jobs/post" className="ui-btn ui-btn-ghost">
+                  <Link href="/jobs/post" className="ui-btn ui-btn-ghost h-10">
                     {t("nav.postJob")}
                   </Link>
-                  <Link href="/jobs/mine" className="ui-btn ui-btn-ghost">
+                  <Link href="/jobs/mine" className="ui-btn ui-btn-ghost h-10">
                     {t("nav.myJobs")}
                   </Link>
-                  <Link href="/contracts" className="ui-btn ui-btn-ghost">
+                  <Link href="/contracts" className="ui-btn ui-btn-ghost h-10">
                     {t("nav.contracts")}
                   </Link>
                 </>
               )}
 
               {isTutor && (
-                <Link href="/tutor/profile" className="ui-btn ui-btn-ghost">
+                <Link href="/tutor/profile" className="ui-btn ui-btn-ghost h-10">
                   {t("nav.profile")}
                 </Link>
               )}
 
               {isTutor && (
-                <Link href="/tutor/requests" className="ui-btn ui-btn-ghost relative">
+                <Link href="/tutor/requests" className="ui-btn ui-btn-ghost h-10 relative">
                   {t("nav.requests")}
                   {pendingRequests > 0 && (
                     <span
                       aria-label="New requests"
-                      className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500"
+                      className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse-soft"
                     />
                   )}
                 </Link>
               )}
 
-              <div className="h-6 w-px bg-[var(--border)] mx-1" />
+              <div className="h-6 w-px bg-[var(--border)] mx-2" />
 
               {!auth ? (
                 <>
-                  <Link href="/auth/login" className="ui-btn ui-btn-ghost">
+                  <Link href="/auth/login" className="ui-btn ui-btn-ghost h-10">
                     {t("nav.login")}
                   </Link>
-                  <Link href="/auth/register" className="ui-btn ui-btn-primary">
+                  <Link href="/auth/register" className="ui-btn ui-btn-primary h-10">
                     {t("nav.register")}
                   </Link>
                 </>
@@ -317,15 +359,14 @@ export function AppHeader() {
                 <div className="relative">
                   <button
                     type="button"
-                    className="ui-btn ui-btn-ghost px-2"
+                    className="ui-btn ui-btn-ghost px-2 h-10"
                     onClick={() => setUserMenuOpen((prev) => !prev)}
                     aria-haspopup="menu"
                     aria-expanded={userMenuOpen}
                     title={t("nav.account")}
                   >
-                    <span className="relative block h-6 w-6 overflow-hidden rounded-full border border-[var(--border)] bg-[var(--input)]">
+                    <span className="relative block h-8 w-8 overflow-hidden rounded-full border border-[var(--border)] bg-[var(--input)]">
                       {auth.user.avatarUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={auth.user.avatarUrl}
                           alt="Profile"
@@ -333,7 +374,7 @@ export function AppHeader() {
                           referrerPolicy="no-referrer"
                         />
                       ) : (
-                        <span className="flex h-full w-full items-center justify-center text-[10px] font-bold">
+                        <span className="flex h-full w-full items-center justify-center text-sm font-bold">
                           {auth.user.name.slice(0, 1).toUpperCase()}
                         </span>
                       )}
@@ -342,17 +383,17 @@ export function AppHeader() {
 
                   {userMenuOpen && (
                     <div
-                      className="absolute right-0 mt-2 w-56 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-lg"
+                      className="absolute right-0 mt-1 w-56 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-lg animate-scale-in"
                       role="menu"
                     >
-                      <div className="flex flex-col p-1">
-                        <div className="px-3 py-2 text-xs text-[var(--foreground)] opacity-50">
+                      <div className="flex flex-col p-1.5">
+                        <div className="px-3 py-2.5 text-xs text-[var(--foreground)] opacity-60 truncate">
                           {auth.user.email}
                         </div>
                         <div className="h-px w-full bg-[var(--border)] my-1" />
                         <Link
                           href="/account"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-10"
                           onClick={() => setUserMenuOpen(false)}
                         >
                           {t("nav.account")}
@@ -361,7 +402,7 @@ export function AppHeader() {
                         {isTutor && (
                           <Link
                             href="/tutor/profile"
-                            className="ui-btn ui-btn-ghost w-full justify-start"
+                            className="ui-btn ui-btn-ghost w-full justify-start h-10"
                             onClick={() => setUserMenuOpen(false)}
                           >
                             {t("nav.profile")}
@@ -371,7 +412,7 @@ export function AppHeader() {
                         {isClient && (
                           <Link
                             href="/jobs/mine"
-                            className="ui-btn ui-btn-ghost w-full justify-start"
+                            className="ui-btn ui-btn-ghost w-full justify-start h-10"
                             onClick={() => setUserMenuOpen(false)}
                           >
                             {t("nav.myJobs")}
@@ -380,7 +421,7 @@ export function AppHeader() {
 
                         <Link
                           href="/contracts"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-10"
                           onClick={() => setUserMenuOpen(false)}
                         >
                           {t("nav.contracts")}
@@ -390,7 +431,7 @@ export function AppHeader() {
 
                         <Link
                           href="/auth/logout"
-                          className="ui-btn ui-btn-ghost w-full justify-start text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-10 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
                           onClick={() => setUserMenuOpen(false)}
                         >
                           {t("nav.logout")}
@@ -404,7 +445,7 @@ export function AppHeader() {
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="ui-btn ui-btn-ghost px-2"
+                className="ui-btn ui-btn-ghost px-2.5 h-10"
                 aria-label={
                   effectiveTheme === "dark"
                     ? "Switch to light mode"
@@ -412,7 +453,7 @@ export function AppHeader() {
                 }
                 title={effectiveTheme === "dark" ? "Light mode" : "Dark mode"}
               >
-                <span className="block opacity-85 hover:opacity-100">
+                <span className="opacity-85 hover:opacity-100 transition-opacity">
                   {effectiveTheme === "dark" ? <MoonIcon /> : <SunIcon />}
                 </span>
               </button>
@@ -420,7 +461,7 @@ export function AppHeader() {
               <button
                 type="button"
                 onClick={() => setLocale(locale === "en" ? "am" : "en")}
-                className="ui-btn ui-btn-ghost px-2"
+                className="ui-btn ui-btn-ghost px-2.5 h-10"
                 aria-label={
                   locale === "en" ? "Switch to Amharic" : "Switch to English"
                 }
@@ -429,8 +470,8 @@ export function AppHeader() {
                 <span className="opacity-85">
                   <GlobeIcon />
                 </span>
-                <span className="text-xs font-semibold tracking-wide opacity-90 ml-1">
-                  {locale === "en" ? "ENG" : "AMH"}
+                <span className="text-xs font-bold tracking-wide opacity-90 ml-1.5">
+                  {locale === "en" ? "EN" : "AM"}
                 </span>
               </button>
             </nav>
@@ -438,40 +479,40 @@ export function AppHeader() {
             {mobileOpen && (
               <div className="md:hidden">
                 <div
-                  className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+                  className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-fade-in"
                   aria-hidden
                   onClick={closeMenus}
                 />
                 <div
-                  className="fixed left-4 top-20 z-50 w-[88vw] max-w-xs rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-xl"
+                  className="fixed left-4 top-20 z-50 w-[88vw] max-w-xs rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-xl animate-slide-down"
                 >
                   <div className="flex flex-col gap-1">
                     {isTutor ? (
                       <>
                         <Link
                           href="/work"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-11"
                           onClick={closeMenus}
                         >
                           {t("nav.findWork")}
                         </Link>
                         <Link
                           href="/work/saved"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-11"
                           onClick={closeMenus}
                         >
                           {t("nav.savedJobs")}
                         </Link>
                         <Link
                           href="/work/proposals"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-11"
                           onClick={closeMenus}
                         >
                           {t("nav.proposals")}
                         </Link>
                         <Link
                           href="/contracts"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-11"
                           onClick={closeMenus}
                         >
                           {t("nav.contracts")}
@@ -480,7 +521,7 @@ export function AppHeader() {
                     ) : (
                       <Link
                         href="/tutors/search"
-                        className="ui-btn ui-btn-ghost w-full justify-start"
+                        className="ui-btn ui-btn-ghost w-full justify-start h-11"
                         onClick={closeMenus}
                       >
                         {t("nav.search")}
@@ -491,21 +532,21 @@ export function AppHeader() {
                       <>
                         <Link
                           href="/jobs/post"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-11"
                           onClick={closeMenus}
                         >
                           {t("nav.postJob")}
                         </Link>
                         <Link
                           href="/jobs/mine"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-11"
                           onClick={closeMenus}
                         >
                           {t("nav.myJobs")}
                         </Link>
                         <Link
                           href="/contracts"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-11"
                           onClick={closeMenus}
                         >
                           {t("nav.contracts")}
@@ -516,14 +557,14 @@ export function AppHeader() {
                       <>
                         <Link
                           href="/tutor/profile"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-11"
                           onClick={closeMenus}
                         >
                           {t("nav.profile")}
                         </Link>
                         <Link
                           href="/tutor/requests"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-11"
                           onClick={closeMenus}
                         >
                           {t("nav.requests")}
@@ -536,14 +577,14 @@ export function AppHeader() {
                       <>
                         <Link
                           href="/auth/login"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-11"
                           onClick={closeMenus}
                         >
                           {t("nav.login")}
                         </Link>
                         <Link
                           href="/auth/register"
-                          className="ui-btn ui-btn-primary w-full justify-center mt-2"
+                          className="ui-btn ui-btn-primary w-full justify-center h-11 mt-2"
                           onClick={closeMenus}
                         >
                           {t("nav.register")}
@@ -554,14 +595,14 @@ export function AppHeader() {
                         <div className="h-px w-full bg-[var(--border)] my-2" />
                         <Link
                           href="/account"
-                          className="ui-btn ui-btn-ghost w-full justify-start"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-11"
                           onClick={closeMenus}
                         >
                           {t("nav.account")}
                         </Link>
                         <Link
                           href="/auth/logout"
-                          className="ui-btn ui-btn-ghost w-full justify-start text-red-500"
+                          className="ui-btn ui-btn-ghost w-full justify-start h-11 text-red-500"
                           onClick={closeMenus}
                         >
                           {t("nav.logout")}
@@ -569,16 +610,20 @@ export function AppHeader() {
                       </>
                     )}
 
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-4 flex gap-2">
                       <button
                         type="button"
                         onClick={() => {
                           toggleTheme();
                           closeMenus();
                         }}
-                        className="ui-btn ui-btn-ghost flex-1 justify-center"
+                        className="ui-btn ui-btn-secondary flex-1 justify-center h-10"
                       >
-                        {effectiveTheme === "dark" ? <MoonIcon /> : <SunIcon />}
+                        {effectiveTheme === "dark" ? (
+                          <span className="flex items-center gap-2"><MoonIcon /> Dark</span>
+                        ) : (
+                          <span className="flex items-center gap-2"><SunIcon /> Light</span>
+                        )}
                       </button>
                       <button
                         type="button"
@@ -586,9 +631,12 @@ export function AppHeader() {
                           setLocale(locale === "en" ? "am" : "en");
                           closeMenus();
                         }}
-                        className="ui-btn ui-btn-ghost flex-1 justify-center"
+                        className="ui-btn ui-btn-secondary flex-1 justify-center h-10"
                       >
-                        <span className="font-bold">{locale === "en" ? "AMH" : "ENG"}</span>
+                        <span className="flex items-center gap-2 font-bold">
+                          <GlobeIcon />
+                          {locale === "en" ? "AMH" : "ENG"}
+                        </span>
                       </button>
                     </div>
                   </div>
