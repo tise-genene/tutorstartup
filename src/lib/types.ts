@@ -286,3 +286,90 @@ export interface LoginPayload {
   email: string;
   password: string;
 }
+
+// ==================== MESSAGING SYSTEM TYPES ====================
+
+export type ConversationStatus = 'ACTIVE' | 'ARCHIVED' | 'BLOCKED';
+
+export interface Conversation {
+  id: string;
+  jobPostId?: string | null;
+  proposalId?: string | null;
+  parentId: string;
+  tutorId: string;
+  status: ConversationStatus;
+  lastMessageAt: string;
+  createdAt: string;
+  updatedAt: string;
+  // Joined fields
+  parent?: PersonSummary;
+  tutor?: PersonSummary;
+  jobPost?: {
+    id: string;
+    title: string;
+    status: string;
+  };
+  proposal?: {
+    id: string;
+    status: string;
+  };
+  lastMessage?: Message;
+  unreadCount?: number;
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
+  isRead: boolean;
+  readAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // Joined fields
+  sender?: PersonSummary;
+}
+
+export interface ConversationParticipant {
+  id: string;
+  conversationId: string;
+  userId: string;
+  lastReadAt?: string | null;
+  unreadCount: number;
+  isMuted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateConversationPayload {
+  tutorId: string;
+  jobPostId?: string;
+  proposalId?: string;
+  initialMessage: string;
+}
+
+export interface SendMessagePayload {
+  conversationId: string;
+  content: string;
+  fileUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+}
+
+export interface MessagePreview {
+  id: string;
+  conversationId: string;
+  content: string;
+  senderId: string;
+  createdAt: string;
+  senderName: string;
+}
+
+export interface ConversationWithDetails extends Conversation {
+  messages: Message[];
+  participants: ConversationParticipant[];
+  otherUser: PersonSummary;
+}

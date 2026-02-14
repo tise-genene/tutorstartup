@@ -51,6 +51,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "nav.roleClient": "Client",
     "nav.darkMode": "Dark mode",
     "nav.lightMode": "Light mode",
+    "nav.messages": "Messages",
 
     "home.title": "Hire the right person, fast.",
     "home.subtitle": "Post a job, review profiles, and start working with confidence.",
@@ -328,6 +329,7 @@ const DICTS: Record<Locale, Dictionary> = {
     "nav.roleClient": "ደንበኛ",
     "nav.darkMode": "ጨለማ ሞድ",
     "nav.lightMode": "ብርሃን ሞድ",
+    "nav.messages": "መልዕክቶች",
 
     "home.title": "ትክክለኛውን አስተማሪ በፍጥነት ያግኙ።",
     "home.subtitle": "አስተማሪ ፈልጉ፣ ፕሮፋይሎችን ይመልከቱ እና መልዕክት ይላኩ።",

@@ -5,14 +5,15 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PageShell } from "../../_components/PageShell";
 import { Pagination } from "../../_components/Pagination";
+import { MessageButton } from "../../_components/StartConversationModal";
 import { createClient } from "../../../lib/supabase";
 import { formatJobPostPreview } from "../../../lib/jobPreview";
 import type { JobPost, Proposal, Contract } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
 
-type ProposalWithTutor = Proposal & {
+interface ProposalWithTutor extends Proposal {
   tutor?: { id: string; name: string; email: string; role: string };
-};
+}
 
 export default function JobDetailForParentPage() {
   const { t } = useI18n();
@@ -127,10 +128,6 @@ export default function JobDetailForParentPage() {
     setBusyProposalId(proposalId);
     setStatus(null);
     try {
-      // In a real scenario, this should be done in an Edge Function or RPC for atomicity.
-      // But for the sake of migration, we'll simulate the response.
-      // Note: My SQL schema has a trigger or function for this ideally.
-
       const { data: proposal, error: pError } = await supabase
         .from("proposals")
         .update({ status: "ACCEPTED" })
@@ -272,7 +269,7 @@ export default function JobDetailForParentPage() {
                   className="text-lg font-semibold"
                   style={{ color: "var(--foreground)" }}
                 >
-                  Proposals
+                  Proposals ({proposals.length})
                 </h2>
                 {proposals.length === 0 ? (
                   <p className="mt-3 text-sm ui-muted">No proposals yet.</p>
@@ -332,41 +329,54 @@ export default function JobDetailForParentPage() {
                           </div>
                         )}
 
-                        {p.status === "ACCEPTED" && p.contractId && (
-                          <div className="mt-4">
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {/* Message Button - Always available for submitted proposals */}
+                          {p.status === "SUBMITTED" && p.tutor && (
+                            <MessageButton
+                              tutorId={p.tutor.id}
+                              tutorName={p.tutor.name}
+                              jobPostId={job.id}
+                              jobTitle={job.title}
+                              proposalId={p.id}
+                              variant="secondary"
+                              size="sm"
+                            />
+                          )}
+
+                          {p.status === "ACCEPTED" && p.contractId && (
                             <Link
                               className="ui-btn ui-btn-primary"
                               href={`/contracts/${p.contractId}`}
                             >
                               Open contract
                             </Link>
-                          </div>
-                        )}
+                          )}
 
-                        {p.status === "SUBMITTED" && (
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              className="ui-btn ui-btn-primary"
-                              disabled={busyProposalId === p.id}
-                              onClick={() => onAccept(p.id)}
-                            >
-                              {busyProposalId === p.id
-                                ? "Accepting…"
-                                : "Accept"}
-                            </button>
-                            <button
-                              type="button"
-                              className="ui-btn"
-                              disabled={busyProposalId === p.id}
-                              onClick={() => onDecline(p.id)}
-                            >
-                              {busyProposalId === p.id
-                                ? "Declining…"
-                                : "Decline"}
-                            </button>
-                          </div>
-                        )}
+                          {p.status === "SUBMITTED" && (
+                            <>
+                              <button
+                                type="button"
+                                className="ui-btn ui-btn-primary"
+                                disabled={busyProposalId === p.id}
+                                onClick={() => onAccept(p.id)}
+                              >
+                                {busyProposalId === p.id
+                                  ? "Accepting…"
+                                  : "Accept"}
+                              </button>
+                              <button
+                                type="button"
+                                className="ui-btn"
+                                disabled={busyProposalId === p.id}
+                                onClick={() => onDecline(p.id)}
+                              >
+                                {busyProposalId === p.id
+                                  ? "Declining…"
+                                  : "Decline"}
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

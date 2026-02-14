@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "../../lib/supabase";
 import { useAuth, useI18n, useTheme } from "../providers";
+import { useMessaging } from "../../hooks/useMessaging";
 import { BRAND_NAME } from "../../lib/brand";
 
 function SunIcon() {
@@ -401,6 +402,9 @@ export function AppHeader() {
   const isClient = role === "PARENT" || role === "STUDENT";
   const homeHref = auth ? (isTutor ? "/work" : "/dashboard") : "/";
 
+  // Get unread message count
+  const { totalUnreadCount } = useMessaging(auth?.user.id || null);
+
   const workMenuRef = useRef<HTMLDivElement>(null);
   const discoverMenuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -659,6 +663,19 @@ export function AppHeader() {
                   <Link href="/support" className="ui-btn ui-btn-ghost h-10 text-sm">
                     <HelpCircleIcon />
                   </Link>
+
+                  <Link href="/messages" className="ui-btn ui-btn-ghost h-10 text-sm relative">
+                    <span className="flex items-center gap-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
+                      </svg>
+                      {totalUnreadCount > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                          {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
+                        </span>
+                      )}
+                    </span>
+                  </Link>
                 </>
               )}
 
@@ -746,6 +763,19 @@ export function AppHeader() {
 
                   <Link href="/support" className="ui-btn ui-btn-ghost h-10 text-sm">
                     <HelpCircleIcon />
+                  </Link>
+
+                  <Link href="/messages" className="ui-btn ui-btn-ghost h-10 text-sm relative">
+                    <span className="flex items-center gap-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
+                      </svg>
+                      {totalUnreadCount > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                          {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
+                        </span>
+                      )}
+                    </span>
                   </Link>
                 </>
               )}
