@@ -6,19 +6,30 @@ import { useParams } from "next/navigation";
 import { PageShell } from "../../_components/PageShell";
 import { Pagination } from "../../_components/Pagination";
 import { MessageButton } from "../../_components/StartConversationModal";
+import { InterviewSchedulerModal, InterviewCard } from "../../_components/InterviewScheduler";
+import { InterviewFeedbackModal } from "../../_components/InterviewFeedbackModal";
 import { createClient } from "../../../lib/supabase";
 import { formatJobPostPreview } from "../../../lib/jobPreview";
-import type { JobPost, Proposal, Contract } from "../../../lib/types";
+import type { JobPost, Proposal, Contract, Interview } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
+import { useInterviews } from "../../../hooks/useInterviews";
 
 interface ProposalWithTutor extends Proposal {
   tutor?: { id: string; name: string; email: string; role: string };
+  interview?: Interview | null;
 }
 
 export default function JobDetailForParentPage() {
   const { t } = useI18n();
   const { auth } = useAuth();
   const supabase = useMemo(() => createClient(), []);
+  const { 
+    createInterview, 
+    updateInterview, 
+    cancelInterview, 
+    completeInterview,
+    getInterviewByProposal 
+  } = useInterviews(auth?.user.id || null);
 
   const params = useParams();
   const idParam = params?.id;
@@ -34,6 +45,9 @@ export default function JobDetailForParentPage() {
   const [closing, setClosing] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [schedulingProposal, setSchedulingProposal] = useState<ProposalWithTutor | null>(null);
+  const [reschedulingInterview, setReschedulingInterview] = useState<Interview | null>(null);
+  const [feedbackInterview, setFeedbackInterview] = useState<Interview | null>(null);
   const LIMIT = 10;
 
   const helper = useMemo(() => {
@@ -59,6 +73,7 @@ export default function JobDetailForParentPage() {
     try {
       const offset = (page - 1) * LIMIT;
 
+      // Fetch job
       const { data: jobData, error: jobError } = await supabase
         .from("job_posts")
         .select("*")
@@ -67,6 +82,7 @@ export default function JobDetailForParentPage() {
 
       if (jobError) throw jobError;
 
+      // Fetch proposals
       const { data: proposalsData, error: proposalsError } = await supabase
         .from("proposals")
         .select(`
@@ -84,11 +100,55 @@ export default function JobDetailForParentPage() {
 
       if (proposalsError) throw proposalsError;
 
-      setJob(jobData as any);
-      setProposals((proposalsData || []).map((p: any) => ({
+      // Fetch interviews for these proposals
+      const proposalIds = (proposalsData || []).map((p: any) => p.id);
+      const { data: interviewsData } = await supabase
+        .from("interviews")
+        .select(`
+          *,
+          parent:parent_id(id, name, avatar_url, role),
+          tutor:tutor_id(id, name, avatar_url, role)
+        `)
+        .in("proposal_id", proposalIds)
+        .order("scheduled_at", { ascending: false });
+
+      // Create interview lookup map
+      const interviewMap = new Map<string, Interview>();
+      (interviewsData || []).forEach((i: any) => {
+        if (!interviewMap.has(i.proposal_id)) {
+          interviewMap.set(i.proposal_id, {
+            id: i.id,
+            proposalId: i.proposal_id,
+            jobPostId: i.job_post_id,
+            parentId: i.parent_id,
+            tutorId: i.tutor_id,
+            scheduledAt: i.scheduled_at,
+            durationMinutes: i.duration_minutes,
+            meetingLink: i.meeting_link,
+            meetingProvider: i.meeting_provider,
+            status: i.status,
+            notes: i.notes,
+            clientNotes: i.client_notes,
+            tutorNotes: i.tutor_notes,
+            rating: i.rating,
+            feedback: i.feedback,
+            reminderSentAt: i.reminder_sent_at,
+            createdAt: i.created_at,
+            updatedAt: i.updated_at,
+            parent: i.parent,
+            tutor: i.tutor,
+          });
+        }
+      });
+
+      const formattedProposals: ProposalWithTutor[] = (proposalsData || []).map((p: any) => ({
         ...p,
         tutor: p.profiles,
-      })));
+        interview: interviewMap.get(p.id) || null,
+      }));
+
+      setJob(jobData as any);
+      setProposals(formattedProposals);
     } catch (e) {
       setStatus((e as Error).message);
     } finally {
@@ -100,17 +160,37 @@ export default function JobDetailForParentPage() {
     void fetchData();
   }, [auth?.user.id, isClient, jobId, page]);
 
+  const onShortlist = async (proposalId: string) => {
+    if (!auth) return;
+    setBusyProposalId(proposalId);
+    setStatus(null);
+    try {
+      const { error } = await supabase
+        .from("proposals")
+        .update({ status: "SHORTLISTED" })
+        .eq("id", proposalId);
+
+      if (error) throw error;
+      
+      setProposals((prev) =>
+        prev.map((p) => (p.id === proposalId ? { ...p, status: "SHORTLISTED" } : p)),
+      );
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setBusyProposalId(null);
+    }
+  };
+
   const onDecline = async (proposalId: string) => {
     if (!auth) return;
     setBusyProposalId(proposalId);
     setStatus(null);
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("proposals")
         .update({ status: "DECLINED" })
-        .eq("id", proposalId)
-        .select()
-        .single();
+        .eq("id", proposalId);
 
       if (error) throw error;
       setProposals((prev) =>
@@ -187,6 +267,33 @@ export default function JobDetailForParentPage() {
     } finally {
       setClosing(false);
     }
+  };
+
+  const handleInterviewScheduled = async (interview: Interview) => {
+    // Update proposal status to SHORTLISTED if not already
+    if (schedulingProposal && schedulingProposal.status === "SUBMITTED") {
+      await onShortlist(schedulingProposal.id);
+    }
+    
+    setSchedulingProposal(null);
+    setReschedulingInterview(null);
+    await fetchData();
+  };
+
+  const handleInterviewCompleted = async () => {
+    setFeedbackInterview(null);
+    await fetchData();
+  };
+
+  const getStatusBadge = (status: string) => {
+    const colors: Record<string, string> = {
+      SUBMITTED: "bg-gray-500/10 text-gray-500",
+      SHORTLISTED: "bg-blue-500/10 text-blue-500",
+      ACCEPTED: "bg-green-500/10 text-green-500",
+      DECLINED: "bg-red-500/10 text-red-500",
+      WITHDRAWN: "bg-gray-500/10 text-gray-500",
+    };
+    return colors[status] || "bg-gray-500/10 text-gray-500";
   };
 
   return (
@@ -296,7 +403,9 @@ export default function JobDetailForParentPage() {
                               </p>
                             )}
                           </div>
-                          <span className="pill text-xs">{p.status}</span>
+                          <span className={`pill text-xs ${getStatusBadge(p.status)}`}>
+                            {p.status}
+                          </span>
                         </div>
                         <p
                           className="mt-3 text-sm ui-muted"
@@ -329,9 +438,42 @@ export default function JobDetailForParentPage() {
                           </div>
                         )}
 
+                        {/* Interview Status */}
+                        {p.interview && (
+                          <div className="mt-4 p-3 bg-[var(--muted)]/50 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                p.interview.status === 'SCHEDULED' 
+                                  ? 'bg-blue-500/10 text-blue-500'
+                                  : 'bg-green-500/10 text-green-500'
+                              }`}>
+                                Interview {p.interview.status}
+                              </span>
+                              <span className="text-sm text-[var(--foreground)]/60">
+                                {new Date(p.interview.scheduledAt).toLocaleDateString('en-US', { 
+                                  month: 'short', 
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            </div>
+                            {p.interview.meetingLink && (
+                              <a
+                                href={p.interview.meetingLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-[var(--accent)] hover:underline"
+                              >
+                                Join Meeting →
+                              </a>
+                            )}
+                          </div>
+                        )}
+
                         <div className="mt-4 flex flex-wrap gap-2">
-                          {/* Message Button - Always available for submitted proposals */}
-                          {p.status === "SUBMITTED" && p.tutor && (
+                          {/* Message Button */}
+                          {p.status !== "DECLINED" && p.status !== "WITHDRAWN" && p.tutor && (
                             <MessageButton
                               tutorId={p.tutor.id}
                               tutorName={p.tutor.name}
@@ -341,6 +483,23 @@ export default function JobDetailForParentPage() {
                               variant="secondary"
                               size="sm"
                             />
+                          )}
+
+                          {/* Schedule Interview Button */}
+                          {p.status !== "ACCEPTED" && p.status !== "DECLINED" && p.status !== "WITHDRAWN" && p.tutor && (
+                            <button
+                              onClick={() => {
+                                if (p.interview) {
+                                  setReschedulingInterview(p.interview);
+                                } else {
+                                  setSchedulingProposal(p);
+                                }
+                              }}
+                              className="ui-btn ui-btn-secondary text-sm h-9"
+                              disabled={busyProposalId === p.id}
+                            >
+                              {p.interview ? "Reschedule" : "Schedule Interview"}
+                            </button>
                           )}
 
                           {p.status === "ACCEPTED" && p.contractId && (
@@ -358,11 +517,9 @@ export default function JobDetailForParentPage() {
                                 type="button"
                                 className="ui-btn ui-btn-primary"
                                 disabled={busyProposalId === p.id}
-                                onClick={() => onAccept(p.id)}
+                                onClick={() => onShortlist(p.id)}
                               >
-                                {busyProposalId === p.id
-                                  ? "Accepting…"
-                                  : "Accept"}
+                                {busyProposalId === p.id ? "Processing…" : "Shortlist"}
                               </button>
                               <button
                                 type="button"
@@ -370,11 +527,40 @@ export default function JobDetailForParentPage() {
                                 disabled={busyProposalId === p.id}
                                 onClick={() => onDecline(p.id)}
                               >
-                                {busyProposalId === p.id
-                                  ? "Declining…"
-                                  : "Decline"}
+                                {busyProposalId === p.id ? "Declining…" : "Decline"}
                               </button>
                             </>
+                          )}
+
+                          {p.status === "SHORTLISTED" && (
+                            <>
+                              <button
+                                type="button"
+                                className="ui-btn ui-btn-primary"
+                                disabled={busyProposalId === p.id}
+                                onClick={() => onAccept(p.id)}
+                              >
+                                {busyProposalId === p.id ? "Accepting…" : "Hire"}
+                              </button>
+                              <button
+                                type="button"
+                                className="ui-btn"
+                                disabled={busyProposalId === p.id}
+                                onClick={() => onDecline(p.id)}
+                              >
+                                {busyProposalId === p.id ? "Declining…" : "Decline"}
+                              </button>
+                            </>
+                          )}
+
+                          {/* Complete Interview Button */}
+                          {p.interview && p.interview.status === 'SCHEDULED' && (
+                            <button
+                              onClick={() => setFeedbackInterview(p.interview!)}
+                              className="ui-btn ui-btn-primary text-sm h-9 ml-auto"
+                            >
+                              Complete Interview
+                            </button>
                           )}
                         </div>
                       </div>
@@ -394,6 +580,45 @@ export default function JobDetailForParentPage() {
           )}
         </div>
       </div>
+
+      {/* Schedule Interview Modal */}
+      {schedulingProposal && schedulingProposal.tutor && (
+        <InterviewSchedulerModal
+          isOpen={true}
+          onClose={() => setSchedulingProposal(null)}
+          proposalId={schedulingProposal.id}
+          tutorId={schedulingProposal.tutor.id}
+          tutorName={schedulingProposal.tutor.name}
+          jobPostId={job?.id || ""}
+          jobTitle={job?.title || ""}
+          onSuccess={handleInterviewScheduled}
+        />
+      )}
+
+      {/* Reschedule Interview Modal */}
+      {reschedulingInterview && (
+        <InterviewSchedulerModal
+          isOpen={true}
+          onClose={() => setReschedulingInterview(null)}
+          proposalId={reschedulingInterview.proposalId}
+          tutorId={reschedulingInterview.tutorId}
+          tutorName={reschedulingInterview.tutor?.name || "Tutor"}
+          jobPostId={reschedulingInterview.jobPostId}
+          jobTitle={job?.title || ""}
+          existingInterview={reschedulingInterview}
+          onSuccess={handleInterviewScheduled}
+        />
+      )}
+
+      {/* Interview Feedback Modal */}
+      {feedbackInterview && (
+        <InterviewFeedbackModal
+          isOpen={true}
+          onClose={() => setFeedbackInterview(null)}
+          interview={feedbackInterview}
+          onSuccess={handleInterviewCompleted}
+        />
+      )}
     </PageShell>
   );
 }

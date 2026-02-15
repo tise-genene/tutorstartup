@@ -373,3 +373,113 @@ export interface ConversationWithDetails extends Conversation {
   participants: ConversationParticipant[];
   otherUser: PersonSummary;
 }
+
+// ==================== INTERVIEW SCHEDULING TYPES ====================
+
+export type InterviewStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW' | 'RESCHEDULED';
+export type MeetingProvider = 'zoom' | 'google_meet' | 'teams' | 'manual';
+
+export interface Interview {
+  id: string;
+  proposalId: string;
+  jobPostId: string;
+  parentId: string;
+  tutorId: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  meetingLink?: string | null;
+  meetingProvider: MeetingProvider;
+  status: InterviewStatus;
+  notes?: string | null;
+  clientNotes?: string | null;
+  tutorNotes?: string | null;
+  rating?: number | null;
+  feedback?: string | null;
+  reminderSentAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // Joined fields
+  parent?: PersonSummary;
+  tutor?: PersonSummary;
+  proposal?: Proposal;
+  jobPost?: JobPost;
+}
+
+export interface CreateInterviewPayload {
+  proposalId: string;
+  jobPostId: string;
+  tutorId: string;
+  scheduledAt: string;
+  durationMinutes?: number;
+  meetingLink?: string;
+  meetingProvider?: MeetingProvider;
+  notes?: string;
+}
+
+export interface UpdateInterviewPayload {
+  scheduledAt?: string;
+  durationMinutes?: number;
+  meetingLink?: string;
+  meetingProvider?: MeetingProvider;
+  status?: InterviewStatus;
+  notes?: string;
+  clientNotes?: string;
+  tutorNotes?: string;
+  rating?: number;
+  feedback?: string;
+}
+
+export interface TutorAvailability {
+  id: string;
+  tutorId: string;
+  dayOfWeek: number; // 0=Sunday, 6=Saturday
+  startTime: string; // HH:MM format
+  endTime: string; // HH:MM format
+  isRecurring: boolean;
+  specificDate?: string | null;
+  timezone: string;
+  isBlocked: boolean;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AvailableTimeSlot {
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+}
+
+export interface CreateAvailabilityPayload {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isRecurring?: boolean;
+  specificDate?: string;
+  timezone?: string;
+  notes?: string;
+}
+
+export interface ScheduledSession {
+  id: string;
+  contractId: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  meetingLink?: string | null;
+  locationText?: string | null;
+  status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
+  notes?: string | null;
+  parentAttended?: boolean | null;
+  tutorAttended?: boolean | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ==================== ENHANCED PROPOSAL TYPES ====================
+
+// Extended proposal with interview info
+export interface ProposalWithInterview extends Proposal {
+  tutor?: PersonSummary;
+  interview?: Interview | null;
+  interviewCount?: number;
+}

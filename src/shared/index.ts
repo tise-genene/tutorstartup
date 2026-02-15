@@ -6,6 +6,7 @@ export type JobPayType = "HOURLY" | "MONTHLY" | "FIXED";
 export type GenderPreference = "ANY" | "MALE" | "FEMALE";
 export type ProposalStatus =
   | "SUBMITTED"
+  | "SHORTLISTED"
   | "WITHDRAWN"
   | "ACCEPTED"
   | "DECLINED";
