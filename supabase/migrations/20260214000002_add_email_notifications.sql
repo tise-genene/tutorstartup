@@ -387,35 +387,37 @@ CREATE OR REPLACE FUNCTION public.notify_on_new_message()
 RETURNS TRIGGER AS $$
 DECLARE
   v_sender_name TEXT;
-  v_conversation RECORD;
+  v_conversation_id UUID;
+  v_parent_id UUID;
+  v_tutor_id UUID;
 BEGIN
   -- Get conversation and sender details
   SELECT c.id, c.parent_id, c.tutor_id, p.name
-  INTO v_conversation, v_sender_name
+  INTO v_conversation_id, v_parent_id, v_tutor_id, v_sender_name
   FROM public.conversations c
   JOIN public.profiles p ON NEW.sender_id = p.id
   WHERE c.id = NEW.conversation_id;
 
   -- Determine recipient (the other person)
-  IF NEW.sender_id = v_conversation.parent_id THEN
+  IF NEW.sender_id = v_parent_id THEN
     -- Message from parent to tutor
     PERFORM public.queue_notification(
-      v_conversation.tutor_id,
+      v_tutor_id,
       'NEW_MESSAGE'::"NotificationType",
       'New message from ' || v_sender_name,
       '<p>You have a new message from ' || v_sender_name || '</p>',
       'You have a new message from ' || v_sender_name,
-      jsonb_build_object('conversation_id', v_conversation.id, 'message_id', NEW.id)
+      jsonb_build_object('conversation_id', v_conversation_id, 'message_id', NEW.id)
     );
   ELSE
     -- Message from tutor to parent
     PERFORM public.queue_notification(
-      v_conversation.parent_id,
+      v_parent_id,
       'NEW_MESSAGE'::"NotificationType",
       'New message from ' || v_sender_name,
       '<p>You have a new message from ' || v_sender_name || '</p>',
       'You have a new message from ' || v_sender_name,
-      jsonb_build_object('conversation_id', v_conversation.id, 'message_id', NEW.id)
+      jsonb_build_object('conversation_id', v_conversation_id, 'message_id', NEW.id)
     );
   END IF;
 
@@ -505,9 +507,9 @@ BEGIN
   PERFORM public.queue_notification(
     NEW.tutor_id,
     'CONTRACT_CREATED'::"NotificationType",
-    'Congratulations! You\'ve been hired',
-    '<p>You\'ve been hired by ' || v_parent_name || ' for "' || v_job_title || '"</p>',
-    'You\'ve been hired by ' || v_parent_name || ' for "' || v_job_title || '"',
+    'Congratulations! You have been hired',
+    '<p>You have been hired by ' || v_parent_name || ' for ' || v_job_title || '</p>',
+    'You have been hired by ' || v_parent_name || ' for ' || v_job_title,
     jsonb_build_object('contract_id', NEW.id)
   );
 
@@ -516,8 +518,8 @@ BEGIN
     NEW.parent_id,
     'CONTRACT_CREATED'::"NotificationType",
     'Contract created with ' || v_tutor_name,
-    '<p>You\'ve hired ' || v_tutor_name || ' for "' || v_job_title || '"</p>',
-    'You\'ve hired ' || v_tutor_name || ' for "' || v_job_title || '"',
+    '<p>You have hired ' || v_tutor_name || ' for ' || v_job_title || '</p>',
+    'You have hired ' || v_tutor_name || ' for ' || v_job_title,
     jsonb_build_object('contract_id', NEW.id)
   );
 
