@@ -563,3 +563,110 @@ export interface UpdateNotificationPreferencesPayload {
   digestEmail?: boolean;
   digestFrequency?: 'daily' | 'weekly' | 'never';
 }
+
+// ==================== REVIEWS & RATINGS TYPES ====================
+
+export type ReviewStatus = 'PENDING' | 'SUBMITTED' | 'EDITED' | 'HIDDEN';
+
+export interface Review {
+  id: string;
+  contractId: string;
+  jobPostId: string;
+  reviewerId: string;
+  revieweeId: string;
+  
+  // Ratings (1-5 stars)
+  overallRating: number;
+  professionalismRating?: number | null;
+  communicationRating?: number | null;
+  punctualityRating?: number | null;
+  expertiseRating?: number | null;
+  
+  // Review content
+  title?: string | null;
+  content: string;
+  wouldRecommend?: boolean | null;
+  
+  // Metadata
+  status: ReviewStatus;
+  isPublic: boolean;
+  helpfulCount: number;
+  reportedCount: number;
+  
+  // Response from reviewee
+  responseContent?: string | null;
+  respondedAt?: string | null;
+  
+  createdAt: string;
+  updatedAt: string;
+  
+  // Joined fields
+  reviewer?: PersonSummary;
+  reviewee?: PersonSummary;
+  contract?: {
+    id: string;
+    jobPost?: {
+      id: string;
+      title: string;
+    };
+  };
+}
+
+export interface CreateReviewPayload {
+  contractId: string;
+  jobPostId: string;
+  revieweeId: string;
+  overallRating: number;
+  professionalismRating?: number;
+  communicationRating?: number;
+  punctualityRating?: number;
+  expertiseRating?: number;
+  title?: string;
+  content: string;
+  wouldRecommend?: boolean;
+}
+
+export interface UpdateReviewPayload {
+  overallRating?: number;
+  professionalismRating?: number;
+  communicationRating?: number;
+  punctualityRating?: number;
+  expertiseRating?: number;
+  title?: string;
+  content?: string;
+  wouldRecommend?: boolean;
+}
+
+export interface ReviewVote {
+  id: string;
+  reviewId: string;
+  userId: string;
+  isHelpful: boolean;
+  createdAt: string;
+}
+
+export interface TutorReviewStats {
+  tutorId: string;
+  totalReviews: number;
+  averageRating: number;
+  averageProfessionalism: number;
+  averageCommunication: number;
+  averagePunctuality: number;
+  averageExpertise: number;
+  fiveStarCount: number;
+  fourStarCount: number;
+  threeStarCount: number;
+  twoStarCount: number;
+  oneStarCount: number;
+  wouldRecommendCount: number;
+  wouldRecommendPercentage: number;
+  updatedAt: string;
+}
+
+export interface ReviewBreakdown {
+  fiveStar: number;
+  fourStar: number;
+  threeStar: number;
+  twoStar: number;
+  oneStar: number;
+}
