@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { createClient } from "../../lib/supabase";
 import { useAuth, useI18n, useTheme } from "../providers";
 import { useMessaging } from "../../hooks/useMessaging";
+import { NotificationBell } from "./NotificationBell";
 import { BRAND_NAME } from "../../lib/brand";
 
 function SunIcon() {
@@ -676,6 +677,8 @@ export function AppHeader() {
                       )}
                     </span>
                   </Link>
+
+                  <NotificationBell />
                 </>
               )}
 
@@ -789,6 +792,8 @@ export function AppHeader() {
                       )}
                     </span>
                   </Link>
+
+                  <NotificationBell />
                 </>
               )}
 

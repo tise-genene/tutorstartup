@@ -483,3 +483,83 @@ export interface ProposalWithInterview extends Proposal {
   interview?: Interview | null;
   interviewCount?: number;
 }
+
+// ==================== EMAIL NOTIFICATION TYPES ====================
+
+export type NotificationType = 
+  | 'NEW_MESSAGE'
+  | 'NEW_PROPOSAL'
+  | 'PROPOSAL_ACCEPTED'
+  | 'PROPOSAL_DECLINED'
+  | 'INTERVIEW_SCHEDULED'
+  | 'INTERVIEW_REMINDER_24H'
+  | 'INTERVIEW_REMINDER_1H'
+  | 'INTERVIEW_CANCELLED'
+  | 'INTERVIEW_RESCHEDULED'
+  | 'CONTRACT_CREATED'
+  | 'SESSION_REMINDER'
+  | 'PAYMENT_RECEIVED'
+  | 'PAYMENT_SENT'
+  | 'NEW_LESSON_REQUEST'
+  | 'LESSON_REQUEST_ACCEPTED'
+  | 'LESSON_REQUEST_DECLINED'
+  | 'WELCOME'
+  | 'PASSWORD_RESET';
+
+export type NotificationStatus = 'PENDING' | 'SENT' | 'FAILED' | 'DELIVERED' | 'OPENED';
+
+export interface EmailNotification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  subject: string;
+  bodyHtml?: string | null;
+  bodyText?: string | null;
+  recipientEmail: string;
+  status: NotificationStatus;
+  metadata: Record<string, any>;
+  sentAt?: string | null;
+  deliveredAt?: string | null;
+  openedAt?: string | null;
+  errorMessage?: string | null;
+  retryCount: number;
+  scheduledFor?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotificationPreferences {
+  id: string;
+  userId: string;
+  newMessageEmail: boolean;
+  newProposalEmail: boolean;
+  proposalAcceptedEmail: boolean;
+  proposalDeclinedEmail: boolean;
+  interviewScheduledEmail: boolean;
+  interviewReminderEmail: boolean;
+  interviewCancelledEmail: boolean;
+  contractCreatedEmail: boolean;
+  paymentReceivedEmail: boolean;
+  lessonRequestEmail: boolean;
+  marketingEmail: boolean;
+  digestEmail: boolean;
+  digestFrequency: 'daily' | 'weekly' | 'never';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateNotificationPreferencesPayload {
+  newMessageEmail?: boolean;
+  newProposalEmail?: boolean;
+  proposalAcceptedEmail?: boolean;
+  proposalDeclinedEmail?: boolean;
+  interviewScheduledEmail?: boolean;
+  interviewReminderEmail?: boolean;
+  interviewCancelledEmail?: boolean;
+  contractCreatedEmail?: boolean;
+  paymentReceivedEmail?: boolean;
+  lessonRequestEmail?: boolean;
+  marketingEmail?: boolean;
+  digestEmail?: boolean;
+  digestFrequency?: 'daily' | 'weekly' | 'never';
+}
