@@ -210,7 +210,7 @@ BEGIN
     v_user_email,
     p_metadata,
     COALESCE(p_scheduled_for, NOW()),
-    CASE WHEN p_scheduled_for IS NULL THEN 'PENDING' ELSE 'PENDING' END
+    'PENDING'::"NotificationStatus"
   )
   RETURNING id INTO v_notification_id;
 
@@ -238,7 +238,7 @@ CREATE OR REPLACE FUNCTION public.mark_notification_sent(p_notification_id UUID)
 RETURNS VOID AS $$
 BEGIN
   UPDATE public.email_notifications
-  SET status = 'SENT',
+  SET status = 'SENT'::"NotificationStatus",
       sent_at = NOW(),
       updated_at = NOW()
   WHERE id = p_notification_id;
@@ -253,7 +253,7 @@ CREATE OR REPLACE FUNCTION public.mark_notification_failed(p_notification_id UUI
 RETURNS VOID AS $$
 BEGIN
   UPDATE public.email_notifications
-  SET status = 'FAILED',
+  SET status = 'FAILED'::"NotificationStatus",
       error_message = p_error_message,
       retry_count = retry_count + 1,
       updated_at = NOW()
