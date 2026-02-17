@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useNotifications, getNotificationIcon, getNotificationColor } from "../../hooks/useNotifications";
-import { useAuth } from "../../app/providers";
+import { getNotificationIcon, getNotificationColor } from "../../hooks/useNotifications";
+import { useNotificationContext, useAuth } from "../../app/providers";
 import type { EmailNotification } from "../../lib/types";
 
 function BellIcon() {
@@ -70,7 +70,7 @@ interface NotificationBellProps {
 
 export function NotificationBell({ className = "" }: NotificationBellProps) {
   const { auth } = useAuth();
-  const { notifications, unreadCount, markAsOpened, markAllAsOpened } = useNotifications(auth?.user.id || null);
+  const { notifications, unreadCount, markAsOpened, markAllAsOpened } = useNotificationContext();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -99,7 +99,7 @@ export function NotificationBell({ className = "" }: NotificationBellProps) {
 
   if (!auth) return null;
 
-  const recentNotifications = notifications.slice(0, 10);
+  const recentNotifications: EmailNotification[] = notifications.slice(0, 10);
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
