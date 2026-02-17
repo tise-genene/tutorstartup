@@ -37,9 +37,11 @@ export default function JobDetailForParentPage() {
 
   const isClient =
     auth?.user.role === "PARENT" || auth?.user.role === "STUDENT";
+  const isTutor = auth?.user.role === "TUTOR";
 
   const [job, setJob] = useState<JobPost | null>(null);
   const [proposals, setProposals] = useState<ProposalWithTutor[]>([]);
+  const [myProposal, setMyProposal] = useState<ProposalWithTutor | null>(null);
   const [loading, setLoading] = useState(true);
   const [busyProposalId, setBusyProposalId] = useState<string | null>(null);
   const [closing, setClosing] = useState(false);
@@ -52,10 +54,9 @@ export default function JobDetailForParentPage() {
 
   const helper = useMemo(() => {
     if (!auth) return t("state.loginRequired");
-    if (!isClient) return "This page is for clients only.";
     if (!jobId) return "Invalid job id";
     return null;
-  }, [auth, isClient, jobId, t]);
+  }, [auth, jobId, t]);
 
   const preview = useMemo(() => {
     if (!job) return "";
@@ -63,7 +64,7 @@ export default function JobDetailForParentPage() {
   }, [job]);
 
   const fetchData = async () => {
-    if (!auth || !isClient || !jobId) {
+    if (!auth || !jobId) {
       setLoading(false);
       return;
     }
@@ -81,8 +82,52 @@ export default function JobDetailForParentPage() {
         .single();
 
       if (jobError) throw jobError;
+      setJob(jobData as any);
 
-      // Fetch proposals
+      // If tutor, check if they already submitted a proposal
+      if (isTutor) {
+        const { data: myProposalData } = await supabase
+          .from("proposals")
+          .select(`
+            *,
+            profiles:tutor_id (
+              id,
+              name,
+              email,
+              role
+            )
+          `)
+          .eq("job_post_id", jobId)
+          .eq("tutor_id", auth.user.id)
+          .single();
+
+        if (myProposalData) {
+          // Fetch interview for my proposal
+          const { data: interviewData } = await supabase
+            .from("interviews")
+            .select(`
+              *,
+              parent:parent_id(id, name, avatar_url, role),
+              tutor:tutor_id(id, name, avatar_url, role)
+            `)
+            .eq("proposal_id", myProposalData.id)
+            .order("scheduled_at", { ascending: false })
+            .limit(1)
+            .single();
+
+          setMyProposal({
+            ...myProposalData,
+            tutor: myProposalData.profiles,
+            interview: interviewData || null,
+          } as ProposalWithTutor);
+        } else {
+          setMyProposal(null);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // For clients: Fetch all proposals
       const { data: proposalsData, error: proposalsError } = await supabase
         .from("proposals")
         .select(`
@@ -147,7 +192,6 @@ export default function JobDetailForParentPage() {
         interview: interviewMap.get(p.id) || null,
       }));
 
-      setJob(jobData as any);
       setProposals(formattedProposals);
     } catch (e) {
       setStatus((e as Error).message);
@@ -296,6 +340,10 @@ export default function JobDetailForParentPage() {
     return colors[status] || "bg-gray-500/10 text-gray-500";
   };
 
+  const handleApply = () => {
+    window.location.href = `/work/${jobId}`;
+  };
+
   return (
     <PageShell>
       <div className="mx-auto max-w-6xl">
@@ -304,10 +352,10 @@ export default function JobDetailForParentPage() {
             <div>
               <h1 className="text-2xl font-semibold">{t("nav.jobs")}</h1>
               <p className="mt-1 text-sm ui-muted">
-                Review proposals from tutors.
+                {isClient ? "Review proposals from tutors." : isTutor ? "View job details and apply." : "Job details"}
               </p>
             </div>
-            <Link href="/jobs/mine" className="ui-btn">
+            <Link href={isTutor ? "/work" : "/jobs/mine"} className="ui-btn">
               Back
             </Link>
           </div>
@@ -371,13 +419,83 @@ export default function JobDetailForParentPage() {
                 </p>
               </div>
 
-              <div className="surface-card surface-card--quiet p-5">
-                <h2
-                  className="text-lg font-semibold"
-                  style={{ color: "var(--foreground)" }}
-                >
-                  Proposals ({proposals.length})
-                </h2>
+              {/* Tutor View: Apply button or My Proposal */}
+              {isTutor && job.status === "OPEN" && (
+                <div className="surface-card surface-card--quiet p-5">
+                  {!myProposal ? (
+                    <div className="text-center py-8">
+                      <h2 className="text-lg font-semibold mb-2">Interested in this job?</h2>
+                      <p className="text-sm ui-muted mb-4">
+                        Submit a proposal to apply for this tutoring position.
+                      </p>
+                      <button
+                        onClick={handleApply}
+                        className="ui-btn ui-btn-primary"
+                      >
+                        Apply to this Job
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <h2 className="text-lg font-semibold mb-4">Your Proposal</h2>
+                      <div className="rounded-2xl border p-4" style={{ borderColor: "var(--divider)" }}>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className={`pill text-xs ${getStatusBadge(myProposal.status)}`}>
+                            {myProposal.status}
+                          </span>
+                          <span className="text-sm text-[var(--muted)]">
+                            Submitted {new Date(myProposal.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-sm ui-muted" style={{ whiteSpace: "pre-wrap" }}>
+                          {myProposal.message}
+                        </p>
+                        {myProposal.interview && (
+                          <div className="mt-4 p-3 bg-[var(--muted)]/50 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                myProposal.interview.status === 'SCHEDULED' 
+                                  ? 'bg-blue-500/10 text-blue-500'
+                                  : 'bg-green-500/10 text-green-500'
+                              }`}>
+                                Interview {myProposal.interview.status}
+                              </span>
+                              <span className="text-sm text-[var(--foreground)]/60">
+                                {new Date(myProposal.interview.scheduledAt).toLocaleDateString('en-US', { 
+                                  month: 'short', 
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            </div>
+                            {myProposal.interview.meetingLink && (
+                              <a
+                                href={myProposal.interview.meetingLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-[var(--accent)] hover:underline"
+                              >
+                                Join Meeting →
+                              </a>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Client View: All Proposals */}
+              {isClient && (
+                <div className="surface-card surface-card--quiet p-5">
+                  <h2
+                    className="text-lg font-semibold"
+                    style={{ color: "var(--foreground)" }}
+                  >
+                    Proposals ({proposals.length})
+                  </h2>
                 {proposals.length === 0 ? (
                   <p className="mt-3 text-sm ui-muted">No proposals yet.</p>
                 ) : (
@@ -576,6 +694,7 @@ export default function JobDetailForParentPage() {
                   />
                 )}
               </div>
+            )}
             </div>
           )}
         </div>
