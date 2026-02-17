@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useConversation } from "../../hooks/useMessaging";
-import { useAuth } from "../../app/providers";
+import { useConversation, useMessaging } from "../../hooks/useMessaging";
+import { useAuth, useNotificationContext } from "../../app/providers";
 import { useFileUpload, formatFileSize, getFileIcon, UploadedFile } from "../../hooks/useFileUpload";
-import { createClient } from "../../lib/supabase";
-import type { Message } from "../../lib/types";
+import type { Message, EmailNotification } from "../../lib/types";
 
 function PaperclipIcon() {
   return (
@@ -127,10 +126,12 @@ interface ChatWindowProps {
 
 export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
   const { auth } = useAuth();
-  const { conversation, messages, loading, error, sendMessage } = useConversation(
+  const { conversation, messages, loading, error, sendMessage, refresh } = useConversation(
     conversationId,
     auth?.user.id || null
   );
+  const { refreshConversations } = useMessaging(auth?.user.id || null);
+  const { notifications, markAsOpened } = useNotificationContext();
   const [inputValue, setInputValue] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<UploadedFile[]>([]);
@@ -150,23 +151,49 @@ export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
     scrollToBottom();
   }, [messages]);
 
+  // Mark message notifications as opened when viewing conversation
+  useEffect(() => {
+    if (!conversationId || !notifications.length) return;
+    
+    // Find notifications for this conversation that haven't been opened
+    const messageNotifications = notifications.filter(
+      (n: EmailNotification) => n.type === 'NEW_MESSAGE' && 
+           n.metadata?.conversation_id === conversationId &&
+           !n.openedAt
+    );
+    
+    // Mark each notification as opened
+    messageNotifications.forEach((notification: EmailNotification) => {
+      markAsOpened(notification.id);
+    });
+  }, [conversationId, notifications, markAsOpened]);
+
+  // Refresh conversation list to clear unread badge
+  useEffect(() => {
+    if (!loading && conversation) {
+      // Small delay to ensure the mark_as_read RPC has completed
+      const timer = setTimeout(() => {
+        refreshConversations();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, conversation, refreshConversations]);
+
   const handleSend = async () => {
     if ((!inputValue.trim() && pendingFiles.length === 0) || isSending) return;
     
     setIsSending(true);
     
-    // Send message with attachments
-    const supabase = createClient();
-    const { error: msgError } = await supabase
-      .from('messages')
-      .insert({
-        conversation_id: conversationId,
-        sender_id: auth?.user.id,
-        content: inputValue.trim() || '',
-        attachments: pendingFiles.length > 0 ? pendingFiles : null
-      });
+    // Send message using the hook which updates state immediately
+    const fileData = pendingFiles.length > 0 ? {
+      url: pendingFiles[0].url,
+      name: pendingFiles[0].name,
+      size: pendingFiles[0].size
+    } : undefined;
     
-    if (!msgError) {
+    const success = await sendMessage(inputValue.trim() || '', fileData);
+    
+    if (success) {
       setInputValue("");
       setPendingFiles([]);
     }

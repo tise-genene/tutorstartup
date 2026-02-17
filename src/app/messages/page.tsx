@@ -1,32 +1,35 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect } from "react";
 import { PageShell } from "../_components/PageShell";
 import { ConversationList } from "../_components/ConversationList";
 import { ChatWindow } from "../_components/ChatWindow";
-import { useAuth, useI18n } from "../providers";
-import type { Conversation } from "../../lib/types";
+import { useAuth, useNotificationContext } from "../providers";
+import type { EmailNotification } from "../../lib/types";
 
 export default function MessagesPage() {
-  const { t } = useI18n();
   const { auth } = useAuth();
-  const router = useRouter();
-  const params = useParams();
-  const conversationId = params?.id as string | undefined;
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const { notifications, markAsOpened } = useNotificationContext();
 
-  const handleSelectConversation = (conversation: Conversation) => {
-    setSelectedConversation(conversation);
-    router.push(`/messages/${conversation.id}`);
-  };
+  // Mark all message notifications as opened when viewing messages page
+  useEffect(() => {
+    if (!notifications.length) return;
+    
+    const messageNotifications = notifications.filter(
+      (n: EmailNotification) => n.type === 'NEW_MESSAGE' && !n.openedAt
+    );
+    
+    messageNotifications.forEach((notification: EmailNotification) => {
+      markAsOpened(notification.id);
+    });
+  }, [notifications, markAsOpened]);
 
   if (!auth) {
     return (
       <PageShell>
         <div className="mx-auto max-w-6xl">
           <div className="glass-panel p-8 text-center">
-            <p className="text-[var(--foreground)]/60">{t("state.loginRequired")}</p>
+            <p className="text-[var(--foreground)]/60">Please log in to view messages.</p>
           </div>
         </div>
       </PageShell>
@@ -37,30 +40,20 @@ export default function MessagesPage() {
     <PageShell>
       <div className="mx-auto max-w-7xl h-[calc(100vh-140px)]">
         <div className="glass-panel h-full overflow-hidden flex">
-          {/* Conversation List - Sidebar */}
-          <div className={`${conversationId ? "hidden lg:block" : ""} w-full lg:w-80 xl:w-96 border-r border-[var(--border)] flex-shrink-0`}>
-            <ConversationList
-              selectedId={conversationId}
-              onSelectConversation={handleSelectConversation}
-            />
+          {/* Conversation List - Full width on mobile, sidebar on desktop */}
+          <div className="w-full lg:w-80 xl:w-96 lg:border-r lg:border-[var(--border)]">
+            <ConversationList />
           </div>
 
-          {/* Chat Window */}
-          <div className={`${conversationId ? "" : "hidden lg:flex"} flex-1 flex flex-col`}>
-            {conversationId ? (
-              <ChatWindow
-                conversationId={conversationId}
-                onBack={() => router.push("/messages")}
-              />
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-                <div className="text-6xl mb-4">💬</div>
-                <h2 className="text-xl font-semibold mb-2">Your Messages</h2>
-                <p className="text-[var(--foreground)]/60 max-w-md">
-                  Select a conversation from the list to view messages, or start a new conversation with a tutor.
-                </p>
-              </div>
-            )}
+          {/* Empty State - Hidden on mobile, shown on desktop */}
+          <div className="hidden lg:flex flex-1 items-center justify-center">
+            <div className="text-center">
+              <div className="text-4xl mb-2">💬</div>
+              <h3 className="text-lg font-semibold">Select a conversation</h3>
+              <p className="text-sm text-[var(--foreground)]/60 mt-1">
+                Choose a conversation from the list to start messaging
+              </p>
+            </div>
           </div>
         </div>
       </div>

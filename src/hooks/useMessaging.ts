@@ -262,7 +262,7 @@ export function useMessaging(userId: string | null) {
         p_user_id: userId,
       });
 
-      // Update local state
+      // Update local state immediately
       setConversations((prev) =>
         prev.map((conv) =>
           conv.id === conversationId ? { ...conv, unreadCount: 0 } : conv
@@ -280,6 +280,11 @@ export function useMessaging(userId: string | null) {
       console.error("Error marking as read:", e);
     }
   }, [userId, supabase]);
+
+  // Force refresh conversations (used after marking as read)
+  const refreshConversations = useCallback(async () => {
+    await fetchConversations();
+  }, [fetchConversations]);
 
   // Subscribe to real-time messages
   useEffect(() => {
@@ -380,6 +385,7 @@ export function useMessaging(userId: string | null) {
     createConversation,
     sendMessage,
     markAsRead,
+    refreshConversations,
     setActiveConversation,
     loadMore: () => fetchMessages(activeConversation?.id || "", page + 1),
   };
@@ -498,6 +504,7 @@ export function useConversation(conversationId: string | null, userId: string | 
         async (payload) => {
           const newMessage = payload.new as any;
           
+          // Only process messages from OTHER users (our own messages are added immediately by sendMessage)
           if (newMessage.sender_id !== userId) {
             // Fetch sender details
             const { data: sender } = await supabase
@@ -521,7 +528,11 @@ export function useConversation(conversationId: string | null, userId: string | 
               sender: sender || undefined,
             };
 
-            setMessages((prev) => [...prev, message]);
+            setMessages((prev) => {
+              // Avoid duplicates
+              if (prev.some((m) => m.id === message.id)) return prev;
+              return [...prev, message];
+            });
           }
         }
       )
