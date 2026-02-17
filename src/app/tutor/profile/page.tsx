@@ -93,14 +93,27 @@ export default function TutorProfilePage() {
         updated_at: new Date().toISOString(),
       };
 
-      const { data, error } = await supabase
-        .from("tutor_profiles")
-        .upsert(payload)
-        .select()
-        .single();
+      let result;
+      
+      if (profile?.id) {
+        // Update existing profile
+        result = await supabase
+          .from("tutor_profiles")
+          .update(payload)
+          .eq("id", profile.id)
+          .select()
+          .single();
+      } else {
+        // Insert new profile
+        result = await supabase
+          .from("tutor_profiles")
+          .insert(payload)
+          .select()
+          .single();
+      }
 
-      if (error) throw error;
-      setProfile(data as any);
+      if (result.error) throw result.error;
+      setProfile(result.data as any);
       setStatus(t("profile.saved"));
     } catch (error) {
       setStatus((error as Error).message);
@@ -213,7 +226,7 @@ export default function TutorProfilePage() {
           </form>
         )}
 
-        {profile && (
+        {profile?.updatedAt && (
           <div className="mt-6 surface-card surface-card--quiet p-4 text-sm">
             <p className="ui-muted">
               {t("profile.lastUpdated")}:{" "}

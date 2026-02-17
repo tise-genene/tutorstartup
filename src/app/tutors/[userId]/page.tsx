@@ -7,6 +7,52 @@ import { PageShell } from "../../_components/PageShell";
 import { createClient } from "../../../lib/supabase";
 import type { TutorProfile } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
+import { useReviews, useReviewStats } from "../../../hooks/useReviews";
+import { TutorRatingSummary, ReviewCard } from "../../_components/ReviewComponents";
+
+// Reviews Section Component
+function TutorReviewsSection({ tutorId }: { tutorId: string }) {
+  const { reviews, loading: reviewsLoading } = useReviews(tutorId);
+  const { stats, breakdown, loading: statsLoading } = useReviewStats(tutorId);
+
+  if (statsLoading || reviewsLoading) {
+    return (
+      <div className="surface-card surface-card--quiet p-5">
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)]" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!stats || stats.totalReviews === 0) {
+    return null; // Don't show reviews section if no reviews
+  }
+
+  return (
+    <div className="surface-card surface-card--quiet p-5">
+      <h2 className="text-lg font-semibold mb-4">Reviews & Ratings</h2>
+      
+      <TutorRatingSummary stats={stats} breakdown={breakdown} />
+      
+      {reviews.length > 0 && (
+        <div className="mt-6 space-y-4">
+          <h3 className="text-sm font-semibold text-[var(--foreground)]/70 uppercase tracking-wider">
+            Recent Reviews
+          </h3>
+          {reviews.slice(0, 3).map((review) => (
+            <ReviewCard key={review.id} review={review} showResponse={true} />
+          ))}
+          {reviews.length > 3 && (
+            <p className="text-center text-sm text-[var(--foreground)]/60 py-2">
+              +{reviews.length - 3} more reviews
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function TutorDetailPage() {
   const { t } = useI18n();
@@ -189,6 +235,9 @@ export default function TutorDetailPage() {
                     : t("search.customRate")}
                 </p>
               </div>
+
+              {/* Reviews Section */}
+              {userId && <TutorReviewsSection tutorId={userId} />}
             </div>
           )}
 

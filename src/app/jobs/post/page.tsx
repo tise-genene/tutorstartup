@@ -6,6 +6,7 @@ import { PageShell } from "../../_components/PageShell";
 import { createClient } from "../../../lib/supabase";
 import { parseCsv } from "../../../lib/form";
 import { formatJobPostPreview } from "../../../lib/jobPreview";
+import { ensureProfileExists } from "../../../lib/profile-utils";
 import type { GenderPreference, JobPayType } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
 
@@ -59,6 +60,9 @@ export default function PostJobPage() {
     setBusy(true);
     setStatus(null);
     try {
+      // Ensure profile exists before creating job
+      await ensureProfileExists();
+      
       const payType = form.payType;
       const currency = form.currency.trim().toUpperCase() || "ETB";
       const sessionMinutesRaw = Number(form.sessionMinutes);
@@ -148,6 +152,9 @@ export default function PostJobPage() {
     setBusy(true);
     setStatus(null);
     try {
+      // Ensure profile exists before saving draft
+      await ensureProfileExists();
+      
       const payType = form.payType;
       const currency = form.currency.trim().toUpperCase() || "ETB";
       const sessionMinutesRaw = Number(form.sessionMinutes);
