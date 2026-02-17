@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useConversation } from "../../hooks/useMessaging";
 import { useAuth } from "../../app/providers";
+import { useFileUpload, formatFileSize, getFileIcon, UploadedFile } from "../../hooks/useFileUpload";
+import { createClient } from "../../lib/supabase";
 import type { Message } from "../../lib/types";
 
 function PaperclipIcon() {
@@ -48,14 +50,6 @@ function DoubleCheckIcon() {
   );
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 Bytes";
-  const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-}
-
 function formatTime(date: string): string {
   return new Date(date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
@@ -86,26 +80,31 @@ function MessageBubble({ message, isOwn, showAvatar }: MessageBubbleProps) {
               : "bg-[var(--muted)] text-[var(--foreground)] rounded-bl-md"
           }`}
         >
-          {message.fileUrl && (
-            <a
-              href={message.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex items-center gap-2 mb-2 p-2 rounded-lg ${
-                isOwn ? "bg-white/20" : "bg-[var(--background)]"
-              }`}
-            >
-              <FileIcon />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm truncate">{message.fileName || "File"}</div>
-                {message.fileSize && (
-                  <div className="text-xs opacity-70">{formatFileSize(message.fileSize)}</div>
-                )}
-              </div>
-            </a>
+          {message.attachments && message.attachments.length > 0 && (
+            <div className="space-y-2 mb-2">
+              {message.attachments.map((attachment: UploadedFile, idx: number) => (
+                <a
+                  key={idx}
+                  href={attachment.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center gap-2 p-2 rounded-lg ${
+                    isOwn ? "bg-white/20" : "bg-[var(--background)]"
+                  }`}
+                >
+                  <span className="text-lg">{getFileIcon(attachment.type)}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm truncate">{attachment.name}</div>
+                    <div className="text-xs opacity-70">{formatFileSize(attachment.size)}</div>
+                  </div>
+                </a>
+              ))}
+            </div>
           )}
           
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+          {message.content && (
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+          )}
         </div>
         
         <div className={`flex items-center gap-1 mt-1 text-xs text-[var(--foreground)]/50 ${isOwn ? "justify-end" : "justify-start"}`}>
@@ -134,8 +133,14 @@ export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
   );
   const [inputValue, setInputValue] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<UploadedFile[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { uploadFiles, uploading: fileUploading, progress } = useFileUpload({
+    bucket: 'messages',
+    folder: auth?.user.id
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -146,13 +151,26 @@ export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!inputValue.trim() || isSending) return;
+    if ((!inputValue.trim() && pendingFiles.length === 0) || isSending) return;
     
     setIsSending(true);
-    const success = await sendMessage(inputValue.trim());
-    if (success) {
+    
+    // Send message with attachments
+    const supabase = createClient();
+    const { error: msgError } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: conversationId,
+        sender_id: auth?.user.id,
+        content: inputValue.trim() || '',
+        attachments: pendingFiles.length > 0 ? pendingFiles : null
+      });
+    
+    if (!msgError) {
       setInputValue("");
+      setPendingFiles([]);
     }
+    
     setIsSending(false);
   };
 
@@ -164,17 +182,22 @@ export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    // TODO: Implement file upload to Supabase Storage
-    // For now, just show an alert
-    alert("File upload coming soon!");
+    const uploaded = await uploadFiles(files);
+    if (uploaded.length > 0) {
+      setPendingFiles(prev => [...prev, ...uploaded]);
+    }
     
     // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  };
+
+  const removePendingFile = (fileId: string) => {
+    setPendingFiles(prev => prev.filter(f => f.id !== fileId));
   };
 
   if (loading && messages.length === 0) {
@@ -260,17 +283,44 @@ export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
 
       {/* Input */}
       <div className="p-4 border-t border-[var(--border)]">
+        {/* Pending Files */}
+        {pendingFiles.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {pendingFiles.map((file) => (
+              <div
+                key={file.id}
+                className="flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-elevated)] rounded-full text-sm"
+              >
+                <span>{getFileIcon(file.type)}</span>
+                <span className="truncate max-w-[150px]">{file.name}</span>
+                <button
+                  onClick={() => removePendingFile(file.id)}
+                  className="text-[var(--muted)] hover:text-red-500 ml-1"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        
         <div className="flex items-end gap-2">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="ui-btn ui-btn-ghost p-2 flex-shrink-0"
+            disabled={fileUploading}
+            className="ui-btn ui-btn-ghost p-2 flex-shrink-0 disabled:opacity-50"
             title="Attach file"
           >
-            <PaperclipIcon />
+            {fileUploading ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--accent)]" />
+            ) : (
+              <PaperclipIcon />
+            )}
           </button>
           <input
             ref={fileInputRef}
             type="file"
+            multiple
             className="hidden"
             onChange={handleFileSelect}
           />
@@ -286,7 +336,7 @@ export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
           
           <button
             onClick={handleSend}
-            disabled={!inputValue.trim() || isSending}
+            disabled={(!inputValue.trim() && pendingFiles.length === 0) || isSending}
             className="ui-btn ui-btn-primary p-2 flex-shrink-0 disabled:opacity-50"
             title="Send message"
           >

@@ -16,6 +16,8 @@ import type {
   PersonSummary,
 } from "../shared";
 
+import type { UploadedFile } from "../hooks/useFileUpload";
+
 export type {
   UserRole,
   LessonRequestStatus,
@@ -325,6 +327,7 @@ export interface Message {
   fileUrl?: string | null;
   fileName?: string | null;
   fileSize?: number | null;
+  attachments?: UploadedFile[] | null;
   isRead: boolean;
   readAt?: string | null;
   createdAt: string;
