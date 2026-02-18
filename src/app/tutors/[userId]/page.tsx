@@ -89,17 +89,23 @@ export default function TutorDetailPage() {
           .from("tutor_profiles")
           .select(`
             *,
-            profiles:user_id(id, name, avatar_url)
+            profiles!inner(id, name, avatar_url)
           `)
           .eq("user_id", userId)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
+        
+        if (!data) {
+          setStatus("Tutor profile not found");
+          setLoading(false);
+          return;
+        }
 
         const tutorData: any = {
           ...data,
-          name: data.profiles.name,
-          avatarUrl: data.profiles.avatar_url,
+          name: data.profiles?.name || "Unknown",
+          avatarUrl: data.profiles?.avatar_url,
           location: data.location,
         };
 
@@ -109,7 +115,8 @@ export default function TutorDetailPage() {
           subject: prev.subject || tutorData.subjects?.[0] || "",
         }));
       } catch (error) {
-        setStatus((error as Error).message);
+        console.error("Error loading tutor profile:", error);
+        setStatus("Failed to load tutor profile. Please try again.");
       } finally {
         setLoading(false);
       }
