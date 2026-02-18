@@ -270,6 +270,23 @@ export function useContractReview(contractId: string | null, userId: string | nu
     if (!userId) return null;
 
     try {
+      console.log("Creating review with payload:", payload);
+      
+      // First check if user can review
+      const { data: canReviewData, error: canReviewError } = await supabase.rpc("can_user_review", {
+        p_contract_id: payload.contractId,
+        p_user_id: userId,
+      });
+      
+      if (canReviewError) {
+        console.error("can_user_review error:", canReviewError);
+        throw new Error("Failed to verify review eligibility: " + canReviewError.message);
+      }
+      
+      if (!canReviewData) {
+        throw new Error("You are not eligible to review this contract. It must be completed and you must be a party to it.");
+      }
+      
       const { data, error } = await supabase
         .from("reviews")
         .insert({
@@ -293,7 +310,10 @@ export function useContractReview(contractId: string | null, userId: string | nu
         `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Review insert error:", error);
+        throw error;
+      }
 
       const review: Review = {
         id: data.id,
