@@ -89,7 +89,7 @@ export default function TutorDetailPage() {
           .from("tutor_profiles")
           .select(`
             *,
-            profiles:user_id(id, name, avatar_url, location)
+            profiles:user_id(id, name, avatar_url)
           `)
           .eq("user_id", userId)
           .single();
@@ -100,7 +100,7 @@ export default function TutorDetailPage() {
           ...data,
           name: data.profiles.name,
           avatarUrl: data.profiles.avatar_url,
-          location: data.profiles.location || data.location,
+          location: data.location,
         };
 
         setTutor(tutorData);

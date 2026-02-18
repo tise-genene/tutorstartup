@@ -133,7 +133,7 @@ export function ReviewModal({
       onSuccess?.(result);
       onClose();
     } else {
-      setError("Failed to submit review. Please try again.");
+      setError("Failed to submit review. The contract may not be eligible for review yet.");
     }
 
     setIsLoading(false);
