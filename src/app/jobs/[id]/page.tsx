@@ -247,44 +247,41 @@ export default function JobDetailForParentPage() {
     }
   };
 
-  const onAccept = async (proposalId: string) => {
+  const onSendOffer = async (proposalId: string) => {
     if (!auth || !job) return;
     setBusyProposalId(proposalId);
     setStatus(null);
     try {
-      const { data: proposal, error: pError } = await supabase
-        .from("proposals")
-        .update({ status: "ACCEPTED" })
-        .eq("id", proposalId)
-        .select()
-        .single();
+      // Find the proposal to get tutor_id
+      const proposal = proposals.find(p => p.id === proposalId);
+      if (!proposal) throw new Error("Proposal not found");
 
-      if (pError) throw pError;
-
-      const { data: contract, error: cError } = await supabase
-        .from("contracts")
-        .insert({
-          job_post_id: job.id,
-          proposal_id: proposalId,
-          parent_id: auth.user.id,
-          tutor_id: proposal.tutor_id,
-          amount: job.budget || 0,
-          currency: job.currency || "ETB",
-          status: "ACTIVE",
-        })
-        .select()
-        .single();
+      // Send contract offer using new RPC
+      const { data: contractId, error: cError } = await supabase.rpc(
+        "send_contract_offer",
+        {
+          p_job_post_id: job.id,
+          p_proposal_id: proposalId,
+          p_parent_id: auth.user.id,
+          p_tutor_id: proposal.tutorId,
+          p_amount: job.budget || 0,
+          p_currency: job.currency || "ETB",
+          p_description: `Contract for: ${job.title}`,
+        }
+      );
 
       if (cError) throw cError;
 
       setProposals((prev) =>
         prev.map((p) =>
           p.id === proposalId
-            ? { ...p, status: "ACCEPTED", contractId: contract.id }
-            : p,
+            ? { ...p, status: "ACCEPTED", contractId: contractId }
+            : { ...p, status: p.status === "SUBMITTED" ? "DECLINED" : p.status },
         ),
       );
-      window.location.href = `/contracts/${contract.id}`;
+      
+      setStatus("Contract offer sent! Waiting for tutor to accept.");
+      window.setTimeout(() => setStatus(null), 3000);
     } catch (e) {
       setStatus((e as Error).message);
     } finally {
@@ -635,6 +632,14 @@ export default function JobDetailForParentPage() {
                                 type="button"
                                 className="ui-btn ui-btn-primary"
                                 disabled={busyProposalId === p.id}
+                                onClick={() => onSendOffer(p.id)}
+                              >
+                                {busyProposalId === p.id ? "Sending Offer…" : "Send Offer"}
+                              </button>
+                              <button
+                                type="button"
+                                className="ui-btn ui-btn-secondary"
+                                disabled={busyProposalId === p.id}
                                 onClick={() => onShortlist(p.id)}
                               >
                                 {busyProposalId === p.id ? "Processing…" : "Shortlist"}
@@ -656,9 +661,9 @@ export default function JobDetailForParentPage() {
                                 type="button"
                                 className="ui-btn ui-btn-primary"
                                 disabled={busyProposalId === p.id}
-                                onClick={() => onAccept(p.id)}
+                                onClick={() => onSendOffer(p.id)}
                               >
-                                {busyProposalId === p.id ? "Accepting…" : "Hire"}
+                                {busyProposalId === p.id ? "Sending Offer…" : "Send Offer"}
                               </button>
                               <button
                                 type="button"

@@ -11,6 +11,7 @@ export type ProposalStatus =
   | "ACCEPTED"
   | "DECLINED";
 export type ContractStatus =
+  | "PENDING_ACCEPTANCE"
   | "PENDING_PAYMENT"
   | "ACTIVE"
   | "COMPLETED"

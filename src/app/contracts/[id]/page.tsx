@@ -15,6 +15,8 @@ import type {
 } from "../../../lib/types";
 import { useAuth, useI18n } from "../../providers";
 import { GoogleMapPicker } from "../../../components/maps/GoogleMapPicker";
+import { useContractReview } from "../../../hooks/useReviews";
+import { ReviewModal } from "../../_components/ReviewComponents";
 
 // NOTE: Payment intents now use Edge Functions.
 
@@ -45,7 +47,21 @@ export default function ContractDetailPage() {
     string | null
   >(null);
   const [milestoneBusyId, setMilestoneBusyId] = useState<string | null>(null);
+  const [completing, setCompleting] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showDeclineModal, setShowDeclineModal] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [completionReason, setCompletionReason] = useState("");
   const [status, setStatus] = useState<string | null>(null);
+
+  const COMPLETION_REASONS = [
+    "Work completed successfully",
+    "Work completed to satisfaction",
+    "No longer needed the service",
+    "Mutual agreement to end contract",
+    "Other"
+  ];
 
   const [form, setForm] = useState({ body: "", attachmentUrl: "" });
   const [milestoneForm, setMilestoneForm] = useState({
@@ -68,6 +84,11 @@ export default function ContractDetailPage() {
     locationLat: null as number | null,
     locationLng: null as number | null,
   });
+
+  const { canReview, existingReview, createReview } = useContractReview(
+    contractId || null,
+    auth?.user.id || null
+  );
 
   const helper = useMemo(() => {
     if (!auth) return t("state.loginRequired");
@@ -472,6 +493,92 @@ export default function ContractDetailPage() {
     }
   };
 
+  const onCompleteContract = async () => {
+    if (!auth || !contractId) return;
+    
+    if (!completionReason) {
+      setStatus("Please select a reason for completing this contract");
+      return;
+    }
+
+    setCompleting(true);
+    setStatus(null);
+    try {
+      const { error } = await supabase.rpc("complete_contract", {
+        p_contract_id: contractId,
+        p_user_id: auth.user.id,
+        p_reason: completionReason,
+      });
+
+      if (error) throw error;
+      
+      setShowCompleteModal(false);
+      // Reload contract data
+      await reload();
+      // Auto-open review modal
+      setShowReviewModal(true);
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setCompleting(false);
+    }
+  };
+
+  const handleReviewSuccess = () => {
+    setShowReviewModal(false);
+    setStatus("Review submitted successfully!");
+    window.setTimeout(() => setStatus(null), 3000);
+  };
+
+  const onAcceptOffer = async () => {
+    if (!auth || !contractId) return;
+    if (!window.confirm("Accept this contract offer?")) return;
+
+    setProcessing(true);
+    setStatus(null);
+    try {
+      const { error } = await supabase.rpc("accept_contract_offer", {
+        p_contract_id: contractId,
+        p_tutor_id: auth.user.id,
+      });
+
+      if (error) throw error;
+
+      await reload();
+      setStatus("Contract accepted! You can now start working.");
+      window.setTimeout(() => setStatus(null), 3000);
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const onDeclineOffer = async (reason: string) => {
+    if (!auth || !contractId) return;
+
+    setProcessing(true);
+    setStatus(null);
+    try {
+      const { error } = await supabase.rpc("decline_contract_offer", {
+        p_contract_id: contractId,
+        p_tutor_id: auth.user.id,
+        p_reason: reason,
+      });
+
+      if (error) throw error;
+
+      setShowDeclineModal(false);
+      await reload();
+      setStatus("Contract offer declined.");
+      window.setTimeout(() => setStatus(null), 3000);
+    } catch (e) {
+      setStatus((e as Error).message);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   return (
     <PageShell>
       <div className="mx-auto max-w-6xl">
@@ -511,6 +618,98 @@ export default function ContractDetailPage() {
                   </div>
                   <span className="pill text-xs">{contract.status}</span>
                 </div>
+
+                {/* PENDING ACCEPTANCE - Tutor needs to accept/decline */}
+                {contract.status === "PENDING_ACCEPTANCE" && (
+                  <div className="mt-4 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-amber-600">
+                          {auth?.user.id === contract.parentId 
+                            ? "Waiting for tutor response" 
+                            : "Contract offer received"}
+                        </p>
+                        <p className="text-sm text-[var(--foreground)]/60">
+                          {auth?.user.id === contract.parentId 
+                            ? "The tutor has not yet accepted your offer."
+                            : "Review the contract terms and accept or decline this offer."}
+                        </p>
+                      </div>
+                      {auth?.user.id === contract.tutorId && (
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            className="ui-btn ui-btn-primary"
+                            disabled={processing}
+                            onClick={onAcceptOffer}
+                          >
+                            {processing ? "Accepting…" : "Accept"}
+                          </button>
+                          <button
+                            type="button"
+                            className="ui-btn"
+                            disabled={processing}
+                            onClick={() => setShowDeclineModal(true)}
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Contract Completion Section */}
+                {contract.status === "ACTIVE" && (
+                  <div className="mt-4 p-4 bg-[var(--accent)]/10 rounded-lg border border-[var(--accent)]/20">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">Ready to complete?</p>
+                        <p className="text-sm text-[var(--foreground)]/60">
+                          Mark this contract as completed to leave a review
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="ui-btn ui-btn-primary"
+                        onClick={() => setShowCompleteModal(true)}
+                      >
+                        Complete Contract
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Review Section - Show when completed */}
+                {contract.status === "COMPLETED" && (
+                  <div className="mt-4 p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-green-600">Contract Completed</p>
+                        <p className="text-sm text-[var(--foreground)]/60">
+                          {existingReview 
+                            ? "You have already left a review for this contract."
+                            : canReview 
+                              ? "Share your experience by leaving a review."
+                              : "Reviews help other parents find great tutors."
+                          }
+                        </p>
+                      </div>
+                      {canReview && !existingReview && (
+                        <button
+                          type="button"
+                          className="ui-btn ui-btn-primary"
+                          onClick={() => setShowReviewModal(true)}
+                        >
+                          Leave Review
+                        </button>
+                      )}
+                      {existingReview && (
+                        <span className="text-sm text-green-600">✓ Review Submitted</span>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {auth?.user.role === "PARENT" &&
                   contract.status === "PENDING_PAYMENT" && (
@@ -969,6 +1168,114 @@ export default function ContractDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Review Modal */}
+      {contract && (
+        <ReviewModal
+          isOpen={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          contractId={contract.id}
+          jobPostId={contract.jobPostId}
+          tutorId={auth?.user.id === contract.parentId ? contract.tutorId : contract.parentId}
+          tutorName={auth?.user.id === contract.parentId 
+            ? (contract.tutor?.name ?? "Tutor")
+            : (contract.parent?.name ?? "Parent")
+          }
+          existingReview={existingReview}
+          onSuccess={handleReviewSuccess}
+        />
+      )}
+
+      {/* Decline Offer Modal */}
+      {showDeclineModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--card)] rounded-xl p-6 max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4">Decline Contract Offer</h3>
+            <p className="text-sm text-[var(--foreground)]/60 mb-4">
+              Please provide a reason for declining this offer (optional):
+            </p>
+            <textarea
+              className="ui-field w-full mb-4"
+              rows={3}
+              placeholder="Reason for declining..."
+              id="declineReason"
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                className="ui-btn"
+                onClick={() => setShowDeclineModal(false)}
+                disabled={processing}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="ui-btn ui-btn-primary"
+                onClick={() => {
+                  const reason = (document.getElementById("declineReason") as HTMLTextAreaElement)?.value;
+                  onDeclineOffer(reason);
+                }}
+                disabled={processing}
+              >
+                {processing ? "Declining…" : "Decline Offer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Complete Contract Modal */}
+      {showCompleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--card)] rounded-xl p-6 max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-2">Complete Contract</h3>
+            <p className="text-sm text-[var(--foreground)]/60 mb-4">
+              Mark this contract as completed. This action cannot be undone.
+            </p>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">
+                Reason for completion *
+              </label>
+              <select
+                className="ui-field w-full"
+                value={completionReason}
+                onChange={(e) => setCompletionReason(e.target.value)}
+              >
+                <option value="">Select a reason...</option>
+                {COMPLETION_REASONS.map((reason) => (
+                  <option key={reason} value={reason}>
+                    {reason}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                className="ui-btn"
+                onClick={() => {
+                  setShowCompleteModal(false);
+                  setCompletionReason("");
+                }}
+                disabled={completing}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="ui-btn ui-btn-primary"
+                onClick={onCompleteContract}
+                disabled={completing || !completionReason}
+              >
+                {completing ? "Completing…" : "Complete & Review"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PageShell>
   );
 }

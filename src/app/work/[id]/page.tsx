@@ -21,6 +21,7 @@ export default function WorkJobDetailPage() {
   const isTutor = auth?.user.role === "TUTOR";
 
   const [job, setJob] = useState<JobPost | null>(null);
+  const [existingProposal, setExistingProposal] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -49,14 +50,27 @@ export default function WorkJobDetailPage() {
       setLoading(true);
       setStatus(null);
       try {
-        const { data, error } = await supabase
+        // Fetch job details
+        const { data: jobData, error: jobError } = await supabase
           .from("job_posts")
           .select("*")
           .eq("id", jobId)
           .single();
 
-        if (error) throw error;
-        setJob(data as any);
+        if (jobError) throw jobError;
+        setJob(jobData as any);
+
+        // Check if tutor already submitted a proposal
+        const { data: proposalData } = await supabase
+          .from("proposals")
+          .select("*")
+          .eq("job_post_id", jobId)
+          .eq("tutor_id", auth.user.id)
+          .maybeSingle();
+
+        if (proposalData) {
+          setExistingProposal(proposalData);
+        }
       } catch (e) {
         setStatus((e as Error).message);
       } finally {
@@ -74,6 +88,12 @@ export default function WorkJobDetailPage() {
       return;
     }
 
+    // Check if already submitted
+    if (existingProposal) {
+      setStatus("You have already submitted a proposal for this job.");
+      return;
+    }
+
     setBusy(true);
     setStatus(null);
     try {
@@ -86,9 +106,16 @@ export default function WorkJobDetailPage() {
       });
 
       if (error) throw error;
-      setStatus("Proposal sent.");
+      setStatus("Proposal sent successfully!");
+      setForm({ message: "", fileUrl: "", videoUrl: "" });
     } catch (e) {
-      setStatus((e as Error).message);
+      const errorMsg = (e as Error).message;
+      if (errorMsg.includes("duplicate key")) {
+        setStatus("You have already submitted a proposal for this job.");
+        setExistingProposal({});
+      } else {
+        setStatus(errorMsg);
+      }
     } finally {
       setBusy(false);
     }
@@ -158,6 +185,36 @@ export default function WorkJobDetailPage() {
                 </p>
               </div>
 
+              {existingProposal ? (
+                <div className="surface-card surface-card--quiet p-5">
+                  <div className="flex items-start gap-3">
+                    <div className="text-2xl">✅</div>
+                    <div>
+                      <h2
+                        className="text-lg font-semibold"
+                        style={{ color: "var(--foreground)" }}
+                      >
+                        Proposal Already Submitted
+                      </h2>
+                      <p className="mt-1 text-sm ui-muted">
+                        You have already submitted a proposal for this job. The parent will review it and contact you if interested.
+                      </p>
+                      <div className="mt-3 p-3 bg-[var(--muted)]/30 rounded-lg">
+                        <p className="text-sm font-medium">Your proposal:</p>
+                        <p className="text-sm ui-muted mt-1" style={{ whiteSpace: "pre-wrap" }}>
+                          {existingProposal.message}
+                        </p>
+                      </div>
+                      <Link
+                        href="/work/proposals"
+                        className="ui-btn ui-btn-primary mt-4 inline-block"
+                      >
+                        View My Proposals
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : (
               <div className="surface-card surface-card--quiet p-5">
                 <h2
                   className="text-lg font-semibold"
@@ -208,6 +265,7 @@ export default function WorkJobDetailPage() {
                   </button>
                 </div>
               </div>
+              )}
             </div>
           )}
         </div>
