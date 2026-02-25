@@ -1,6 +1,7 @@
 {
-  "name": "web",
-  "version": "0.1.0",
+  "name": "tutorhub",
+  "version": "1.0.0",
+  "description": "Open source tutor marketplace built with Next.js 15 and Supabase",
   "private": true,
   "scripts": {
     "dev": "next dev",
