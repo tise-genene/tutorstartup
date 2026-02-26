@@ -226,6 +226,7 @@ html[lang="am"] body {
   .pill {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     border-radius: 9999px;
     border: 1px solid var(--border);
     padding: 0.25rem 0.75rem;
@@ -233,6 +234,17 @@ html[lang="am"] body {
     font-weight: 500;
     background-color: var(--input);
     transition: all 0.2s ease;
+  }
+
+  .pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .pill-accent {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+    color: white;
+    border: none;
   }
 
   .pill:hover {
@@ -284,6 +296,16 @@ html[lang="am"] body {
     50% { opacity: 0.7; }
   }
 
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
   .animate-fade-in {
     animation: fadeIn 0.3s ease-out;
   }
@@ -302,6 +324,16 @@ html[lang="am"] body {
 
   .animate-pulse-soft {
     animation: pulse-soft 2s ease-in-out infinite;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
   }
 
   .animate-delay-100 { animation-delay: 0.1s; }
