@@ -361,6 +361,24 @@ function LogOutIcon() {
   );
 }
 
+function MessageIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+    </svg>
+  );
+}
+
 // Hook to close dropdowns when clicking outside
 function useClickOutside(ref: React.RefObject<HTMLElement | null>, handler: () => void) {
   useEffect(() => {
@@ -489,30 +507,26 @@ export function AppHeader() {
       )}
       <div className="mx-auto max-w-7xl">
         <div className="relative rounded-xl border border-[var(--border)] bg-[var(--card)]/90 backdrop-blur-lg shadow-sm">
-          <div className="relative flex w-full flex-wrap items-center gap-3 md:flex-nowrap md:justify-between px-4 py-3 md:px-6">
-            {/* Logo Section */}
-            <div className="flex w-full items-center justify-between gap-2 md:w-auto md:gap-4">
-              <button
-                type="button"
-                className="ui-btn ui-btn-ghost md:hidden px-2.5"
-                onClick={toggleMobile}
-                aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
-                aria-expanded={mobileOpen}
-              >
-                <span className="text-base" aria-hidden>
-                  {mobileOpen ? <CloseIcon /> : <MenuIcon />}
-                </span>
-              </button>
+          <div className="relative flex w-full flex-wrap items-center justify-between gap-3 md:flex-nowrap md:justify-between px-4 py-3 md:px-6">
+            {/* Left: Hamburger on mobile */}
+            <button
+              type="button"
+              className="md:hidden p-2 -ml-2"
+              onClick={toggleMobile}
+              aria-label="Menu"
+            >
+              <MenuIcon />
+            </button>
 
-              <Link
-                href={homeHref}
-                className="flex flex-1 items-center justify-center gap-2 md:flex-auto md:justify-start group"
-              >
-                <span className="text-xl font-bold tracking-tight group-hover:text-[var(--accent)] transition-colors">
-                  {BRAND_NAME}
-                </span>
+            {/* Logo - centered on mobile */}
+            <div className="flex-1 flex justify-center md:flex-none md:justify-start">
+              <Link href={homeHref} className="text-xl font-bold tracking-tight group-hover:text-[var(--accent)] transition-colors">
+                {BRAND_NAME}
               </Link>
             </div>
+
+            {/* Right: Spacer for balance on mobile */}
+            <div className="md:hidden w-10" />
 
             {/* Desktop Navigation */}
             <nav
@@ -928,317 +942,136 @@ export function AppHeader() {
                 </span>
               </button>
             </nav>
-
-            {/* Mobile Navigation */}
-            {mobileOpen && (
-              <div className="md:hidden">
-                <div
-                  className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-fade-in"
-                  aria-hidden
-                  onClick={closeMenus}
-                />
-                <div className="fixed left-0 top-0 z-50 h-full w-80 max-w-[85vw] border-r border-[var(--border)] bg-[var(--card)] shadow-2xl animate-slide-in-left">
-                  {/* Mobile Header */}
-                  <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
-                    <span className="text-lg font-bold">{BRAND_NAME}</span>
-                    <button
-                      type="button"
-                      onClick={closeMenus}
-                      className="ui-btn ui-btn-ghost p-2"
-                      aria-label="Close menu"
-                    >
-                      <CloseIcon />
-                    </button>
-                  </div>
-
-                  {/* Mobile Menu Content */}
-                  <div className="flex flex-col gap-1 p-4 overflow-y-auto max-h-[calc(100vh-80px)]">
-                    {/* GUEST MOBILE NAV */}
-                    {!auth && (
-                      <>
-                        <Link
-                          href="/"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <HomeIcon />
-                          {t("nav.home")}
-                        </Link>
-
-                        <div className="mt-2 px-3 text-xs font-semibold text-[var(--foreground)]/50 uppercase tracking-wider">
-                          {t("nav.popularSubjects")}
-                        </div>
-                        {subjectCategories.map((subject) => (
-                          <Link
-                            key={subject.name}
-                            href={subject.href}
-                            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                            onClick={closeMenus}
-                          >
-                            <BookOpenIcon />
-                            {subject.name}
-                          </Link>
-                        ))}
-
-                        <div className="h-px w-full bg-[var(--border)] my-3" />
-
-                        <Link
-                          href="/tutors/search"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <SearchIcon />
-                          {t("nav.browseAll")}
-                        </Link>
-
-                        <Link
-                          href="/support"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <HelpCircleIcon />
-                          {t("nav.howItWorks")}
-                        </Link>
-
-                        <div className="h-px w-full bg-[var(--border)] my-3" />
-
-                        <Link
-                          href="/auth/login"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          {t("nav.login")}
-                        </Link>
-                        <Link
-                          href="/auth/register"
-                          className="flex items-center justify-center gap-2 rounded-lg bg-[var(--accent)] text-white px-3 py-3 text-sm font-medium hover:opacity-90 transition-opacity"
-                          onClick={closeMenus}
-                        >
-                          {t("nav.register")}
-                        </Link>
-                      </>
-                    )}
-
-                    {/* CLIENT MOBILE NAV */}
-                    {isClient && (
-                      <>
-                        <div className="mb-2 px-3 py-2 bg-[var(--accent)]/5 rounded-lg">
-                          <div className="font-semibold text-sm">{auth?.user.name}</div>
-                          <div className="text-xs text-[var(--foreground)]/60">{auth?.user.email}</div>
-                        </div>
-
-                        <Link
-                          href="/dashboard"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <HomeIcon />
-                          {t("nav.dashboard")}
-                        </Link>
-
-                        <Link
-                          href="/tutors/search"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <SearchIcon />
-                          {t("nav.findTutors")}
-                        </Link>
-
-                        <Link
-                          href="/jobs/post"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <FileTextIcon />
-                          {t("nav.postJob")}
-                        </Link>
-
-                        <Link
-                          href="/jobs/mine"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <BriefcaseIcon />
-                          {t("nav.myJobs")}
-                        </Link>
-
-                        <Link
-                          href="/contracts"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <DollarSignIcon />
-                          {t("nav.contracts")}
-                        </Link>
-
-                        <div className="h-px w-full bg-[var(--border)] my-3" />
-
-                        <Link
-                          href="/account"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <SettingsIcon />
-                          {t("nav.account")}
-                        </Link>
-
-                        <Link
-                          href="/support"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <HelpCircleIcon />
-                          {t("nav.support")}
-                        </Link>
-
-                        <div className="h-px w-full bg-[var(--border)] my-3" />
-
-                        <Link
-                          href="/auth/logout"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <LogOutIcon />
-                          {t("nav.logout")}
-                        </Link>
-                      </>
-                    )}
-
-                    {/* TUTOR MOBILE NAV */}
-                    {isTutor && (
-                      <>
-                        <div className="mb-2 px-3 py-2 bg-[var(--accent)]/5 rounded-lg">
-                          <div className="font-semibold text-sm">{auth?.user.name}</div>
-                          <div className="text-xs text-[var(--foreground)]/60">{auth?.user.email}</div>
-                        </div>
-
-                        <Link
-                          href="/work"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <BriefcaseIcon />
-                          {t("nav.findWork")}
-                        </Link>
-
-                        <Link
-                          href="/work/proposals"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <FileTextIcon />
-                          {t("nav.proposals")}
-                        </Link>
-
-                        <Link
-                          href="/work/saved"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <HeartIcon />
-                          {t("nav.savedJobs")}
-                        </Link>
-
-                        <Link
-                          href="/contracts"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <DollarSignIcon />
-                          {t("nav.contracts")}
-                        </Link>
-
-                        <div className="h-px w-full bg-[var(--border)] my-3" />
-
-                        <Link
-                          href="/tutor/profile"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <UserIcon />
-                          {t("nav.profile")}
-                        </Link>
-
-                        <Link
-                          href="/tutor/requests"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <span className="relative">
-                            {t("nav.requests")}
-                            {pendingRequests > 0 && (
-                              <span className="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white px-1.5">
-                                {pendingRequests}
-                              </span>
-                            )}
-                          </span>
-                        </Link>
-
-                        <div className="h-px w-full bg-[var(--border)] my-3" />
-
-                        <Link
-                          href="/account"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <SettingsIcon />
-                          {t("nav.account")}
-                        </Link>
-
-                        <Link
-                          href="/support"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--accent)]/10 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <HelpCircleIcon />
-                          {t("nav.support")}
-                        </Link>
-
-                        <div className="h-px w-full bg-[var(--border)] my-3" />
-
-                        <Link
-                          href="/auth/logout"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                          onClick={closeMenus}
-                        >
-                          <LogOutIcon />
-                          {t("nav.logout")}
-                        </Link>
-                      </>
-                    )}
-
-                    {/* Mobile Settings */}
-                    <div className="mt-4 pt-4 border-t border-[var(--border)]">
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            toggleTheme();
-                          }}
-                          className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[var(--border)] px-3 py-2.5 text-sm hover:bg-[var(--accent)]/5 transition-colors"
-                        >
-                          {effectiveTheme === "dark" ? <MoonIcon /> : <SunIcon />}
-                          {effectiveTheme === "dark" ? t("nav.darkMode") : t("nav.lightMode")}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setLocale(locale === "en" ? "am" : "en");
-                          }}
-                          className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[var(--border)] px-3 py-2.5 text-sm hover:bg-[var(--accent)]/5 transition-colors"
-                        >
-                          <GlobeIcon />
-                          {locale === "en" ? "Amharic" : "English"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
+      </div>
+
+      {/* Mobile Drawer - shows when hamburger clicked */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-[9998] md:hidden">
+          <div className="fixed inset-0 bg-black/50" onClick={closeMenus} />
+          <div className="fixed bottom-0 left-0 right-0 top-auto z-[9999] bg-[var(--card)] rounded-t-2xl p-4 pb-24 animate-slide-up">
+            <div className="flex justify-between items-center mb-4">
+              <span className="font-bold">Menu</span>
+              <button onClick={closeMenus} className="p-2">
+                <CloseIcon />
+              </button>
+            </div>
+            <div className="space-y-2">
+              {!auth && (
+                <>
+                  <Link href="/" className="block p-3 rounded-lg hover:bg-[var(--accent)]/10" onClick={closeMenus}>Home</Link>
+                  <Link href="/tutors/search" className="block p-3 rounded-lg hover:bg-[var(--accent)]/10" onClick={closeMenus}>Find Tutors</Link>
+                  <Link href="/support" className="block p-3 rounded-lg hover:bg-[var(--accent)]/10" onClick={closeMenus}>Help</Link>
+                  <Link href="/auth/login" className="block p-3 rounded-lg hover:bg-[var(--accent)]/10" onClick={closeMenus}>Login</Link>
+                  <Link href="/auth/register" className="block p-3 rounded-lg bg-[var(--accent)] text-white text-center font-medium" onClick={closeMenus}>Get Started</Link>
+                </>
+              )}
+              {auth && isClient && (
+                <>
+                  <Link href="/dashboard" className="block p-3 rounded-lg hover:bg-[var(--accent)]/10" onClick={closeMenus}>Dashboard</Link>
+                  <Link href="/tutors/search" className="block p-3 rounded-lg hover:bg-[var(--accent)]/10" onClick={closeMenus}>Find Tutors</Link>
+                  <Link href="/jobs/post" className="block p-3 rounded-lg hover:bg-[var(--accent)]/10" onClick={closeMenus}>Post a Job</Link>
+                  <Link href="/messages" className="block p-3 rounded-lg hover:bg-[var(--accent)]/10" onClick={closeMenus}>Messages</Link>
+                  <Link href="/account" className="block p-3 rounded-lg hover:bg-[var(--accent)]/10" onClick={closeMenus}>Account</Link>
+                </>
+              )}
+              {auth && isTutor && (
+                <>
+                  <Link href="/work" className="block p-3 rounded-lg hover:bg-[var(--accent)]/10" onClick={closeMenus}>Find Jobs</Link>
+                  <Link href="/tutor/profile" className="block p-3 rounded-lg hover:bg-[var(--accent)]/10" onClick={closeMenus}>My Profile</Link>
+                  <Link href="/messages" className="block p-3 rounded-lg hover:bg-[var(--accent)]/10" onClick={closeMenus}>Messages</Link>
+                  <Link href="/contracts" className="block p-3 rounded-lg hover:bg-[var(--accent)]/10" onClick={closeMenus}>Contracts</Link>
+                  <Link href="/account" className="block p-3 rounded-lg hover:bg-[var(--accent)]/10" onClick={closeMenus}>Account</Link>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Bottom Tab Bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[9999] bg-[var(--card)] border-t border-[var(--border)] pb-2 pt-1">
+        {!auth && (
+          <div className="flex justify-around py-2">
+            <Link href="/" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px]">
+              <HomeIcon />
+              <span className="text-[10px]">Home</span>
+            </Link>
+            <Link href="/tutors/search" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px]">
+              <SearchIcon />
+              <span className="text-[10px]">Find</span>
+            </Link>
+            <Link href="/auth/register" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px] -mt-3">
+              <div className="h-11 w-11 rounded-full bg-[var(--accent)] flex items-center justify-center shadow-lg">
+                <span className="text-white text-xl font-bold">+</span>
+              </div>
+              <span className="text-[10px] text-[var(--accent)] font-medium">Join</span>
+            </Link>
+            <Link href="/support" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px]">
+              <HelpCircleIcon />
+              <span className="text-[10px]">Help</span>
+            </Link>
+            <Link href="/auth/login" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px]">
+              <UserIcon />
+              <span className="text-[10px]">Login</span>
+            </Link>
+          </div>
+        )}
+        {auth && isClient && (
+          <div className="flex justify-around py-2">
+            <Link href="/dashboard" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px]">
+              <HomeIcon />
+              <span className="text-[10px]">Home</span>
+            </Link>
+            <Link href="/tutors/search" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px]">
+              <SearchIcon />
+              <span className="text-[10px]">Find</span>
+            </Link>
+            <Link href="/jobs/post" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px] -mt-3">
+              <div className="h-11 w-11 rounded-full bg-[var(--accent)] flex items-center justify-center shadow-lg">
+                <span className="text-white text-xl font-bold">+</span>
+              </div>
+              <span className="text-[10px] text-[var(--accent)] font-medium">Post</span>
+            </Link>
+            <Link href="/messages" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px] relative">
+              <MessageIcon />
+              {totalUnreadCount > 0 && <span className="absolute top-0 right-2 h-2.5 w-2.5 rounded-full bg-red-500" />}
+              <span className="text-[10px]">Chat</span>
+            </Link>
+            <Link href="/account" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px]">
+              <UserIcon />
+              <span className="text-[10px]">Account</span>
+            </Link>
+          </div>
+        )}
+        {auth && isTutor && (
+          <div className="flex justify-around py-2">
+            <Link href="/work" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px]">
+              <BriefcaseIcon />
+              <span className="text-[10px]">Jobs</span>
+            </Link>
+            <Link href="/tutor/profile" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px]">
+              <UserIcon />
+              <span className="text-[10px]">Profile</span>
+            </Link>
+            <Link href="/messages" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px] -mt-3 relative">
+              <div className="h-11 w-11 rounded-full bg-[var(--accent)] flex items-center justify-center shadow-lg">
+                <MessageIcon />
+              </div>
+              {totalUnreadCount > 0 && <span className="absolute top-0 right-2 h-2.5 w-2.5 rounded-full bg-red-500" />}
+              <span className="text-[10px] text-[var(--accent)]">Chat</span>
+            </Link>
+            <Link href="/contracts" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px]">
+              <BriefcaseIcon />
+              <span className="text-[10px]">Work</span>
+            </Link>
+            <Link href="/account" className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[60px]">
+              <SettingsIcon />
+              <span className="text-[10px]">Account</span>
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   );
