@@ -92,7 +92,10 @@ export function Stats() {
   ];
 
   return (
-    <section className="section-shell space-y-12">
+    <section className="section-shell space-y-12 relative">
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -/2 -translate-y-1/translate-x-12 w-[800px] h-[400px] bg-gradient-to-r from-[var(--accent)]/5 via-transparent to-blue-500/5 rounded-full blur-3xl" />
+      </div>
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between border-b border-[var(--border)] pb-8">
         <div className="space-y-2">
           <p className="text-xs font-bold tracking-widest ui-muted uppercase">
@@ -102,7 +105,7 @@ export function Stats() {
             {t("home.partners.title")}
           </p>
         </div>
-        <div className="flex flex-wrap gap-x-8 gap-y-4 text-sm font-medium text-[var(--foreground)] opacity-60">
+        <div className="flex flex-wrap gap-x-8 gap-y-4 text-sm font-medium text-[var(--foreground)] opacity-50">
           {partnerLogos.map((logo) => (
             <span key={logo} className="hover:opacity-100 transition-opacity cursor-default">
               {logo}
@@ -114,15 +117,16 @@ export function Stats() {
         {stats.map((stat, index) => (
           <div
             key={stat.label}
-            className="surface-panel p-8 card-hover animate-slide-up"
+            className="surface-panel p-8 card-hover animate-slide-up relative overflow-hidden"
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            <div className="flex items-start justify-between mb-4">
-              <div className={`p-3 rounded-xl bg-[var(--input)] ${stat.color}`}>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[var(--accent)]/5 to-transparent rounded-full blur-2xl" />
+            <div className="flex items-start justify-between mb-4 relative">
+              <div className={`p-3.5 rounded-xl bg-gradient-to-br from-[var(--accent)]/10 to-[var(--accent)]/5 ${stat.color}`}>
                 <stat.icon />
               </div>
             </div>
-            <p className="text-4xl font-bold tracking-tight text-[var(--foreground)]">
+            <p className="text-4xl font-bold tracking-tight text-[var(--foreground)] bg-gradient-to-r from-[var(--foreground)] to-[var(--foreground)]/80 bg-clip-text text-transparent">
               {stat.value}
             </p>
             <p className="mt-3 text-sm ui-muted font-medium">{stat.label}</p>
