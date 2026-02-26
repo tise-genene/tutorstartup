@@ -1,4 +1,4 @@
-# TutorHub - Open Source Tutor Marketplace
+# TutorHub
 
 A modern tutor marketplace built with Next.js 15 and Supabase. Connect students with tutors, manage bookings, handle payments, and more.
 
