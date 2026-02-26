@@ -2,159 +2,134 @@
 
 import { PageShell } from "../_components/PageShell";
 import Link from "next/link";
+import { useState } from "react";
+
+function MailIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+    </svg>
+  );
+}
+
+function PhoneIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg className={`w-5 h-5 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+    </svg>
+  );
+}
+
+const faqs = [
+  {
+    q: "How do I find a tutor?",
+    a: "Post a job with your requirements. Qualified tutors will apply with proposals. Review their profiles, interview them, and choose the best match."
+  },
+  {
+    q: "How do payments work?",
+    a: "Parents fund milestones upfront through our secure system. Funds are held safely until work is completed and approved."
+  },
+  {
+    q: "What if I'm not satisfied?",
+    a: "We encourage clear communication upfront. If issues arise, request revisions or use our dispute resolution process. Your funds are protected."
+  },
+  {
+    q: "How are tutors verified?",
+    a: "All tutors go through verification including identity and qualification checks. You can also see reviews from other parents."
+  },
+  {
+    q: "Can I interview tutors before hiring?",
+    a: "Absolutely! Schedule video calls through our platform to discuss your needs and ensure it's a good fit."
+  }
+];
 
 export default function SupportPage() {
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
   return (
     <PageShell>
-      <div className="mx-auto max-w-4xl space-y-8">
+      <div className="max-w-3xl mx-auto space-y-12">
         {/* Header */}
-        <div className="glass-panel p-8 sm:p-12 text-center">
-          <h1 className="text-3xl font-semibold sm:text-4xl">
+        <div className="text-center space-y-4 pt-8">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
             How Can We Help?
           </h1>
-          <p className="mt-4 text-lg text-[var(--foreground)]/60 max-w-2xl mx-auto">
-            Get support, find answers, and learn how to make the most of Tutorstartup
+          <p className="text-lg text-[var(--foreground)]/60 max-w-lg mx-auto">
+            Find answers, get support, and learn how to make the most of TutorHub
           </p>
         </div>
 
-        {/* Quick Help Categories */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* For Parents */}
-          <div className="glass-panel p-6">
-            <div className="text-3xl mb-4">👨‍👩‍👧‍👦</div>
-            <h2 className="text-xl font-semibold mb-3">For Parents</h2>
-            <ul className="space-y-2 text-sm text-[var(--foreground)]/70">
-              <li>• <Link href="/how-it-works" className="text-[var(--accent)] hover:underline">How to post a job</Link></li>
-              <li>• Finding the right tutor</li>
-              <li>• Interviewing tutors</li>
-              <li>• Managing contracts</li>
-              <li>• Payment & billing</li>
-            </ul>
-          </div>
+        {/* Quick Links */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Link
+            href="/how-it-works"
+            className="surface-panel p-4 text-center card-hover"
+          >
+            <p className="font-medium text-sm">How It Works</p>
+          </Link>
+          <Link
+            href="/tutors/search"
+            className="surface-panel p-4 text-center card-hover"
+          >
+            <p className="font-medium text-sm">Find a Tutor</p>
+          </Link>
+          <Link
+            href="/auth/register"
+            className="surface-panel p-4 text-center card-hover"
+          >
+            <p className="font-medium text-sm">Become a Tutor</p>
+          </Link>
+        </div>
 
-          {/* For Tutors */}
-          <div className="glass-panel p-6">
-            <div className="text-3xl mb-4">🎓</div>
-            <h2 className="text-xl font-semibold mb-3">For Tutors</h2>
-            <ul className="space-y-2 text-sm text-[var(--foreground)]/70">
-              <li>• <Link href="/how-it-works" className="text-[var(--accent)] hover:underline">Creating your profile</Link></li>
-              <li>• Applying to jobs</li>
-              <li>• Setting your availability</li>
-              <li>• Managing contracts</li>
-              <li>• Getting paid</li>
-            </ul>
-          </div>
-
-          {/* Safety & Trust */}
-          <div className="glass-panel p-6">
-            <div className="text-3xl mb-4">🛡️</div>
-            <h2 className="text-xl font-semibold mb-3">Safety & Trust</h2>
-            <ul className="space-y-2 text-sm text-[var(--foreground)]/70">
-              <li>• Verification process</li>
-              <li>• Safety guidelines</li>
-              <li>• Reporting issues</li>
-              <li>• Dispute resolution</li>
-              <li>• Privacy policy</li>
-            </ul>
+        {/* FAQ */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Frequently Asked Questions</h2>
+          <div className="space-y-2">
+            {faqs.map((faq, i) => (
+              <div
+                key={i}
+                className="surface-panel overflow-hidden"
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between p-4 text-left"
+                >
+                  <span className="font-medium text-sm">{faq.q}</span>
+                  <ChevronIcon open={openFaq === i} />
+                </button>
+                {openFaq === i && (
+                  <div className="px-4 pb-4 text-sm text-[var(--foreground)]/70 animate-slide-down">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* FAQ Section */}
-        <div className="glass-panel p-8">
-          <h2 className="text-2xl font-semibold mb-6">Frequently Asked Questions</h2>
-          
-          <div className="space-y-6">
-            <div>
-              <h3 className="font-semibold text-lg mb-2">How do I find a tutor?</h3>
-              <p className="text-[var(--foreground)]/70">
-                Post a job with your requirements (subject, grade level, schedule, budget). 
-                Qualified tutors will apply with their proposals. You can review their profiles, 
-                interview them, and choose the best match.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-lg mb-2">How do payments work?</h3>
-              <p className="text-[var(--foreground)]/70">
-                Parents fund milestones upfront through our secure payment system. 
-                Funds are held safely until work is completed and approved. Tutors 
-                receive payment after milestone completion.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-lg mb-2">What if I'm not satisfied?</h3>
-              <p className="text-[var(--foreground)]/70">
-                We encourage clear communication and setting expectations upfront. 
-                If issues arise, you can request revisions or use our dispute 
-                resolution process. Your funds are protected until you're satisfied.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-lg mb-2">How are tutors verified?</h3>
-              <p className="text-[var(--foreground)]/70">
-                All tutors go through a verification process including identity 
-                verification and qualification checks. You can also see reviews 
-                from other parents to make informed decisions.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Can I interview tutors before hiring?</h3>
-              <p className="text-[var(--foreground)]/70">
-                Absolutely! We encourage interviews. You can schedule video calls 
-                through our platform to discuss your needs, teaching approach, 
-                and ensure it's a good fit before making a decision.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Contact Section */}
-        <div className="glass-panel p-8 text-center">
-          <h2 className="text-2xl font-semibold mb-4">Still Need Help?</h2>
-          <p className="text-[var(--foreground)]/70 mb-6">
-            Our support team is here to help you with any questions or issues.
+        {/* Contact */}
+        <div className="surface-panel p-6 text-center space-y-4">
+          <h3 className="font-semibold">Still need help?</h3>
+          <p className="text-sm text-[var(--foreground)]/60">
+            Our team is available Mon-Fri, 9AM-6PM EAT
           </p>
-          
-          <div className="flex flex-wrap justify-center gap-4">
-            <a 
-              href="mailto:support@tutorstartup.com" 
-              className="ui-btn ui-btn-primary"
-            >
-              📧 Email Support
+          <div className="flex justify-center gap-3">
+            <a href="mailto:support@tutorhub.com" className="ui-btn ui-btn-primary text-sm">
+              <MailIcon />
+              <span className="ml-2">Email</span>
             </a>
-            <a 
-              href="tel:+251911234567" 
-              className="ui-btn"
-            >
-              📞 Call Us
+            <a href="tel:+251911234567" className="ui-btn ui-btn-secondary text-sm">
+              <PhoneIcon />
+              <span className="ml-2">Call</span>
             </a>
-          </div>
-
-          <div className="mt-6 text-sm text-[var(--foreground)]/50">
-            <p>Support Hours: Monday - Friday, 9:00 AM - 6:00 PM EAT</p>
-            <p className="mt-1">Response time: Usually within 24 hours</p>
-          </div>
-        </div>
-
-        {/* Trust Badges */}
-        <div className="grid gap-4 md:grid-cols-3 text-center">
-          <div className="p-4">
-            <div className="text-2xl mb-2">🔒</div>
-            <p className="font-medium">Secure Payments</p>
-            <p className="text-sm text-[var(--foreground)]/60">Your money is protected</p>
-          </div>
-          <div className="p-4">
-            <div className="text-2xl mb-2">✅</div>
-            <p className="font-medium">Verified Tutors</p>
-            <p className="text-sm text-[var(--foreground)]/60">Background checked</p>
-          </div>
-          <div className="p-4">
-            <div className="text-2xl mb-2">⭐</div>
-            <p className="font-medium">Quality Guarantee</p>
-            <p className="text-sm text-[var(--foreground)]/60">Satisfaction focused</p>
           </div>
         </div>
       </div>
