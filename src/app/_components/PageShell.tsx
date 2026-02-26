@@ -4,9 +4,9 @@ import { ChatWidget } from "./ChatWidget";
 
 export function PageShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <AppHeader />
-      <main id="main" className="px-4 pb-16 pt-10 md:px-10">
+      <main id="main" className="flex-1">
         {children}
       </main>
       <ChatWidget />
