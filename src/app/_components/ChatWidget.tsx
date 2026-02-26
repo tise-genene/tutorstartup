@@ -333,7 +333,7 @@ export function ChatWidget() {
   };
 
   return (
-    <div style={{ position: "fixed", right: 18, bottom: 18, zIndex: 70 }}>
+    <div style={{ position: "fixed", right: 18, bottom: 18, zIndex: 90 }}>
       {open && (
         <div
           className="glass-panel"
