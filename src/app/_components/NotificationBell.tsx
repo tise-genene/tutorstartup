@@ -120,7 +120,7 @@ export function NotificationBell({ className = "" }: NotificationBellProps) {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-xl z-50 animate-scale-in">
+        <div className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-xl z-[150] animate-scale-in">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
             <h3 className="font-semibold">Notifications</h3>
